@@ -1,0 +1,6 @@
+[submodule "AmbisonicPlayer/addons/ofxAudioFile"]
+	path = AmbisonicPlayer/addons/ofxAudioFile
+	url = https://github.com/npisanti/ofxAudioFile.git
+[submodule "AmbisonicPlayer/addons/ofxBRT/libs"]
+	path = AmbisonicPlayer/addons/ofxBRT/libs
+	url = https://github.com/GrupoDiana/BRTLibrary.git
