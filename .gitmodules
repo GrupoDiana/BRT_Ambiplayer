@@ -1,0 +1,6 @@
+[submodule "addons/ofxBRTLibrary"]
+	path = addons/ofxBRTLibrary
+	url = https://github.com/GrupoDiana/ofxBRTLibrary.git
+[submodule "addons/ofxImGui"]
+	path = addons/ofxImGui
+	url = https://github.com/jvcleave/ofxImGui.git

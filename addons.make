@@ -1,2 +1,3 @@
-addons/ofxBRT
+addons/ofxBRTLibrary
 addons/ofxAudioFile
+addons/ofxImGui
