@@ -420,6 +420,9 @@
     <Filter Include="local_addons\ofxImGui\libs\imgui\src">
       <UniqueIdentifier>{6C9014F6--D9B-C-45-06-B-673-767214065D25}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\GUI">
+      <UniqueIdentifier>{4d4c6107-2a28-40b1-bead-a493d7b50f47}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ofApp.h">
@@ -3721,6 +3724,9 @@
     </ClInclude>
     <ClInclude Include="addons\ofxImGui\libs\imgui\src\imstb_truetype.h">
       <Filter>local_addons\ofxImGui\libs\imgui\src</Filter>
+    </ClInclude>
+    <ClInclude Include="GuiManager.hpp">
+      <Filter>src\GUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
