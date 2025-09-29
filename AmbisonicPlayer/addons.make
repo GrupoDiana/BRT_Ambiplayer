@@ -1,2 +1,0 @@
-addons/ofxBRT
-addons/ofxAudioFile
