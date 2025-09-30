@@ -3,10 +3,10 @@
 //--------------------------------------------------------------
 void ofApp::setup() {
 	// Setup GUI callbacks
-	/* guiManager.onPlay = [this]() {
+	guiManager.onPlay = [this]() {
 		ofLog() << "Play button pressed!";
-		//Logica para "Play"
-	};*/
+		//Play logic
+	};
 }
 
 //--------------------------------------------------------------

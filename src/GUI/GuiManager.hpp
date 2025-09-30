@@ -14,15 +14,19 @@ public:
 	void draw() {
 		gui.begin();
 
-		// Simple window with a Play button
-		ImGui::Begin("Control Panel");
+		static bool ImGuiChildFlags_Borders = true;
 
-		if (ImGui::Button("PLAY")) {
+		// Simple window with a Play button
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
+		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
+		ImGui::BeginChild("ChildR", ImVec2(100, 260), ImGuiChildFlags_Borders, window_flags);
+
+		 if (ImGui::Button("PLAY")) {
 			if (onPlay) onPlay(); // callback
 		}
-
-		ImGui::End();
-		gui.end();
+		
+		ImGui::EndChild();
+		ImGui::PopStyleVar();
 	}
 
 	// Callback for the Play button

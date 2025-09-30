@@ -3728,6 +3728,15 @@
     <ClInclude Include="GuiManager.hpp">
       <Filter>src\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="AmbisonicProcessor.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="AmbisonicSoundFieldController.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="LoudspeakerArrayController.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="icon.rc" />
