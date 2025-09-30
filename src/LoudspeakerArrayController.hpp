@@ -3,9 +3,8 @@
 
 #include "AmbisonicSoundFieldController.hpp"
 #include "ofxAudioFile.h"
-#include "ofxBRT.h"
+#include "ofxBRTLibrary.h"
 
-#include <BRTLibrary.h>
 #include <memory>
 #include <vector>
 

@@ -3,9 +3,8 @@
 
 #include "LoudspeakerArrayController.hpp"
 #include "ofxAudioFile.h"
-#include "ofxBRT.h"
+#include "ofxBRTLibrary.h"
 
-#include <BRTLibrary.h>
 #include <Common/Buffer.hpp>
 #include <cmath>
 #include <string>

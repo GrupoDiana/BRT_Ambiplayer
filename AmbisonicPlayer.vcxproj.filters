@@ -3728,13 +3728,13 @@
     <ClInclude Include="GuiManager.hpp">
       <Filter>src\GUI</Filter>
     </ClInclude>
-    <ClInclude Include="AmbisonicProcessor.hpp">
+    <ClInclude Include="src\AmbisonicProcessor.hpp">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="AmbisonicSoundFieldController.hpp">
+    <ClInclude Include="src\AmbisonicSoundFieldController.hpp">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="LoudspeakerArrayController.hpp">
+    <ClInclude Include="src\LoudspeakerArrayController.hpp">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

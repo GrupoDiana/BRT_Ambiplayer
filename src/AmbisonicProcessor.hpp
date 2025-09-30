@@ -3,9 +3,8 @@
 
 #include "LoudspeakerArrayController.hpp"
 #include "ofxAudioFile.h"
-#include "ofxBRT.h"
+#include "ofxBRTLibrary.h"
 
-#include <BRTLibrary.h>
 #include <Common/Buffer.hpp>
 #include <cmath>
 #include <string>
@@ -31,14 +30,29 @@ public:
 
 	//Prototype
 	CAmbisonicProcessor & operator+=(const CAmbisonicProcessor & other) {
-		//...
+		if (numChannels != other.numChannels || blockSize != other.blockSize) {
+			throw std::runtime_error("Cannot sum ambisonic blocks with different dimensions");
+		}
+		for (size_t ch = 0; ch < numChannels; ++ch) {
+			soundFieldSampleArray[ch] += other.soundFieldSampleArray[ch];
+		}
+		return *this;
 	}
 
 	CAmbisonicProcessor operator+(const CAmbisonicProcessor & other) const {
-		//...
+		CAmbisonicProcessor result = *this;
+		result += other;
+		return result;
 	}
 
 private:
+
+	size_t ambisonicOrder;
+	size_t numChannels;
+	size_t sampleRate;
+	int blockSize;
+
+	std::vector<CMonoBuffer<float>> soundFieldSampleArray;
 };
 
 #endif // _CAMBISONIC_PROCESSOR_HPP_
