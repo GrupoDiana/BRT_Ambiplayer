@@ -250,9 +250,10 @@
     <ClCompile Include="addons\ofxImGui\libs\imgui\src\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GuiManager.hpp" />
     <ClInclude Include="src\AmbisonicProcessor.hpp" />
+    <ClInclude Include="src\AmbisonicSoundField.hpp" />
     <ClInclude Include="src\AmbisonicSoundFieldController.hpp" />
+    <ClInclude Include="src\GUI\GuiManager.hpp" />
     <ClInclude Include="src\LoudspeakerArrayController.hpp" />
     <ClInclude Include="src\ofApp.h" />
     <ClInclude Include="addons\ofxBRTLibrary\src\ofxBRTLibrary.h" />
@@ -1365,6 +1366,9 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64' or '$(Configuration)|$(Platform)'=='Debug|ARM64' or '$(Configuration)|$(Platform)'=='Debug|ARM64EC'">/D_DEBUG %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(OF_ROOT)\libs\openFrameworksCompiled\project\vs</AdditionalIncludeDirectories>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="resources\ambi_1OA_test.wav" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ProjectExtensions>

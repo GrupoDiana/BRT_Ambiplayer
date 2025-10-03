@@ -18,15 +18,18 @@ public:
 
 		// Simple window with a Play button
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
+		ImGui::Begin("prueba",nullptr,0);
 		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
-		ImGui::BeginChild("ChildR", ImVec2(100, 260), ImGuiChildFlags_Borders, window_flags);
+		//ImGui::BeginChild("ChildR", ImVec2(100, 260), ImGuiChildFlags_Borders, window_flags);
 
 		 if (ImGui::Button("PLAY")) {
 			if (onPlay) onPlay(); // callback
 		}
 		
-		ImGui::EndChild();
+		//ImGui::EndChild();
 		ImGui::PopStyleVar();
+		ImGui::End();
+		gui.end();
 	}
 
 	// Callback for the Play button

@@ -423,6 +423,9 @@
     <Filter Include="src\GUI">
       <UniqueIdentifier>{4d4c6107-2a28-40b1-bead-a493d7b50f47}</UniqueIdentifier>
     </Filter>
+    <Filter Include="resources">
+      <UniqueIdentifier>{782d0bf2-9ec4-46ce-bf02-cacfdd0aac41}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ofApp.h">
@@ -3725,20 +3728,28 @@
     <ClInclude Include="addons\ofxImGui\libs\imgui\src\imstb_truetype.h">
       <Filter>local_addons\ofxImGui\libs\imgui\src</Filter>
     </ClInclude>
-    <ClInclude Include="GuiManager.hpp">
-      <Filter>src\GUI</Filter>
-    </ClInclude>
     <ClInclude Include="src\AmbisonicProcessor.hpp">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\AmbisonicSoundFieldController.hpp">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\LoudspeakerArrayController.hpp">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\GUI\GuiManager.hpp">
+      <Filter>src\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AmbisonicSoundField.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AmbisonicSoundFieldController.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="icon.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="resources\ambi_1OA_test.wav">
+      <Filter>resources</Filter>
+    </Media>
   </ItemGroup>
 </Project>
