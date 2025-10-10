@@ -3743,6 +3743,12 @@
     <ClInclude Include="src\AmbisonicSoundFieldController.hpp">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\AppUtils.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ConfigurationA.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="icon.rc" />
@@ -3751,5 +3757,10 @@
     <Media Include="resources\ambi_1OA_test.wav">
       <Filter>resources</Filter>
     </Media>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\hrtf.sofa">
+      <Filter>resources</Filter>
+    </None>
   </ItemGroup>
 </Project>

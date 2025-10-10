@@ -14,52 +14,75 @@
 
 class CAmbisonicProcessor {
 public:
-	// Constructor: initialize soundFieldArray structure based on number of channels
-	CAmbisonicProcessor()
-		: numChannels(4)
-		, sampleRate(48000)
-		, blockSize(512)
-		, ambisonicProcessor(numChannels) {
+	CAmbisonicProcessor(): CAmbisonicProcessor(4, 48000, 512) {}
+
+	CAmbisonicProcessor(size_t numChannels_, unsigned int sampleRate_, size_t blockSize_)
+		: numChannels(numChannels_)
+		, sampleRate(sampleRate_)
+		, blockSize(blockSize_) {
 		if (numChannels <= 0) {
 			throw std::invalid_argument("numChannels must be > 0");
 		}
+
 		ambisonicOrder = static_cast<size_t>(std::sqrt(numChannels) - 1);
-		std::cout << "CAmbisonicProcessor created with " << numChannels
-				  << " channels, order " << ambisonicOrder
-				  <<std::endl;
 	}
+
 
 	// Rotate the field depending on listener rotation
 	void RotateField(float yaw, float pitch, float roll) {
 		// TODO: implement ambisonic rotation
 	}
 
-	// Decode ambisonic field to a speaker array
-	void DecodeToSpeakerArray(CLoudSpeakerArrayController & speakerArray) const {
+void DecodeToSpeakerArray(CLoudSpeakerArrayController & speakerArray,
+		const CAmbisonicSoundField & OutBuffer) {
+	
+		const auto & field = OutBuffer.GetSoundFieldArray();
+		const CMonoBuffer<float> & Wbuf = field[0];
+		const CMonoBuffer<float> & Xbuf = field[3];
+		const CMonoBuffer<float> & Ybuf = field[1];
+		const CMonoBuffer<float> & Zbuf = field[2];
+
+		const float * W = Wbuf.data();
+		const float * X = Xbuf.data();
+		const float * Y = Ybuf.data();
+		const float * Z = Zbuf.data();
+
+		size_t numSamples = OutBuffer.GetBufferSize();
 		auto & speakers = speakerArray.GetSpeakers();
-		size_t numSpeakers = speakers.size();
-		size_t numChannels = ambisonicProcessor.GetNumChannels();
 
-		if (numChannels == 0 || numSpeakers == 0) {
-			std::cout << "No channels or no speakers available for decoding." << std::endl;
-			return;
-		}
+		const float kWgain = 1.0f/ std::sqrt(2.0f);
+		float gainZ = 0.0f; // aumentar su contribución
+		float gainXY = 1.0f; // reducir lateral
 
-		// Loop over each speaker
-		for (size_t sp = 0; sp < numSpeakers; ++sp) {
-			CMonoBuffer<float> speakerBuffer;
-			speakerBuffer.resize(ambisonicProcessor.GetSoundFieldArray()[0].size(), 0.0f);
+		for (size_t i = 0; i < speakers.size(); ++i) {
+			Common::CVector3 pos = speakers[i]->GetSourceTransform().GetPosition();
 
-			// Simple ACN/N3D decoding: equal contribution from each ambisonic channel
-			for (size_t ch = 0; ch < numChannels; ++ch) {
-				for (size_t i = 0; i < speakerBuffer.size(); ++i) {
-					speakerBuffer[i] += ambisonicProcessor.GetSoundFieldArray()[ch][i] / static_cast<float>(numChannels);
-				}
+			float norm = std::sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
+			if (norm > 0.0f) {
+				pos.x /= norm;
+				pos.y /= norm;
+				pos.z /= norm;
 			}
 
-			// Assign the buffer to the speaker
-			speakers[sp]->SetBuffer(speakerBuffer);
+			CMonoBuffer<float> buffer;
+			buffer.resize(numSamples); 
+
+			for (size_t n = 0; n < numSamples; ++n) {
+				buffer[n] = kWgain * W[n] + gainXY*(pos.x * X[n] + pos.y * Y[n]) + gainZ*pos.z * Z[n];
+			}
+
+			speakers[i]->SetBuffer(buffer);
 		}
+	}
+
+	// Accessor for the internal ambisonic sound field
+	CAmbisonicSoundField & GetSoundFieldProcessor() { return ambisonicProcessor; }
+
+	const CAmbisonicSoundField & GetSoundFieldProcessor() const { return ambisonicProcessor; }
+
+	// Setter para el ambisonicProcessor
+	void SetSoundFieldProcessor(const CAmbisonicSoundField & sf) {
+		ambisonicProcessor = sf;
 	}
 
 	// Sum ambisonic fields
@@ -84,17 +107,15 @@ public:
 		return result;
 	}
 
-	// Accessor for the internal ambisonic sound field
-	CAmbisonicSoundField & GetSoundFieldController() { return ambisonicProcessor; }
-	const CAmbisonicSoundField & GetSoundFieldController() const { return ambisonicProcessor; }
-
 private:
 	size_t ambisonicOrder;
 	size_t numChannels;
 	size_t sampleRate;
 	int blockSize;
+	int cont = 0;
 
 	CAmbisonicSoundField ambisonicProcessor;
+
 };
 
 #endif // _CAMBISONIC_PROCESSOR_HPP_

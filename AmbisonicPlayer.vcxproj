@@ -64,14 +64,14 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64' or '$(Configuration)|$(Platform)'=='Debug|ARM64' or '$(Configuration)|$(Platform)'=='Debug|ARM64EC'">
-    <OutDir>bin\</OutDir>
+    <OutDir>bin\debug</OutDir>
     <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_debug</TargetName>
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64' or '$(Configuration)|$(Platform)'=='Release|ARM64' or '$(Configuration)|$(Platform)'=='Release|ARM64EC'">
-    <OutDir>bin\</OutDir>
+    <OutDir>bin\release</OutDir>
     <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
@@ -127,10 +127,10 @@
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);src;addons\ofxBRTLibrary\libs\brt\include;addons\ofxBRTLibrary\libs\brt\include\third_party_libraries\boost_circular_buffer;addons\ofxBRTLibrary\libs\brt\include\third_party_libraries\eigen;addons\ofxBRTLibrary\libs\brt\include\third_party_libraries\libmysofa\include;addons\ofxBRTLibrary\src;addons\ofxAudioFile\libs;addons\ofxAudioFile\src;addons\ofxImGui\libs;addons\ofxImGui\libs\imgui;addons\ofxImGui\libs\imgui\backends;addons\ofxImGui\libs\imgui\docs;addons\ofxImGui\libs\imgui\extras;addons\ofxImGui\libs\imgui\src;addons\ofxImGui\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);src;addons\ofxImGui\libs;addons\ofxImGui\libs\imgui;addons\ofxImGui\libs\imgui\backends;addons\ofxImGui\libs\imgui\docs;addons\ofxImGui\libs\imgui\extras;addons\ofxImGui\libs\imgui\src;addons\ofxImGui\src;addons\ofxBRTLibrary\libs;addons\ofxBRTLibrary\libs\brt;addons\ofxBRTLibrary\libs\brt\docs;addons\ofxBRTLibrary\libs\brt\docs\images;addons\ofxBRTLibrary\libs\brt\include;addons\ofxBRTLibrary\libs\brt\include\Base;addons\ofxBRTLibrary\libs\brt\include\Common;addons\ofxBRTLibrary\libs\brt\include\ListenerModels;addons\ofxBRTLibrary\libs\brt\include\ProcessingModules;addons\ofxBRTLibrary\libs\brt\include\Readers;addons\ofxBRTLibrary\libs\brt\include\ServiceModules;addons\ofxBRTLibrary\libs\brt\include\SourceModels;addons\ofxBRTLibrary\libs\brt\include\third_party_libraries;addons\ofxBRTLibrary\libs\brt\include\third_party_libraries\libmysofa;addons\ofxBRTLibrary\libs\brt\include\third_party_libraries\libmysofa\include;addons\ofxBRTLibrary\libs\brt\include\third_party_libraries\libmysofa\lib;addons\ofxBRTLibrary\libs\brt\include\third_party_libraries\libmysofa\lib\linux64;addons\ofxBRTLibrary\libs\brt\include\third_party_libraries\libmysofa\lib\vs;addons\ofxBRTLibrary\libs\brt\include\third_party_libraries\libmysofa\lib\vs\x64;addons\ofxBRTLibrary\libs\brt\include\third_party_libraries\libmysofa\lib\vs\x64\Debug;addons\ofxBRTLibrary\libs\brt\include\third_party_libraries\libmysofa\lib\vs\x64\Release;addons\ofxBRTLibrary\libs\brt\include\third_party_libraries\nlohmann;addons\ofxBRTLibrary\libs\brt\test;addons\ofxBRTLibrary\src;addons\ofxAudioFile\libs;addons\ofxAudioFile\src;addons\ofxBRTLibrary\libs\brt\include\third_party_libraries\eigen;addons\ofxBRTLibrary\libs\brt\include\third_party_libraries\boost_circular_buffer</AdditionalIncludeDirectories>
       <CompileAs>CompileAsCpp</CompileAs>
       <ObjectFileName>$(IntDir)\Build\%(RelativeDir)\$(Configuration)\</ObjectFileName>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <PostBuildEvent />
@@ -253,6 +253,8 @@
     <ClInclude Include="src\AmbisonicProcessor.hpp" />
     <ClInclude Include="src\AmbisonicSoundField.hpp" />
     <ClInclude Include="src\AmbisonicSoundFieldController.hpp" />
+    <ClInclude Include="src\AppUtils.hpp" />
+    <ClInclude Include="src\ConfigurationA.hpp" />
     <ClInclude Include="src\GUI\GuiManager.hpp" />
     <ClInclude Include="src\LoudspeakerArrayController.hpp" />
     <ClInclude Include="src\ofApp.h" />
@@ -1369,6 +1371,9 @@
   </ItemGroup>
   <ItemGroup>
     <Media Include="resources\ambi_1OA_test.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\hrtf.sofa" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ProjectExtensions>

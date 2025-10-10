@@ -49,26 +49,20 @@ static const std::vector<std::vector<double>> NORM_MATRIX_O3 = {
 
 class CAmbisonicSoundFieldController {
 public:
-	CAmbisonicSoundFieldController(): numChannels(4), sampleRate(44100), blockSize(512)
+	CAmbisonicSoundFieldController(): numChannels(4), sampleRate(48000), blockSize(512)
 	{
 		if (numChannels <= 0) {
 			throw std::invalid_argument("numChannels must be > 0");
 		}
-
 		// Ambisonic order is usually derived from number of channels: (N+1)^2 = channels
 		// So N = sqrt(numChannels) - 1
 		ambisonicOrder = static_cast<size_t>(std::sqrt(numChannels) - 1);
 
-		// Inicializar el procesador interno (simbolizado aquí)
-		soundFieldController = CAmbisonicSoundField(ambisonicOrder);
+		soundFieldController = CAmbisonicSoundField(numChannels,sampleRate,blockSize);
 
-		// Mensaje de debug (opcional)
-		std::cout << "CAmbisonicSoundFieldController creado con "
-				  << numChannels << " canales, orden "
-				  << ambisonicOrder << std::endl;
 	}
 
-	   // Returns a reference to the internal sound field controller
+	// Returns a reference to the internal sound field controller
 	CAmbisonicSoundField & GetSoundFieldController() {
 		return soundFieldController;
 	}
@@ -80,57 +74,113 @@ public:
 
 	// Load WAV file and fill soundFieldArray with samples mapped by ambisonic order and channel
 	//Prototype
-	bool LoadWav(const char * filePath, std::string ordering) {
+	void LoadWav(const char * filePath, const std::string & ordering) {
 		ofxAudioFile audioFile;
 		audioFile.load(filePath);
 
 		if (!audioFile.loaded()) {
-			std::cout << "Error loading WAV file: " << filePath << std::endl;
-			return false;
+			std::cerr << "Error loading WAV: " << filePath << std::endl;
+			return;
 		}
 
-		int fileChannels = audioFile.channels();
-		if (fileChannels <= 0) {
-			std::cout << "Invalid number of channels in WAV file." << std::endl;
-			return false;
+		int numChannels = audioFile.channels();
+		size_t numFrames = audioFile.length(); 
+		int fileSampleRate = audioFile.samplerate(); 
+
+		auto & buffers = soundFieldController.GetSoundFieldArray();
+		buffers.clear();
+		buffers.resize(numChannels);
+
+		for (int ch = 0; ch < numChannels; ++ch) {
+			buffers[ch].resize(numFrames);
 		}
 
-		// Calculate ambisonic order
-		int calculatedOrder = static_cast<int>(std::sqrt(fileChannels)) - 1;
-		if (calculatedOrder < 0 || std::pow(calculatedOrder + 1, 2) != fileChannels) {
-			std::cout << "Number of channels does not correspond to a valid ambisonic order." << std::endl;
-			return false;
-		}
-
-		size_t numSamples = audioFile.length();
-
-		// Resize soundFieldArray with correct number of channels
-		soundFieldController.GetSoundFieldArray().resize(fileChannels);
-
-		// Reserve memory for each channel
-		for (int ch = 0; ch < fileChannels; ch++) {
-			soundFieldController.GetSoundFieldArray()[ch].reserve(numSamples);
-		}
-
-		// Fill with samples
-		for (size_t i = 0; i < numSamples; ++i) {
-			for (int ch = 0; ch < fileChannels; ch++) {
-				float sample = audioFile.sample(i, ch);
-				soundFieldController.GetSoundFieldArray()[ch].push_back(sample);
+		for (size_t i = 0; i < numFrames; ++i) {
+			for (int ch = 0; ch < numChannels; ++ch) {
+				buffers[ch][i] = audioFile.sample(i, ch);
 			}
 		}
 
-		// Update class data
-		numChannels = fileChannels;
-		ambisonicOrder = calculatedOrder;
-		sampleRate = audioFile.samplerate();
-
-		//Normalization update missing
-		if (ordering == "FuMa_B") {
-			ApplyOrdering(ambisonicOrder);
-		}
-		return true;
+		std::cout << "Loaded WAV: " << filePath
+				  << " | Channels: " << numChannels
+				  << " | Frames: " << numFrames
+				  << " | SampleRate: " << fileSampleRate
+				  << " | Ordering: " << ordering << std::endl;
 	}
+
+	/*
+	// Save a sound field to a WAV file
+	//Prototype
+	bool SaveToWav(const std::string & filePath) {
+		if (soundFieldArray.empty()) {
+			std::cout << "No audio data to save." << std::endl;
+			return false;
+		}
+
+		int totalChannels = static_cast<int>(soundFieldArray.size());
+		size_t numSamples = soundFieldArray[0].size();
+
+		// Verify consistent lengths
+		for (int ch = 0; ch < totalChannels; ++ch) {
+			if (soundFieldArray[ch].size() != numSamples) {
+				std::cout << "Inconsistent channel lengths." << std::endl;
+				return false;
+			}
+		}
+
+		// Interleave samples (consecutive channels per frame)
+		std::vector<float> interleavedSamples;
+		interleavedSamples.reserve(numSamples * totalChannels);
+
+		for (size_t i = 0; i < numSamples; ++i) {
+			for (int ch = 0; ch < totalChannels; ++ch) {
+				interleavedSamples.push_back(soundFieldArray[ch][i]);
+			}
+		}
+
+		// Open file to write in binary
+		std::ofstream outFile(filePath, std::ios::binary);
+		if (!outFile) {
+			std::cout << "Failed to open file for writing: " << filePath << std::endl;
+			return false;
+		}
+
+		// --- WAV header ---
+		uint16_t bitsPerSample = 32;
+		uint16_t audioFormat = 3; // IEEE float
+		uint16_t wavNumChannels = static_cast<uint16_t>(totalChannels);
+		uint32_t sampleRate_ = sampleRate;
+		uint32_t blockAlign = wavNumChannels * sizeof(float);
+		uint32_t byteRate = sampleRate_ * blockAlign;
+		uint32_t dataSize = interleavedSamples.size() * sizeof(float);
+		uint32_t chunkSize = 36 + dataSize;
+		uint32_t subchunk1Size = 16;
+
+		// RIFF
+		outFile.write("RIFF", 4);
+		outFile.write(reinterpret_cast<const char *>(&chunkSize), 4);
+		outFile.write("WAVE", 4);
+
+		// fmt
+		outFile.write("fmt ", 4);
+		outFile.write(reinterpret_cast<const char *>(&subchunk1Size), 4);
+		outFile.write(reinterpret_cast<const char *>(&audioFormat), 2);
+		outFile.write(reinterpret_cast<const char *>(&wavNumChannels), 2);
+		outFile.write(reinterpret_cast<const char *>(&sampleRate_), 4);
+		outFile.write(reinterpret_cast<const char *>(&byteRate), 4);
+		outFile.write(reinterpret_cast<const char *>(&blockAlign), 2);
+		outFile.write(reinterpret_cast<const char *>(&bitsPerSample), 2);
+
+		// data
+		outFile.write("data", 4);
+		outFile.write(reinterpret_cast<const char *>(&dataSize), 4);
+		outFile.write(reinterpret_cast<const char *>(interleavedSamples.data()), dataSize);
+
+		outFile.close();
+
+		std::cout << "Successfully saved WAV file: " << filePath << std::endl;
+		return true;
+	}*/
 
 	//Prototype
 	CAmbisonicSoundFieldController & operator+=(const CAmbisonicSoundFieldController & other) {

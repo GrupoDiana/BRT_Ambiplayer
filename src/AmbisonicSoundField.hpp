@@ -13,25 +13,26 @@
 
 class CAmbisonicSoundField {
 public:
-	CAmbisonicSoundField()
-		: numChannels(4)
-		, sampleRate(48000)
-		, ambisonicOrder(1) // default to first-order ambisonic
-	{
-		soundFieldArray.resize(numChannels);
-		for (int ch = 0; ch < numChannels; ++ch) {
-			soundFieldArray[ch].resize(512, 0.0f); // default buffer size
+	CAmbisonicSoundField(): CAmbisonicSoundField(4, 48000, 1, 512) {}
+
+
+	CAmbisonicSoundField(size_t numChannels_, unsigned int sampleRate_,size_t ambisonicOrder_, size_t bufferSize_)
+		: numChannels(numChannels_)
+		, sampleRate(sampleRate_)
+		, ambisonicOrder(ambisonicOrder_)
+		, bufferSize(bufferSize_) {
+		if (numChannels == 0) {
+			throw std::invalid_argument("numChannels must be > 0");
 		}
 
-		std::cout << "CAmbisonicSoundField default created with "
-				  << numChannels << " channels, order " << ambisonicOrder
-				  << ", sampleRate " << sampleRate
-				  << ", buffer size 512" << std::endl;
+		soundFieldArray.resize(numChannels);
 	}
 
-	CAmbisonicSoundField(int numChannels, size_t sampleRate = 48000, size_t initialBufferSize = 512)
+
+	CAmbisonicSoundField(int numChannels, size_t sampleRate, size_t bufferSize)
 		: numChannels(numChannels)
-		, sampleRate(sampleRate) {
+		, sampleRate(sampleRate)
+		, bufferSize(bufferSize) {
 		if (numChannels <= 0) {
 			throw std::invalid_argument("numChannels must be > 0");
 		}
@@ -46,13 +47,13 @@ public:
 		// Initialize buffers for each channel
 		soundFieldArray.resize(numChannels);
 		for (int ch = 0; ch < numChannels; ++ch) {
-			soundFieldArray[ch].resize(initialBufferSize, 0.0f); // allocate initial size with zeros
+			soundFieldArray[ch].resize(bufferSize, 0.0f);
 		}
 
 		std::cout << "CAmbisonicSoundField created with "
 				  << numChannels << " channels, order " << ambisonicOrder
 				  << ", sampleRate " << sampleRate
-				  << ", buffer size " << initialBufferSize << std::endl;
+				  << ", buffer size " << bufferSize << std::endl;
 	}
 
 
@@ -66,6 +67,10 @@ public:
 		return numChannels;
 	}
 
+	int GetBufferSize() const {
+		return bufferSize;
+	}
+
 	std::vector<CMonoBuffer<float>> & GetSoundFieldArray() {
 		return soundFieldArray;
 	}
@@ -74,92 +79,52 @@ public:
 		return soundFieldArray;
 	}
 
-	/// Function to fill buffer with audio from the wav file
-	void FillBuffer(CMonoBuffer<float> & output, unsigned int & position, unsigned int & endFrame, std::vector<float> & samplesVector) {
-		position = endFrame + 1; // Set starting point as next sample of the end of last frame
-		if (position >= samplesVector.size()) // If the end of the audio is met, the position variable must return to the beginning
-			position = 0;
-
-		endFrame = position + output.size() - 1; // Set ending point as starting point plus frame size
-		for (int i = 0; i < output.size(); i++) {
-			if ((position + i) < samplesVector.size())
-				output[i] = (samplesVector[position + i]); // Fill with audio
-			else
-				output[i] = 0.0f; // Fill with zeros if the end of the audio is met
+	void SetSoundField(const CAmbisonicSoundField & other) {
+		if (numChannels != other.numChannels || bufferSize != other.bufferSize) {
+			throw std::runtime_error("Cannot set sound field: mismatched dimensions");
 		}
+		ambisonicOrder = other.ambisonicOrder;
+		sampleRate = other.sampleRate;
+		soundFieldArray = other.soundFieldArray;
 	}
 
-	// Save a sound field to a WAV file
-	//Prototype
-	bool SaveToWav(const std::string & filePath) {
-		if (soundFieldArray.empty()) {
-			std::cout << "No audio data to save." << std::endl;
-			return false;
+
+	/// Fill multi-channel soundFieldArray from multi-channel samples
+	void CAmbisonicSoundField::FillBuffer(
+		unsigned int & position,
+		unsigned int & endFrame,
+		CAmbisonicSoundField & source,
+		size_t bufferSize) {
+		const auto & sourceBuffers = source.GetSoundFieldArray();
+		size_t numChannels = sourceBuffers.size();
+		size_t sourceSize = sourceBuffers[0].size();
+
+		if (soundFieldArray.size() != numChannels)
+			soundFieldArray.resize(numChannels);
+
+		for (size_t ch = 0; ch < numChannels; ++ch) {
+			if (soundFieldArray[ch].size() != bufferSize)
+				soundFieldArray[ch].resize(bufferSize, 0.0f);
 		}
 
-		int totalChannels = static_cast<int>(soundFieldArray.size());
-		size_t numSamples = soundFieldArray[0].size();
+		endFrame = position + bufferSize - 1;
 
-		// Verify consistent lengths
-		for (int ch = 0; ch < totalChannels; ++ch) {
-			if (soundFieldArray[ch].size() != numSamples) {
-				std::cout << "Inconsistent channel lengths." << std::endl;
-				return false;
+		for (size_t ch = 0; ch < numChannels; ++ch) {
+			const auto & src = sourceBuffers[ch];
+			auto & dest = soundFieldArray[ch];
+
+			for (size_t i = 0; i < bufferSize; ++i) {
+				size_t idx = position + i;
+				if (idx < sourceSize)
+					dest[i] = src[idx];
+				else
+					dest[i] = 0.0f; 
 			}
 		}
 
-		// Interleave samples (consecutive channels per frame)
-		std::vector<float> interleavedSamples;
-		interleavedSamples.reserve(numSamples * totalChannels);
-
-		for (size_t i = 0; i < numSamples; ++i) {
-			for (int ch = 0; ch < totalChannels; ++ch) {
-				interleavedSamples.push_back(soundFieldArray[ch][i]);
-			}
-		}
-
-		// Open file to write in binary
-		std::ofstream outFile(filePath, std::ios::binary);
-		if (!outFile) {
-			std::cout << "Failed to open file for writing: " << filePath << std::endl;
-			return false;
-		}
-
-		// --- WAV header ---
-		uint16_t bitsPerSample = 32;
-		uint16_t audioFormat = 3; // IEEE float
-		uint16_t wavNumChannels = static_cast<uint16_t>(totalChannels);
-		uint32_t sampleRate_ = sampleRate;
-		uint32_t blockAlign = wavNumChannels * sizeof(float);
-		uint32_t byteRate = sampleRate_ * blockAlign;
-		uint32_t dataSize = interleavedSamples.size() * sizeof(float);
-		uint32_t chunkSize = 36 + dataSize;
-		uint32_t subchunk1Size = 16;
-
-		// RIFF
-		outFile.write("RIFF", 4);
-		outFile.write(reinterpret_cast<const char *>(&chunkSize), 4);
-		outFile.write("WAVE", 4);
-
-		// fmt
-		outFile.write("fmt ", 4);
-		outFile.write(reinterpret_cast<const char *>(&subchunk1Size), 4);
-		outFile.write(reinterpret_cast<const char *>(&audioFormat), 2);
-		outFile.write(reinterpret_cast<const char *>(&wavNumChannels), 2);
-		outFile.write(reinterpret_cast<const char *>(&sampleRate_), 4);
-		outFile.write(reinterpret_cast<const char *>(&byteRate), 4);
-		outFile.write(reinterpret_cast<const char *>(&blockAlign), 2);
-		outFile.write(reinterpret_cast<const char *>(&bitsPerSample), 2);
-
-		// data
-		outFile.write("data", 4);
-		outFile.write(reinterpret_cast<const char *>(&dataSize), 4);
-		outFile.write(reinterpret_cast<const char *>(interleavedSamples.data()), dataSize);
-
-		outFile.close();
-
-		std::cout << "Successfully saved WAV file: " << filePath << std::endl;
-		return true;
+		position += bufferSize;
+		if (position >= sourceSize)
+			position = 0;
 	}
 
 	// Rotate the field depending on how coordinates have changed
@@ -189,10 +154,17 @@ public:
 		return result;
 	}
 
+	CAmbisonicSoundField operator-(const CAmbisonicSoundField & other) const {
+		CAmbisonicSoundField result = *this;
+		result = result - other;
+		return result;
+	}
+
 private:
 	size_t ambisonicOrder;
 	size_t numChannels;
 	size_t sampleRate;
+	size_t bufferSize;
 
 	std::vector<CMonoBuffer<float>> soundFieldArray;
 };
