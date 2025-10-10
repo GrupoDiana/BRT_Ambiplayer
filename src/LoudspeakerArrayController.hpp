@@ -118,9 +118,6 @@ public:
 	// Returns the number of speakers
 	int GetNumSpeakers() const { return speakers.size(); }
 
-	// Should it be re-implemented or converted back to field, summed, and returned to speakers?
-	void AddSoundField(/*...*/);
-
 	// To implement
 	void DecodeToAmbisonicSoundField(const CLoudSpeakerArrayController & array);
 

@@ -131,21 +131,8 @@ public:
 	//To implement
 	void RotateField(float yaw, float pitch, float roll);
 
-	//Prototype
+	//TODO
 	CAmbisonicSoundField & operator+=(const CAmbisonicSoundField & other) {
-		// Basic checks
-		if (sampleRate != other.sampleRate) {
-			throw std::runtime_error("Ambisonic fields must have the same order and sample rate to add.");
-		}
-
-		//Adjust orders with UpMixing(const CAmbisonicSoundField & other)
-
-		// Add to this object using += of CBuffer
-		for (size_t ch = 0; ch < soundFieldArray.size(); ++ch) {
-			soundFieldArray[ch] += other.soundFieldArray[ch];
-		}
-
-		return *this;
 	}
 
 	CAmbisonicSoundField operator+(const CAmbisonicSoundField & other) const {

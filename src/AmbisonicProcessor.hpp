@@ -50,9 +50,9 @@ void DecodeToSpeakerArray(CLoudSpeakerArrayController & speakerArray,
 		size_t numSamples = OutBuffer.GetBufferSize();
 		auto & speakers = speakerArray.GetSpeakers();
 
-		const float kWgain = 1.0f/ std::sqrt(2.0f);
-		float gainZ = 0.0f; // aumentar su contribución
-		float gainXY = 1.0f; // reducir lateral
+		const float kWgain = 1.0f;
+		float gainZ = 1.0f;
+		float gainXY = 1.0f; 
 
 		for (size_t i = 0; i < speakers.size(); ++i) {
 			Common::CVector3 pos = speakers[i]->GetSourceTransform().GetPosition();

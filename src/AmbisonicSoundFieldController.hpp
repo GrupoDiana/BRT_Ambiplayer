@@ -49,18 +49,26 @@ static const std::vector<std::vector<double>> NORM_MATRIX_O3 = {
 
 class CAmbisonicSoundFieldController {
 public:
-	CAmbisonicSoundFieldController(): numChannels(4), sampleRate(48000), blockSize(512)
-	{
+	// Constructor por defecto
+	CAmbisonicSoundFieldController()
+		: CAmbisonicSoundFieldController(4, 48000, 512) { }
+
+	// Constructor principal con parámetros
+	CAmbisonicSoundFieldController(size_t numChannels_, unsigned int sampleRate_, size_t blockSize_)
+		: numChannels(numChannels_)
+		, sampleRate(sampleRate_)
+		, blockSize(blockSize_) {
 		if (numChannels <= 0) {
 			throw std::invalid_argument("numChannels must be > 0");
 		}
-		// Ambisonic order is usually derived from number of channels: (N+1)^2 = channels
-		// So N = sqrt(numChannels) - 1
+
+		// Calcula el orden ambisónico a partir del número de canales: (N+1)^2 = numChannels
 		ambisonicOrder = static_cast<size_t>(std::sqrt(numChannels) - 1);
 
-		soundFieldController = CAmbisonicSoundField(numChannels,sampleRate,blockSize);
-
+		// Inicializa el controlador interno de campo ambisónico
+		soundFieldController = CAmbisonicSoundField(numChannels, sampleRate, blockSize);
 	}
+
 
 	// Returns a reference to the internal sound field controller
 	CAmbisonicSoundField & GetSoundFieldController() {
