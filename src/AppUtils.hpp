@@ -24,7 +24,7 @@ public:
 			std::cout << "The sample rate in HRTF SOFA file doesn't match the configuration."<<std::endl;
             return false;
         }
-		std::cout << std::endl << "Loadind HRTF SOFA File....." << std::endl << std::endl;
+		std::cout << std::endl << "Loading HRTF SOFA File....." << std::endl << std::endl;
         bool result = sofaReader.ReadHRTFFromSofa(_filePath, hrtf, HRTFRESAMPLINGSTEP, BRTServices::TEXTRAPOLATION_METHOD::nearest_point);
         if (result) {
             std::cout << ("HRTF Sofa file loaded successfully.") << std::endl;            

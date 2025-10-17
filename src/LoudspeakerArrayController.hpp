@@ -11,9 +11,9 @@
 class CLoudSpeakerArrayController {
 public:
 	CLoudSpeakerArrayController() {}
-	// Constructor: initialize a default speaker layout (Hardcoded positions for now)
+
+	//Este podria ser el setup
 	CLoudSpeakerArrayController(BRTBase::CBRTManager & brtManager, size_t nspeakers) {
-		// Create 6 omnidirectional loudspeakers (vertices of an octahedron)
 		speakers.resize(nspeakers);
 		for (int i = 0; i < nspeakers; i++) {
 			auto speaker = CreateOmnidirectionalSoundSource(brtManager,"Speaker" + std::to_string(i));
@@ -37,7 +37,7 @@ public:
 
 
 	// Depending on the chosen layout (octahedron, cube, icosahedron, or dodecahedron) position the sources
-	void LoadLayoutJSON(/* std::string name*/) {
+	void LoadLayoutJSON(std::string name) {
 		// Set speaker positions in the shape of a regular octahedron centered at (0,0,0)
 		if (speakers.size() == 6) {
 			// Speaker 0 -> (1, 0, 0)
@@ -69,7 +69,7 @@ public:
 			Common::CTransform speaker5 = Common::CTransform();
 			speaker5.SetPosition(Common::CVector3(0.0, 0.0, -1.0));
 			speakers[5]->SetSourceTransform(speaker5);
-		} else if (speakers.size() == 8) {
+		} else if (speakers.size() == 8 && name == "octaedro") {
 			float norm = 1.0f / std::sqrt(3.0f);
 
 			// Speaker 0 -> (1, 1, 1)
@@ -111,7 +111,22 @@ public:
 			Common::CTransform speaker7;
 			speaker7.SetPosition(Common::CVector3(-1.0f * norm, -1.0f * norm, -1.0f * norm));
 			speakers[7]->SetSourceTransform(speaker7);
+		} else if (speakers.size() == 8 && name == "tetraedros") {
 
+		// Normalizamos para que estén a la misma distancia del centro
+			float norm = 1.0f / std::sqrt(3.0f); // Radio unitario
+
+			// Tetraedro superior
+			speakers[0]->SetSourceTransform(Common::CTransform(Common::CVector3(1.0f * norm, 1.0f * norm, 1.0f * norm)));
+			speakers[1]->SetSourceTransform(Common::CTransform(Common::CVector3(-1.0f * norm, -1.0f * norm, 1.0f * norm)));
+			speakers[2]->SetSourceTransform(Common::CTransform(Common::CVector3(-1.0f * norm, 1.0f * norm, -1.0f * norm)));
+			speakers[3]->SetSourceTransform(Common::CTransform(Common::CVector3(1.0f * norm, -1.0f * norm, -1.0f * norm)));
+
+			// Tetraedro inferior (invertido)
+			speakers[4]->SetSourceTransform(Common::CTransform(Common::CVector3(-1.0f * norm, 1.0f * norm, 1.0f * norm)));
+			speakers[5]->SetSourceTransform(Common::CTransform(Common::CVector3(1.0f * norm, -1.0f * norm, 1.0f * norm)));
+			speakers[6]->SetSourceTransform(Common::CTransform(Common::CVector3(1.0f * norm, 1.0f * norm, -1.0f * norm)));
+			speakers[7]->SetSourceTransform(Common::CTransform(Common::CVector3(-1.0f * norm, -1.0f * norm, -1.0f * norm)));
 		}
 	}
 

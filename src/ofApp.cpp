@@ -17,7 +17,7 @@ void ofApp::setup() {
 	listener = brtManager.CreateListener<BRTBase::CListener>(LISTENER_ID);
 	brtManager.EndSetup();
 	Common::CTransform listenerPosition = Common::CTransform(); // Setting listener in (0,0,0)
-	listenerPosition.SetPosition(Common::CVector3(0, 0, 0));
+	listenerPosition.SetPosition(Common::CVector3(0.0f, 0.0f, 0.0f));
 	listener->SetListenerTransform(listenerPosition);
 
 	/////////////////////////////////////
@@ -41,16 +41,21 @@ void ofApp::setup() {
 	/////////////////////
 	// Setup Sources
 	/////////////////////
-	speakerArrayController.LoadLayoutJSON();
+	
+	std::cout << "Please select decoding metohd: ";
+	std::cin >> decoding;
+	speakerArrayController.LoadLayoutJSON("tetraedros");
 
 	// /////////////////////
 	// Load Wav Files
 	/////////////////////
 	ambisonicSoundFieldController = std::make_shared<CAmbisonicSoundFieldController>();
-	ambisonicSoundFieldController->LoadWav(SOURCE_FILEPATH, "SN3D");
+	ambisonicSoundFieldController->LoadWav(SOURCE_FILEPATH, "ACN");
 
 	SFbuffer = std::make_shared<CAmbisonicSoundField>();
+	SFbuffer->SetUp(1, 48000, 512, "ACN");
 	OutBuffer = std::make_shared<CAmbisonicSoundField>();
+	OutBuffer->SetUp(1, 48000, 512, "ACN");
 
 	/////////////////////
 	// Start AUDIO Render
@@ -69,7 +74,7 @@ void ofApp::setup() {
 	guiManager.onStop = [this]() {
 		// Stopping and closing the stream
 		soundStream.stop();
-		soundStream.close();
+		//soundStream.close();
 	};
 	
 }
@@ -127,6 +132,34 @@ void ofApp::gotMessage(ofMessage msg) {
 void ofApp::dragEvent(ofDragInfo dragInfo) {
 }
 
+/// Audio output configuration, using ofxAudioFile
+void ofApp::AudioSetup() {
+
+	// Setting the output parameters
+	ofSoundStreamSettings outputParameters;
+	outputParameters.numOutputChannels = 2;
+
+	//outputParameters.getOutDevice();
+	ofSoundDevice device = ShowSelectAudioDeviceMenu();
+	outputParameters.setOutDevice(device); 
+
+	// Setting real-time audio output.
+	setRealTimePriority();
+	outputParameters.numBuffers = 4;
+
+	outputParameters.sampleRate = SAMPLERATE;
+	outputParameters.bufferSize = 512;
+
+	outputParameters.setOutListener(this);
+
+	try {
+		soundStream.setup(outputParameters);
+		soundStream.stop();
+	} catch (const std::exception & e) {
+		std::cout << "\nERROR: Unable to setup sound stream." << '\n'
+				  << "Exception: " << e.what() << std::endl;
+	}
+}
 
 // audioOut
 void ofApp::audioOut(ofSoundBuffer & buffer) {
@@ -159,43 +192,17 @@ void ofApp::audioOut(ofSoundBuffer & buffer) {
 	}
 }
 
-/// Audio output configuration, using ofxAudioFile
-void ofApp::AudioSetup() {
-
-	// Setting the output parameters
-	ofSoundStreamSettings outputParameters;
-	outputParameters.numOutputChannels = 2;
-
-	//outputParameters.getOutDevice();
-	ofSoundDevice device = ShowSelectAudioDeviceMenu();
-	outputParameters.setOutDevice(device); 
-
-	// Setting real-time audio output.
-	setRealTimePriority();
-	outputParameters.numBuffers = 4;
-
-	outputParameters.sampleRate = SAMPLERATE;
-	outputParameters.bufferSize = 512;
-
-	outputParameters.setOutListener(this);
-
-	try {
-		soundStream.setup(outputParameters);
-		soundStream.stop();
-	} catch (const std::exception & e) {
-		std::cout << "\nERROR: Unable to setup sound stream." << '\n'
-				  << "Exception: " << e.what() << std::endl;
-	}
-}
-
 // Function to process audio
 void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, int bufferSize) {
 
 	//SFbuffer->FillBuffer(wavSamplePositionSource, positionEndFrameSource, ambisonicSoundFieldController->GetSoundFieldController(), bufferSize);
-	OutBuffer->FillBuffer(wavSamplePositionSource, positionEndFrameSource, ambisonicSoundFieldController->GetSoundFieldController(), bufferSize);
+	OutBuffer->GetSegment(wavSamplePositionSource, positionEndFrameSource, ambisonicSoundFieldController->GetSoundFieldController(), bufferSize);
+	OutBuffer->ConvertACNtoFuMa();
+	ambisonicProcessor.RotateField(-(3.1415 / 2), 0.0f, 0.0f, *OutBuffer);
+	OutBuffer->ConvertFuMatoACN();
 
 	// Decodificación a altavoces
-	ambisonicProcessor.DecodeToSpeakerArray(speakerArrayController, *OutBuffer);
+	ambisonicProcessor.DecodeToSpeakerArray(speakerArrayController, *OutBuffer, decoding);
 
 	Common::CEarPair<CMonoBuffer<float>> bufferProcessed;
 

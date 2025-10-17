@@ -12,29 +12,43 @@
 #include <string>
 #include <vector>
 
+
+
 class CAmbisonicProcessor {
 public:
-	CAmbisonicProcessor(): CAmbisonicProcessor(4, 48000, 512) {}
-
-	CAmbisonicProcessor(size_t numChannels_, unsigned int sampleRate_, size_t blockSize_)
-		: numChannels(numChannels_)
-		, sampleRate(sampleRate_)
-		, blockSize(blockSize_) {
-		if (numChannels <= 0) {
-			throw std::invalid_argument("numChannels must be > 0");
-		}
-
-		ambisonicOrder = static_cast<size_t>(std::sqrt(numChannels) - 1);
-	}
-
+	CAmbisonicProcessor(){}
 
 	// Rotate the field depending on listener rotation
-	void RotateField(float yaw, float pitch, float roll) {
-		// TODO: implement ambisonic rotation
+	void RotateField(float yaw, float pitch, float roll,CAmbisonicSoundField & OutBuffer) {
+		float A[3][3];
+		A[0][0] = cos(yaw) * cos(pitch);
+		A[0][1] = -sin(yaw) * cos(pitch);
+		A[0][2] = sin(pitch);
+
+		A[1][0] = sin(roll) * sin(pitch) * cos(yaw) + cos(roll) * sin(yaw);
+		A[1][1] = -sin(roll) * sin(pitch) * sin(yaw) + cos(roll) * cos(yaw);
+		A[1][2] = -sin(roll) * cos(pitch);
+
+		A[2][0] = -cos(roll) * sin(pitch) * cos(yaw) + sin(roll) * sin(yaw);
+		A[2][1] = cos(roll) * sin(pitch) * sin(yaw) + sin(roll) * cos(yaw);
+		A[2][2] = cos(roll) * cos(pitch);
+		                                                                                                                                                                                          
+		int N = OutBuffer.GetBufferSize();
+		vector<CMonoBuffer<float>> buffer(4, CMonoBuffer<float>(N, 0.0f));
+		buffer[0] = OutBuffer.GetSoundFieldArray()[0];
+
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				for (int k = 0; k < OutBuffer.GetBufferSize(); k++) {
+					buffer[i + 1][k] += A[i][j] * OutBuffer.GetSoundFieldArray()[j + 1][k];
+				}
+			}
+		}
+		OutBuffer.GetSoundFieldArray() = buffer;
 	}
 
-void DecodeToSpeakerArray(CLoudSpeakerArrayController & speakerArray,
-		const CAmbisonicSoundField & OutBuffer) {
+	void DecodeToSpeakerArray(CLoudSpeakerArrayController & speakerArray,
+		const CAmbisonicSoundField & OutBuffer, std::string decoding) {
 	
 		const auto & field = OutBuffer.GetSoundFieldArray();
 		const CMonoBuffer<float> & Wbuf = field[0];
@@ -50,25 +64,25 @@ void DecodeToSpeakerArray(CLoudSpeakerArrayController & speakerArray,
 		size_t numSamples = OutBuffer.GetBufferSize();
 		auto & speakers = speakerArray.GetSpeakers();
 
-		const float kWgain = 1.0f;
-		float gainZ = 1.0f;
-		float gainXY = 1.0f; 
+		float kWgain;
+		float gainXYZ;
 
+		if (decoding == "basic") {
+			kWgain = std::sqrt(2) / speakers.size();
+			gainXYZ = 3.0f / speakers.size();
+		} else if (decoding == "maxrE") {
+			kWgain = 1.0f / std::sqrt(speakers.size());
+			gainXYZ = std::sqrt(3.0f/2.0f) / std::sqrt(speakers.size());
+		}
+		 
 		for (size_t i = 0; i < speakers.size(); ++i) {
 			Common::CVector3 pos = speakers[i]->GetSourceTransform().GetPosition();
-
-			float norm = std::sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
-			if (norm > 0.0f) {
-				pos.x /= norm;
-				pos.y /= norm;
-				pos.z /= norm;
-			}
 
 			CMonoBuffer<float> buffer;
 			buffer.resize(numSamples); 
 
 			for (size_t n = 0; n < numSamples; ++n) {
-				buffer[n] = kWgain * W[n] + gainXY*(pos.x * X[n] + pos.y * Y[n]) + gainZ*pos.z * Z[n];
+				buffer[n] = kWgain * W[n] + gainXYZ*(pos.x * X[n] + pos.y * Y[n] + pos.z * Z[n]);
 			}
 
 			speakers[i]->SetBuffer(buffer);
@@ -85,34 +99,11 @@ void DecodeToSpeakerArray(CLoudSpeakerArrayController & speakerArray,
 		ambisonicProcessor = sf;
 	}
 
-	// Sum ambisonic fields
-	CAmbisonicProcessor & operator+=(const CAmbisonicProcessor & other) {
-		if (numChannels != other.numChannels || blockSize != other.blockSize) {
-			throw std::runtime_error("Cannot sum ambisonic blocks with different dimensions");
-		}
-
-		auto & arr = ambisonicProcessor.GetSoundFieldArray();
-		const auto & otherArray = other.ambisonicProcessor.GetSoundFieldArray();
-
-		for (size_t ch = 0; ch < numChannels; ++ch) {
-			arr[ch] += otherArray[ch];
-		}
-
-		return *this;
-	}
-
-	CAmbisonicProcessor operator+(const CAmbisonicProcessor & other) const {
-		CAmbisonicProcessor result = *this;
-		result += other;
-		return result;
-	}
-
 private:
-	size_t ambisonicOrder;
-	size_t numChannels;
+	/* size_t ambisonicOrder;
 	size_t sampleRate;
 	int blockSize;
-	int cont = 0;
+	int cont = 0;*/
 
 	CAmbisonicSoundField ambisonicProcessor;
 

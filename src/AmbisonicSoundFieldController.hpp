@@ -10,63 +10,19 @@
 #include <string>
 #include <vector>
 
-
-static const std::vector<std::vector<double>> NORM_MATRIX_O1 = {
-	{ 1.0, 0.0, 0.0, 0.0 },
-	{ 0.0, 0.0, 1.0, 0.0 },
-	{ 0.0, 0.0, 0.0, 1.0 },
-	{ 0.0, 1.0, 0.0, 0.0 }
-};
-static const std::vector<std::vector<double>> NORM_MATRIX_O2 = {
-	{ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-	{ 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-	{ 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-	{ 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-	{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 },
-	{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0 },
-	{ 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0 },
-	{ 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0 },
-	{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0 }
-};
-static const std::vector<std::vector<double>> NORM_MATRIX_O3 = {
-	{ 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-	{ 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-	{ 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-	{ 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-	{ 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-	{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-	{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-	{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-	{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-	{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-	{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-	{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0 },
-	{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0 },
-	{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0 },
-	{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0 },
-	{ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 }
-};
-
 class CAmbisonicSoundFieldController {
 public:
-	// Constructor por defecto
 	CAmbisonicSoundFieldController()
-		: CAmbisonicSoundFieldController(4, 48000, 512) { }
+		: CAmbisonicSoundFieldController(1, 48000, 512) { }
 
-	// Constructor principal con parámetros
-	CAmbisonicSoundFieldController(size_t numChannels_, unsigned int sampleRate_, size_t blockSize_)
-		: numChannels(numChannels_)
+	//Necesario??
+	CAmbisonicSoundFieldController(size_t ambisonicOrder_, unsigned int sampleRate_, size_t blockSize_)
+		: ambisonicOrder(ambisonicOrder_)
 		, sampleRate(sampleRate_)
-		, blockSize(blockSize_) {
-		if (numChannels <= 0) {
-			throw std::invalid_argument("numChannels must be > 0");
-		}
-
-		// Calcula el orden ambisónico a partir del número de canales: (N+1)^2 = numChannels
-		ambisonicOrder = static_cast<size_t>(std::sqrt(numChannels) - 1);
+		, blockSize(blockSize_){
 
 		// Inicializa el controlador interno de campo ambisónico
-		soundFieldController = CAmbisonicSoundField(numChannels, sampleRate, blockSize);
+		soundFieldController.SetUp(ambisonicOrder, sampleRate, blockSize, "ACN");
 	}
 
 
@@ -109,6 +65,10 @@ public:
 			}
 		}
 
+		if (ordering == "FuMa") {
+			soundFieldController.ConvertFuMatoACN();
+		}
+
 		std::cout << "Loaded WAV: " << filePath
 				  << " | Channels: " << numChannels
 				  << " | Frames: " << numFrames
@@ -116,53 +76,55 @@ public:
 				  << " | Ordering: " << ordering << std::endl;
 	}
 
-	/*
+	
 	// Save a sound field to a WAV file
 	//Prototype
-	bool SaveToWav(const std::string & filePath) {
-		if (soundFieldArray.empty()) {
-			std::cout << "No audio data to save." << std::endl;
+	/* bool SaveToWav(const std::string & filePath) {
+		auto & in = soundFieldController.GetSoundFieldArray();
+		size_t numChannels = in.size();
+
+		if (numChannels == 0) {
+			std::cout << "Error: no audio data available." << std::endl;
 			return false;
 		}
 
-		int totalChannels = static_cast<int>(soundFieldArray.size());
-		size_t numSamples = soundFieldArray[0].size();
-
-		// Verify consistent lengths
-		for (int ch = 0; ch < totalChannels; ++ch) {
-			if (soundFieldArray[ch].size() != numSamples) {
+		size_t numSamples = in[0].size();
+		// Verificar longitudes consistentes
+		for (size_t ch = 0; ch < numChannels; ++ch) {
+			if (in[ch].size() != numSamples) {
 				std::cout << "Inconsistent channel lengths." << std::endl;
 				return false;
 			}
 		}
 
-		// Interleave samples (consecutive channels per frame)
-		std::vector<float> interleavedSamples;
-		interleavedSamples.reserve(numSamples * totalChannels);
+		soundFieldController.ConvertACNtoFuMa();
 
+		auto & audioArray = soundFieldController.GetSoundFieldArray();
+
+		// --- Interleave ---
+		std::vector<float> interleavedSamples;
+		interleavedSamples.reserve(numSamples * numChannels);
 		for (size_t i = 0; i < numSamples; ++i) {
-			for (int ch = 0; ch < totalChannels; ++ch) {
-				interleavedSamples.push_back(soundFieldArray[ch][i]);
+			for (size_t ch = 0; ch < numChannels; ++ch) {
+				interleavedSamples.push_back(audioArray[ch][i]);
 			}
 		}
 
-		// Open file to write in binary
-		std::ofstream outFile(filePath, std::ios::binary);
-		if (!outFile) {
-			std::cout << "Failed to open file for writing: " << filePath << std::endl;
-			return false;
-		}
-
-		// --- WAV header ---
+		// --- WAV Header ---
 		uint16_t bitsPerSample = 32;
 		uint16_t audioFormat = 3; // IEEE float
-		uint16_t wavNumChannels = static_cast<uint16_t>(totalChannels);
-		uint32_t sampleRate_ = sampleRate;
+		uint16_t wavNumChannels = static_cast<uint16_t>(numChannels);
 		uint32_t blockAlign = wavNumChannels * sizeof(float);
-		uint32_t byteRate = sampleRate_ * blockAlign;
-		uint32_t dataSize = interleavedSamples.size() * sizeof(float);
+		uint32_t byteRate = sampleRate * blockAlign;
+		uint32_t dataSize = static_cast<uint32_t>(interleavedSamples.size() * sizeof(float));
 		uint32_t chunkSize = 36 + dataSize;
 		uint32_t subchunk1Size = 16;
+
+		std::ofstream outFile(filePath, std::ios::binary);
+		if (!outFile) {
+			std::cout << "Failed to open file: " << filePath << std::endl;
+			return false;
+		}
 
 		// RIFF
 		outFile.write("RIFF", 4);
@@ -174,7 +136,7 @@ public:
 		outFile.write(reinterpret_cast<const char *>(&subchunk1Size), 4);
 		outFile.write(reinterpret_cast<const char *>(&audioFormat), 2);
 		outFile.write(reinterpret_cast<const char *>(&wavNumChannels), 2);
-		outFile.write(reinterpret_cast<const char *>(&sampleRate_), 4);
+		outFile.write(reinterpret_cast<const char *>(&sampleRate), 4);
 		outFile.write(reinterpret_cast<const char *>(&byteRate), 4);
 		outFile.write(reinterpret_cast<const char *>(&blockAlign), 2);
 		outFile.write(reinterpret_cast<const char *>(&bitsPerSample), 2);
@@ -185,20 +147,20 @@ public:
 		outFile.write(reinterpret_cast<const char *>(interleavedSamples.data()), dataSize);
 
 		outFile.close();
-
-		std::cout << "Successfully saved WAV file: " << filePath << std::endl;
+		std::cout << "Successfully saved WAV: " << filePath << std::endl;
 		return true;
 	}*/
 
+
 	//Prototype
 	CAmbisonicSoundFieldController & operator+=(const CAmbisonicSoundFieldController & other) {
-		if (numChannels != other.numChannels || blockSize != other.blockSize) {
+		if (ambisonicOrder != other.ambisonicOrder || blockSize != other.blockSize) {
 			throw std::runtime_error("Cannot sum ambisonic blocks with different dimensions");
 		}
 
 		const auto & otherArray = other.soundFieldController.GetSoundFieldArray();
 		auto & arr = soundFieldController.GetSoundFieldArray();
-		for (size_t ch = 0; ch < numChannels; ++ch) {
+		for (size_t ch = 0; ch < pow(ambisonicOrder+1,2); ++ch) {
 			arr[ch] += other.soundFieldController.GetSoundFieldArray()[ch];
 		}
 		return *this;
@@ -212,44 +174,10 @@ public:
 
 private:
 	size_t ambisonicOrder;
-	size_t numChannels;
 	size_t sampleRate;
 	int blockSize;
 
 	CAmbisonicSoundField soundFieldController;
-
-	// Apply ACN ordering
-	void ApplyOrdering(int ambisonicOrder) {
-		const std::vector<std::vector<double>> * NORM_MATRIX = nullptr;
-
-		if (ambisonicOrder == 1) {
-			NORM_MATRIX = &NORM_MATRIX_O1;
-		} else if (ambisonicOrder == 2) {
-			NORM_MATRIX = &NORM_MATRIX_O2;
-		} else if (ambisonicOrder == 3) {
-			NORM_MATRIX = &NORM_MATRIX_O3;
-		} else {
-			throw std::runtime_error("Unsupported ambisonic order");
-		}
-
-		int numChannels = soundFieldController.GetSoundFieldArray().size();
-		std::vector<CMonoBuffer<float>> newArray(numChannels);
-
-		for (int i = 0; i < numChannels; i++) {
-			newArray[i].resize(soundFieldController.GetSoundFieldArray()[i].size(), 0.0f);
-		}
-
-		for (int i = 0; i < numChannels; i++) {
-			for (int j = 0; j < numChannels; j++) {
-				float gain = static_cast<float>((*NORM_MATRIX)[i][j]);
-				for (size_t k = 0; k < soundFieldController.GetSoundFieldArray()[j].size(); k++) {
-					newArray[i][k] += soundFieldController.GetSoundFieldArray()[j][k] * gain;
-				}
-			}
-		}
-
-		soundFieldController.GetSoundFieldArray() = std::move(newArray);
-	}
 };
 
 #endif // _CAMBISONIC_SOUNDFIELD_CONTROLLER_HPP_

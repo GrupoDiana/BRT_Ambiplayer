@@ -32,7 +32,6 @@ public:
 			if (onStop) onStop(); // callback
 		}
 		
-		//ImGui::EndChild();
 		ImGui::PopStyleVar();
 		ImGui::End();
 		gui.end();

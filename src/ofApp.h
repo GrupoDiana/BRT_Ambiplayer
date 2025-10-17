@@ -20,6 +20,7 @@ Common::CGlobalParameters globalParameters; // Class where the global BRT parame
 BRTBase::CBRTManager brtManager; // BRT global manager interface
 std::shared_ptr<BRTBase::CListener> listener; // Pointer to listener mode
 size_t currentSample = 0; // posición de reproducción global
+std::string decoding;
 
 CConfigurationA configurationA;
 
