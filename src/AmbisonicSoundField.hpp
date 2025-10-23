@@ -50,6 +50,11 @@ public:
 		return ambisonicOrder;
 	}
 
+	void SetOrder(int order) {
+		if (!setupDone) return;
+		ambisonicOrder=order;
+	}
+
 	int GetBufferSize() const {
 		if (!setupDone) return -1;
 		return bufferSize;
@@ -138,6 +143,11 @@ public:
 	// Rotate the field depending on how coordinates have changed
 	//To implement
 	void RotateField(float yaw, float pitch, float roll);
+
+	void DownMixing(int order) {
+		soundFieldArray.resize(pow(order + 1, 2));
+		ambisonicOrder = order;
+	}
 
 	//TODO
 	CAmbisonicSoundField & operator+=(const CAmbisonicSoundField & other) {

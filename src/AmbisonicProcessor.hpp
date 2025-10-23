@@ -19,7 +19,7 @@ public:
 	CAmbisonicProcessor(){}
 
 	// Rotate the field depending on listener rotation
-	void RotateField(float yaw, float pitch, float roll,CAmbisonicSoundField & OutBuffer) {
+	void FOARotateField(float yaw, float pitch, float roll,CAmbisonicSoundField & OutBuffer) {
 		float A[3][3];
 		A[0][0] = cos(yaw) * cos(pitch);
 		A[0][1] = -sin(yaw) * cos(pitch);
@@ -34,7 +34,8 @@ public:
 		A[2][2] = cos(roll) * cos(pitch);
 		                                                                                                                                                                                          
 		int N = OutBuffer.GetBufferSize();
-		vector<CMonoBuffer<float>> buffer(4, CMonoBuffer<float>(N, 0.0f));
+		int numChannels = OutBuffer.GetSoundFieldArray().size();
+		vector<CMonoBuffer<float>> buffer(numChannels, CMonoBuffer<float>(N, 0.0f));
 		buffer[0] = OutBuffer.GetSoundFieldArray()[0];
 
 		for (int i = 0; i < 3; i++) {
@@ -44,10 +45,14 @@ public:
 				}
 			}
 		}
+
+		for (int i = 4; i < OutBuffer.GetSoundFieldArray().size()-1; i++) {
+			buffer[i] = OutBuffer.GetSoundFieldArray()[i];
+		}
 		OutBuffer.GetSoundFieldArray() = buffer;
 	}
 
-	void DecodeToSpeakerArray(CLoudSpeakerArrayController & speakerArray,
+	void FOADecodeToSpeakerArray(CLoudSpeakerArrayController & speakerArray,
 		const CAmbisonicSoundField & OutBuffer, std::string decoding) {
 	
 		const auto & field = OutBuffer.GetSoundFieldArray();
@@ -73,7 +78,7 @@ public:
 		} else if (decoding == "maxrE") {
 			kWgain = 1.0f / std::sqrt(speakers.size());
 			gainXYZ = std::sqrt(3.0f/2.0f) / std::sqrt(speakers.size());
-		}
+		} 
 		 
 		for (size_t i = 0; i < speakers.size(); ++i) {
 			Common::CVector3 pos = speakers[i]->GetSourceTransform().GetPosition();
@@ -83,6 +88,39 @@ public:
 
 			for (size_t n = 0; n < numSamples; ++n) {
 				buffer[n] = kWgain * W[n] + gainXYZ*(pos.x * X[n] + pos.y * Y[n] + pos.z * Z[n]);
+			}
+
+			speakers[i]->SetBuffer(buffer);
+		}
+	}
+
+	void SADecodeToSpeakerArray(CLoudSpeakerArrayController & speakerArray,
+		const CAmbisonicSoundField & OutBuffer, std::string decoding) {
+
+		const auto & field = OutBuffer.GetSoundFieldArray();
+		const CMonoBuffer<float> & Wbuf = field[0];
+		const CMonoBuffer<float> & Xbuf = field[3];
+		const CMonoBuffer<float> & Ybuf = field[1];
+		const CMonoBuffer<float> & Zbuf = field[2];
+
+		const float * W = Wbuf.data();
+		const float * X = Xbuf.data();
+		const float * Y = Ybuf.data();
+		const float * Z = Zbuf.data();
+
+		size_t numSamples = OutBuffer.GetBufferSize();
+		auto & speakers = speakerArray.GetSpeakers();
+
+		float Gain=std::sqrt(4*M_PI/speakers.size());
+
+		for (size_t i = 0; i < speakers.size(); ++i) {
+			Common::CVector3 pos = speakers[i]->GetSourceTransform().GetPosition();
+
+			CMonoBuffer<float> buffer;
+			buffer.resize(numSamples);
+
+			for (size_t n = 0; n < numSamples; ++n) {
+				buffer[n] = Gain * (W[n] + pos.x * X[n] + pos.y * Y[n] + pos.z * Z[n]);
 			}
 
 			speakers[i]->SetBuffer(buffer);

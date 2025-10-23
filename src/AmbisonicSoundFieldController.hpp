@@ -2,6 +2,7 @@
 #define _CAMBISONIC_SOUNDFIELD_CONTROLLER_HPP_
 
 #include "LoudspeakerArrayController.hpp"
+#include "AmbisonicSoundField.hpp"
 #include "ofxAudioFile.h"
 #include "ofxBRTLibrary.h"
 
@@ -12,17 +13,11 @@
 
 class CAmbisonicSoundFieldController {
 public:
-	CAmbisonicSoundFieldController()
-		: CAmbisonicSoundFieldController(1, 48000, 512) { }
+	CAmbisonicSoundFieldController(): soundFieldController(), setupDone { false } {}
 
-	//Necesario??
-	CAmbisonicSoundFieldController(size_t ambisonicOrder_, unsigned int sampleRate_, size_t blockSize_)
-		: ambisonicOrder(ambisonicOrder_)
-		, sampleRate(sampleRate_)
-		, blockSize(blockSize_){
-
+	void SetUp(size_t ambisonicOrder_, unsigned int sampleRate_, size_t blockSize_){
 		// Inicializa el controlador interno de campo ambisónico
-		soundFieldController.SetUp(ambisonicOrder, sampleRate, blockSize, "ACN");
+		soundFieldController.SetUp(ambisonicOrder_, sampleRate_, blockSize_, "ACN");
 	}
 
 
@@ -49,19 +44,18 @@ public:
 
 		int numChannels = audioFile.channels();
 		size_t numFrames = audioFile.length(); 
-		int fileSampleRate = audioFile.samplerate(); 
+		int fileSampleRate = audioFile.samplerate();
 
-		auto & buffers = soundFieldController.GetSoundFieldArray();
-		buffers.clear();
-		buffers.resize(numChannels);
+		soundFieldController.GetSoundFieldArray().resize(numChannels);
+		soundFieldController.SetOrder(static_cast<int>(sqrt(numChannels)) - 1);
 
 		for (int ch = 0; ch < numChannels; ++ch) {
-			buffers[ch].resize(numFrames);
+			soundFieldController.GetSoundFieldArray()[ch].resize(numFrames);
 		}
 
 		for (size_t i = 0; i < numFrames; ++i) {
 			for (int ch = 0; ch < numChannels; ++ch) {
-				buffers[ch][i] = audioFile.sample(i, ch);
+				soundFieldController.GetSoundFieldArray()[ch][i] = audioFile.sample(i, ch);
 			}
 		}
 
@@ -154,13 +148,9 @@ public:
 
 	//Prototype
 	CAmbisonicSoundFieldController & operator+=(const CAmbisonicSoundFieldController & other) {
-		if (ambisonicOrder != other.ambisonicOrder || blockSize != other.blockSize) {
-			throw std::runtime_error("Cannot sum ambisonic blocks with different dimensions");
-		}
-
 		const auto & otherArray = other.soundFieldController.GetSoundFieldArray();
 		auto & arr = soundFieldController.GetSoundFieldArray();
-		for (size_t ch = 0; ch < pow(ambisonicOrder+1,2); ++ch) {
+		for (size_t ch = 0; ch < pow(soundFieldController.GetOrder()+1,2); ++ch) {
 			arr[ch] += other.soundFieldController.GetSoundFieldArray()[ch];
 		}
 		return *this;
@@ -173,10 +163,11 @@ public:
 	}
 
 private:
-	size_t ambisonicOrder;
+	/* size_t ambisonicOrder;
 	size_t sampleRate;
-	int blockSize;
+	int blockSize;*/
 
+	bool setupDone;
 	CAmbisonicSoundField soundFieldController;
 };
 

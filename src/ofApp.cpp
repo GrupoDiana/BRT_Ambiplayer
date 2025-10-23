@@ -44,18 +44,21 @@ void ofApp::setup() {
 	
 	std::cout << "Please select decoding metohd: ";
 	std::cin >> decoding;
-	speakerArrayController.LoadLayoutJSON("tetraedros");
+	speakerArrayController.LoadLayoutJSON();
 
 	// /////////////////////
 	// Load Wav Files
 	/////////////////////
 	ambisonicSoundFieldController = std::make_shared<CAmbisonicSoundFieldController>();
+	ambisonicSoundFieldController->SetUp(1,48000,512);
 	ambisonicSoundFieldController->LoadWav(SOURCE_FILEPATH, "ACN");
 
+	cout << "orden:"<< ambisonicSoundFieldController->GetSoundFieldController().GetOrder() << "canales:" << ambisonicSoundFieldController->GetSoundFieldController().GetSoundFieldArray().size() << endl;
+
 	SFbuffer = std::make_shared<CAmbisonicSoundField>();
-	SFbuffer->SetUp(1, 48000, 512, "ACN");
+	SFbuffer->SetUp(ambisonicSoundFieldController->GetSoundFieldController().GetOrder(), 48000, 512, "ACN");
 	OutBuffer = std::make_shared<CAmbisonicSoundField>();
-	OutBuffer->SetUp(1, 48000, 512, "ACN");
+	OutBuffer->SetUp(ambisonicSoundFieldController->GetSoundFieldController().GetOrder(), 48000, 512, "ACN");
 
 	/////////////////////
 	// Start AUDIO Render
@@ -195,14 +198,18 @@ void ofApp::audioOut(ofSoundBuffer & buffer) {
 // Function to process audio
 void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, int bufferSize) {
 
-	//SFbuffer->FillBuffer(wavSamplePositionSource, positionEndFrameSource, ambisonicSoundFieldController->GetSoundFieldController(), bufferSize);
+	//SFbuffer->GetSegment(wavSamplePositionSource, positionEndFrameSource, ambisonicSoundFieldController->GetSoundFieldController(), bufferSize);
 	OutBuffer->GetSegment(wavSamplePositionSource, positionEndFrameSource, ambisonicSoundFieldController->GetSoundFieldController(), bufferSize);
-	OutBuffer->ConvertACNtoFuMa();
-	ambisonicProcessor.RotateField(-(3.1415 / 2), 0.0f, 0.0f, *OutBuffer);
-	OutBuffer->ConvertFuMatoACN();
+
+	/* OutBuffer->ConvertACNtoFuMa();
+	ambisonicProcessor.FOARotateField(-M_PI_2, 0.0f, 0.0f, *OutBuffer);
+	OutBuffer->ConvertFuMatoACN();*/
+
+	/* ambisonicSoundFieldController->GetSoundFieldController().DownMixing(1);
+	OutBuffer->DownMixing(1);*/
 
 	// Decodificación a altavoces
-	ambisonicProcessor.DecodeToSpeakerArray(speakerArrayController, *OutBuffer, decoding);
+	ambisonicProcessor.FOADecodeToSpeakerArray(speakerArrayController, *OutBuffer, decoding);
 
 	Common::CEarPair<CMonoBuffer<float>> bufferProcessed;
 

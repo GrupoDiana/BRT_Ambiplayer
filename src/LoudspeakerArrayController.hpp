@@ -37,97 +37,29 @@ public:
 
 
 	// Depending on the chosen layout (octahedron, cube, icosahedron, or dodecahedron) position the sources
-	void LoadLayoutJSON(std::string name) {
+	void LoadLayoutJSON(/* std::string name*/) {
 		// Set speaker positions in the shape of a regular octahedron centered at (0,0,0)
 		if (speakers.size() == 6) {
-			// Speaker 0 -> (1, 0, 0)
-			Common::CTransform speaker0 = Common::CTransform();
-			speaker0.SetPosition(Common::CVector3(1.0, 0.0, 0.0));
-			speakers[0]->SetSourceTransform(speaker0);
 
-			// Speaker 1 -> (-1, 0, 0)
-			Common::CTransform speaker1 = Common::CTransform();
-			speaker1.SetPosition(Common::CVector3(-1.0, 0.0, 0.0));
-			speakers[1]->SetSourceTransform(speaker1);
+			speakers[0]->SetSourceTransform(Common::CTransform(Common::CVector3(1.0f, 0.0f, 0.0f)));
+			speakers[1]->SetSourceTransform(Common::CTransform(Common::CVector3(-1.0f, 0.0f, 0.0f)));
+			speakers[2]->SetSourceTransform(Common::CTransform(Common::CVector3(0.0f, 1.0f, 0.0f)));
+			speakers[3]->SetSourceTransform(Common::CTransform(Common::CVector3(0.0f, -1.0f, 0.0f)));
+			speakers[4]->SetSourceTransform(Common::CTransform(Common::CVector3(0.0f, 0.0f, 1.0f)));
+			speakers[5]->SetSourceTransform(Common::CTransform(Common::CVector3(0.0f, 0.0f, -1.0f)));
 
-			// Speaker 2 -> (0, 1, 0)
-			Common::CTransform speaker2 = Common::CTransform();
-			speaker2.SetPosition(Common::CVector3(0.0, 1.0, 0.0));
-			speakers[2]->SetSourceTransform(speaker2);
-
-			// Speaker 3 -> (0, -1, 0)
-			Common::CTransform speaker3 = Common::CTransform();
-			speaker3.SetPosition(Common::CVector3(0.0, -1.0, 0.0));
-			speakers[3]->SetSourceTransform(speaker3);
-
-			// Speaker 4 -> (0, 0, 1)
-			Common::CTransform speaker4 = Common::CTransform();
-			speaker4.SetPosition(Common::CVector3(0.0, 0.0, 1.0));
-			speakers[4]->SetSourceTransform(speaker4);
-
-			// Speaker 5 -> (0, 0, -1)
-			Common::CTransform speaker5 = Common::CTransform();
-			speaker5.SetPosition(Common::CVector3(0.0, 0.0, -1.0));
-			speakers[5]->SetSourceTransform(speaker5);
-		} else if (speakers.size() == 8 && name == "octaedro") {
+		} else if (speakers.size() == 8) {
 			float norm = 1.0f / std::sqrt(3.0f);
 
-			// Speaker 0 -> (1, 1, 1)
-			Common::CTransform speaker0;
-			speaker0.SetPosition(Common::CVector3(1.0f * norm, 1.0f * norm, 1.0f * norm));
-			speakers[0]->SetSourceTransform(speaker0);
-
-			// Speaker 1 -> (1, 1, -1)
-			Common::CTransform speaker1;
-			speaker1.SetPosition(Common::CVector3(1.0f * norm, 1.0f * norm, -1.0f * norm));
-			speakers[1]->SetSourceTransform(speaker1);
-
-			// Speaker 2 -> (1, -1, 1)
-			Common::CTransform speaker2;
-			speaker2.SetPosition(Common::CVector3(1.0f * norm, -1.0f * norm, 1.0f * norm));
-			speakers[2]->SetSourceTransform(speaker2);
-
-			// Speaker 3 -> (1, -1, -1)
-			Common::CTransform speaker3;
-			speaker3.SetPosition(Common::CVector3(1.0f * norm, -1.0f * norm, -1.0f * norm));
-			speakers[3]->SetSourceTransform(speaker3);
-
-			// Speaker 4 -> (-1, 1, 1)
-			Common::CTransform speaker4;
-			speaker4.SetPosition(Common::CVector3(-1.0f * norm, 1.0f * norm, 1.0f * norm));
-			speakers[4]->SetSourceTransform(speaker4);
-
-			// Speaker 5 -> (-1, 1, -1)
-			Common::CTransform speaker5;
-			speaker5.SetPosition(Common::CVector3(-1.0f * norm, 1.0f * norm, -1.0f * norm));
-			speakers[5]->SetSourceTransform(speaker5);
-
-			// Speaker 6 -> (-1, -1, 1)
-			Common::CTransform speaker6;
-			speaker6.SetPosition(Common::CVector3(-1.0f * norm, -1.0f * norm, 1.0f * norm));
-			speakers[6]->SetSourceTransform(speaker6);
-
-			// Speaker 7 -> (-1, -1, -1)
-			Common::CTransform speaker7;
-			speaker7.SetPosition(Common::CVector3(-1.0f * norm, -1.0f * norm, -1.0f * norm));
-			speakers[7]->SetSourceTransform(speaker7);
-		} else if (speakers.size() == 8 && name == "tetraedros") {
-
-		// Normalizamos para que estén a la misma distancia del centro
-			float norm = 1.0f / std::sqrt(3.0f); // Radio unitario
-
-			// Tetraedro superior
 			speakers[0]->SetSourceTransform(Common::CTransform(Common::CVector3(1.0f * norm, 1.0f * norm, 1.0f * norm)));
 			speakers[1]->SetSourceTransform(Common::CTransform(Common::CVector3(-1.0f * norm, -1.0f * norm, 1.0f * norm)));
 			speakers[2]->SetSourceTransform(Common::CTransform(Common::CVector3(-1.0f * norm, 1.0f * norm, -1.0f * norm)));
 			speakers[3]->SetSourceTransform(Common::CTransform(Common::CVector3(1.0f * norm, -1.0f * norm, -1.0f * norm)));
-
-			// Tetraedro inferior (invertido)
 			speakers[4]->SetSourceTransform(Common::CTransform(Common::CVector3(-1.0f * norm, 1.0f * norm, 1.0f * norm)));
 			speakers[5]->SetSourceTransform(Common::CTransform(Common::CVector3(1.0f * norm, -1.0f * norm, 1.0f * norm)));
 			speakers[6]->SetSourceTransform(Common::CTransform(Common::CVector3(1.0f * norm, 1.0f * norm, -1.0f * norm)));
 			speakers[7]->SetSourceTransform(Common::CTransform(Common::CVector3(-1.0f * norm, -1.0f * norm, -1.0f * norm)));
-		}
+		} 
 	}
 
 	// Returns the number of speakers
