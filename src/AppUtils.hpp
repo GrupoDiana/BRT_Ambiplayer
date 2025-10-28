@@ -1,5 +1,5 @@
 #include <string>
-#include <BRTLibrary.h>
+#include "ofxBRTLibrary.h"
 
 
 #ifndef _APP_UTILS_HPP_

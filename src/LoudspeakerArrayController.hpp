@@ -5,89 +5,166 @@
 #include "ofxAudioFile.h"
 #include "ofxBRTLibrary.h"
 
-#include <memory>
+#include <cmath>
+#include <iostream>
 #include <vector>
+
+const float phi = (1.0f + std::sqrt(5.0f)) / 2.0f;
+
+enum PlatonicSolid {
+	octahedron,
+	cube,
+	icosahedron,
+	dodecahedron
+};
 
 class CLoudSpeakerArrayController {
 public:
-	CLoudSpeakerArrayController() {}
+	CLoudSpeakerArrayController() { }
 
-	//Este podria ser el setup
-	CLoudSpeakerArrayController(BRTBase::CBRTManager & brtManager, size_t nspeakers) {
-		speakers.resize(nspeakers);
-		for (int i = 0; i < nspeakers; i++) {
-			auto speaker = CreateOmnidirectionalSoundSource(brtManager,"Speaker" + std::to_string(i));
-			speakers[i] = speaker;
+	void SetUp(BRTBase::CBRTManager & brtManager, PlatonicSolid solid) {
+		std::vector<Common::CVector3> vertices;
+
+		switch (solid) {
+		case PlatonicSolid::octahedron:
+			vertices = {
+				{ 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 }, { 0, 0, -1 }
+			};
+			break;
+
+		case PlatonicSolid::cube: {
+			float norm = 1.0f / std::sqrt(3.0f);
+			vertices = {
+				{ 1 * norm, 1 * norm, 1 * norm }, { -1 * norm, -1 * norm, 1 * norm }, { -1 * norm, 1 * norm, -1 * norm }, { 1 * norm, -1 * norm, -1 * norm },
+				{ -1 * norm, 1 * norm, 1 * norm }, { 1 * norm, -1 * norm, 1 * norm }, { 1 * norm, 1 * norm, -1 * norm }, { -1 * norm, -1 * norm, -1 * norm }
+			};
+			break;
+		}
+
+		case PlatonicSolid::icosahedron: {
+			float norm = 1.0f / std::sqrt(1 + phi * phi);
+			vertices = {
+				{ 0, 1 * norm, phi * norm }, { 0, 1 * norm, -phi * norm }, { 0, -1 * norm, phi * norm }, { 0, -1 * norm, -phi * norm },
+				{ 1 * norm, phi * norm, 0 }, { 1 * norm, -phi * norm, 0 }, { -1 * norm, phi * norm, 0 }, { -1 * norm, -phi * norm, 0 },
+				{ phi * norm, 0, 1 * norm }, { phi * norm, 0, -1 * norm }, { -phi * norm, 0, 1 * norm }, { -phi * norm, 0, -1 * norm }
+			};
+			break;
+		}
+
+		case PlatonicSolid::dodecahedron: {
+			float norm = 1.0f / std::sqrt(3.0f);
+			float normPhi = 1.0f / std::sqrt(1 + phi * phi);
+			vertices = {
+				{ 1 * norm, 1 * norm, 1 * norm }, { -1 * norm, 1 * norm, 1 * norm },
+				{ 1 * norm, -1 * norm, 1 * norm }, { -1 * norm, -1 * norm, 1 * norm },
+				{ 1 * norm, 1 * norm, -1 * norm }, { -1 * norm, 1 * norm, -1 * norm },
+				{ 1 * norm, -1 * norm, -1 * norm }, { -1 * norm, -1 * norm, -1 * norm },
+
+				{ 0, 1 * normPhi / phi, phi * normPhi }, { 0, -1 * normPhi / phi, phi * normPhi },
+				{ 0, 1 * normPhi / phi, -phi * normPhi }, { 0, -1 * normPhi / phi, -phi * normPhi },
+
+				{ 1 * normPhi / phi, phi * normPhi, 0 }, { -1 * normPhi / phi, phi * normPhi, 0 },
+				{ 1 * normPhi / phi, -phi * normPhi, 0 }, { -1 * normPhi / phi, -phi * normPhi, 0 },
+
+				{ phi * normPhi, 0, 1 * normPhi / phi }, { -phi * normPhi, 0, 1 * normPhi / phi },
+				{ phi * normPhi, 0, -1 * normPhi / phi }, { -phi * normPhi, 0, -1 * normPhi / phi }
+			};
+			break;
+		}
+		}
+
+		speakers.resize(vertices.size());
+		for (size_t i = 0; i < vertices.size(); ++i) {
+			speakers[i] = CreateOmnidirectionalSoundSource(brtManager, "Speaker" + std::to_string(i));
+			speakers[i]->SetSourceTransform(Common::CTransform(vertices[i]));
 		}
 	}
 
-	// Get a single speaker by index
 	std::shared_ptr<BRTSourceModel::CSourceOmnidirectionalModel> GetSpeaker(size_t index) const {
-		if (index >= speakers.size()) {
-			throw std::out_of_range("Speaker index out of range");
-		}
+		if (index >= speakers.size()) throw std::out_of_range("Speaker index out of range");
 		return speakers[index];
 	}
 
-	// Get the entire vector of speakers
 	const std::vector<std::shared_ptr<BRTSourceModel::CSourceOmnidirectionalModel>> & GetSpeakers() const {
 		return speakers;
 	}
 
-
-
-	// Depending on the chosen layout (octahedron, cube, icosahedron, or dodecahedron) position the sources
-	void LoadLayoutJSON(/* std::string name*/) {
-		// Set speaker positions in the shape of a regular octahedron centered at (0,0,0)
-		if (speakers.size() == 6) {
-
-			speakers[0]->SetSourceTransform(Common::CTransform(Common::CVector3(1.0f, 0.0f, 0.0f)));
-			speakers[1]->SetSourceTransform(Common::CTransform(Common::CVector3(-1.0f, 0.0f, 0.0f)));
-			speakers[2]->SetSourceTransform(Common::CTransform(Common::CVector3(0.0f, 1.0f, 0.0f)));
-			speakers[3]->SetSourceTransform(Common::CTransform(Common::CVector3(0.0f, -1.0f, 0.0f)));
-			speakers[4]->SetSourceTransform(Common::CTransform(Common::CVector3(0.0f, 0.0f, 1.0f)));
-			speakers[5]->SetSourceTransform(Common::CTransform(Common::CVector3(0.0f, 0.0f, -1.0f)));
-
-		} else if (speakers.size() == 8) {
-			float norm = 1.0f / std::sqrt(3.0f);
-
-			speakers[0]->SetSourceTransform(Common::CTransform(Common::CVector3(1.0f * norm, 1.0f * norm, 1.0f * norm)));
-			speakers[1]->SetSourceTransform(Common::CTransform(Common::CVector3(-1.0f * norm, -1.0f * norm, 1.0f * norm)));
-			speakers[2]->SetSourceTransform(Common::CTransform(Common::CVector3(-1.0f * norm, 1.0f * norm, -1.0f * norm)));
-			speakers[3]->SetSourceTransform(Common::CTransform(Common::CVector3(1.0f * norm, -1.0f * norm, -1.0f * norm)));
-			speakers[4]->SetSourceTransform(Common::CTransform(Common::CVector3(-1.0f * norm, 1.0f * norm, 1.0f * norm)));
-			speakers[5]->SetSourceTransform(Common::CTransform(Common::CVector3(1.0f * norm, -1.0f * norm, 1.0f * norm)));
-			speakers[6]->SetSourceTransform(Common::CTransform(Common::CVector3(1.0f * norm, 1.0f * norm, -1.0f * norm)));
-			speakers[7]->SetSourceTransform(Common::CTransform(Common::CVector3(-1.0f * norm, -1.0f * norm, -1.0f * norm)));
-		} 
-	}
-
-	// Returns the number of speakers
 	int GetNumSpeakers() const { return speakers.size(); }
 
-	// To implement
-	void DecodeToAmbisonicSoundField(const CLoudSpeakerArrayController & array);
+	void DecodeToSpeakerArray(const CAmbisonicSoundField & OutBuffer, std::string decoding) {
+		const auto & field = OutBuffer.GetSoundFieldArray();
+		size_t order = OutBuffer.GetOrder();
+
+		const CMonoBuffer<float> & Wbuf = field[0];
+		const CMonoBuffer<float> & Xbuf = field[3];
+		const CMonoBuffer<float> & Ybuf = field[1];
+		const CMonoBuffer<float> & Zbuf = field[2];
+		const CMonoBuffer<float> * Vbuf = (order >= 2 && field.size() > 6) ? &field[6] : nullptr;
+		const CMonoBuffer<float> * Tbuf = (order >= 2 && field.size() > 7) ? &field[7] : nullptr;
+		const CMonoBuffer<float> * Rbuf = (order >= 2 && field.size() > 5) ? &field[5] : nullptr;
+		const CMonoBuffer<float> * Sbuf = (order >= 2 && field.size() > 8) ? &field[8] : nullptr;
+		const CMonoBuffer<float> * Ubuf = (order >= 2 && field.size() > 4) ? &field[4] : nullptr;
+
+		const float * W = Wbuf.data();
+		const float * X = Xbuf.data();
+		const float * Y = Ybuf.data();
+		const float * Z = Zbuf.data();
+		const float * V = Vbuf ? Vbuf->data() : nullptr;
+		const float * T = Tbuf ? Tbuf->data() : nullptr;
+		const float * R = Rbuf ? Rbuf->data() : nullptr;
+		const float * S = Sbuf ? Sbuf->data() : nullptr;
+		const float * U = Ubuf ? Ubuf->data() : nullptr;
+
+		size_t numSamples = OutBuffer.GetBufferSize();
+
+		float Gain = std::sqrt(4 * M_PI / speakers.size());
+
+		float Wgain;
+		float XYZgain;
+
+		if (decoding == "basic") {
+			Wgain = std::sqrt(2) / speakers.size();
+			XYZgain = 3.0f / speakers.size();
+		} else if (decoding == "maxrE") {
+			Wgain = 1.0f / std::sqrt(speakers.size());
+			XYZgain = std::sqrt(3.0f / 2.0f) / std::sqrt(speakers.size());
+
+		} else {
+			Wgain = 0.0;
+			XYZgain = 0.0;
+		}
+
+		for (size_t i = 0; i < speakers.size(); ++i) {
+			Common::CVector3 pos = speakers[i]->GetSourceTransform().GetPosition();
+
+			CMonoBuffer<float> buffer;
+			buffer.resize(numSamples);
+
+			for (size_t n = 0; n < numSamples; ++n) {
+				if (order == 1) {
+					buffer[n] = Wgain * W[n] + XYZgain * (pos.x * X[n] + pos.y * Y[n] + pos.z * Z[n]);
+				} else if (order == 2) {
+					buffer[n] = Gain * (W[n] + pos.x * X[n] + pos.y * Y[n] + pos.z * Z[n] + sqrt(3) * pos.x * pos.y * V[n] + sqrt(3) * pos.y * pos.z * T[n] + (1 / 2) * ((3 * pow(pos.z, 2)) - 1) * R[n] + sqrt(3) * pos.x * pos.z * S[n] + sqrt(3 / 4) * (pow(pos.x, 2) - pow(pos.y, 2)) * U[n]);
+				}
+			}
+
+			speakers[i]->SetBuffer(buffer);
+		}
+	}
 
 private:
-	//BRTBase::CBRTManager brtManager; // BRT global manager interface
-
 	using SourceModelPtr = std::shared_ptr<BRTSourceModel::CSourceOmnidirectionalModel>;
 	std::vector<SourceModelPtr> speakers;
 
-	std::shared_ptr<BRTSourceModel::CSourceOmnidirectionalModel> CreateOmnidirectionalSoundSource(BRTBase::CBRTManager & brtManager,const std::string & _soundSourceID) {
+	std::shared_ptr<BRTSourceModel::CSourceOmnidirectionalModel> CreateOmnidirectionalSoundSource(
+		BRTBase::CBRTManager & brtManager, const std::string & _soundSourceID) {
 		brtManager.BeginSetup();
-
-		std::shared_ptr<BRTSourceModel::CSourceOmnidirectionalModel> _brtSoundSource = brtManager.CreateSoundSource<BRTSourceModel::CSourceOmnidirectionalModel>(_soundSourceID);
-
+		auto _brtSoundSource = brtManager.CreateSoundSource<BRTSourceModel::CSourceOmnidirectionalModel>(_soundSourceID);
 		brtManager.EndSetup();
-
-		if (_brtSoundSource == nullptr) {
-			std::cout << "Error creating sound source" << std::endl;
-		}
-
+		if (!_brtSoundSource) std::cout << "Error creating sound source" << std::endl;
 		return _brtSoundSource;
 	}
-	
 };
+
 
 #endif // _CLOUDSPEAKER_ARRAY_CONTROLLER_HPP_

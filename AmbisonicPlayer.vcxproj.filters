@@ -3749,6 +3749,7 @@
     <ClInclude Include="src\ConfigurationA.hpp">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="Matrix.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="icon.rc" />

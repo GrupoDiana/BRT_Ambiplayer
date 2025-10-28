@@ -139,10 +139,38 @@ public:
 		}
 	}
 
-
 	// Rotate the field depending on how coordinates have changed
-	//To implement
-	void RotateField(float yaw, float pitch, float roll);
+	void RotateField(float yaw, float pitch, float roll) {//quaternion
+		float A[3][3];
+		A[0][0] = cos(yaw) * cos(pitch);
+		A[0][1] = -sin(yaw) * cos(pitch);
+		A[0][2] = sin(pitch);
+
+		A[1][0] = sin(roll) * sin(pitch) * cos(yaw) + cos(roll) * sin(yaw);
+		A[1][1] = -sin(roll) * sin(pitch) * sin(yaw) + cos(roll) * cos(yaw);
+		A[1][2] = -sin(roll) * cos(pitch);
+
+		A[2][0] = -cos(roll) * sin(pitch) * cos(yaw) + sin(roll) * sin(yaw);
+		A[2][1] = cos(roll) * sin(pitch) * sin(yaw) + sin(roll) * cos(yaw);
+		A[2][2] = cos(roll) * cos(pitch);
+
+		int numChannels = pow(ambisonicOrder + 1, 2);
+		vector<CMonoBuffer<float>> buffer(numChannels, CMonoBuffer<float>(bufferSize, 0.0f));
+		buffer[0] = soundFieldArray[0];
+
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				for (int k = 0; k < bufferSize; k++) {
+					buffer[i + 1][k] += A[i][j] * soundFieldArray[j + 1][k];
+				}
+			}
+		}
+
+		for (int i = 4; i < numChannels - 1; i++) {
+			buffer[i] = soundFieldArray[i];
+		}
+		soundFieldArray = buffer;
+	}
 
 	void DownMixing(int order) {
 		soundFieldArray.resize(pow(order + 1, 2));

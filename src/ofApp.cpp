@@ -29,10 +29,15 @@ void ofApp::setup() {
 	/////////////////////
 	// Create Sources
 	/////////////////////
-	int nspeakers;
-	std::cout << "Please choose the number of virtual speakers: ";
-	std::cin >> nspeakers;
-	speakerArrayController = CLoudSpeakerArrayController(brtManager, nspeakers);
+	int solid;
+	std::cout << "Please choose the platonic solid: "<<endl;
+	std::cout << "0: Octahedron" << endl;
+	std::cout << "1: Cube" << endl;
+	std::cout << "2: Icosahedron" << endl;
+	std::cout << "3: Dodecahedron" << endl;
+	std::cin >> solid;
+	speakerArrayController = CLoudSpeakerArrayController();
+	speakerArrayController.SetUp(brtManager, static_cast<PlatonicSolid>(solid));
 
 	for (int i = 0; i < speakerArrayController.GetNumSpeakers(); i++) {
 		configurationA.ConnectSoundSource(&brtManager, "Speaker" + std::to_string(i));
@@ -44,7 +49,7 @@ void ofApp::setup() {
 	
 	std::cout << "Please select decoding metohd: ";
 	std::cin >> decoding;
-	speakerArrayController.LoadLayoutJSON();
+	
 
 	// /////////////////////
 	// Load Wav Files
@@ -202,14 +207,11 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 	OutBuffer->GetSegment(wavSamplePositionSource, positionEndFrameSource, ambisonicSoundFieldController->GetSoundFieldController(), bufferSize);
 
 	/* OutBuffer->ConvertACNtoFuMa();
-	ambisonicProcessor.FOARotateField(-M_PI_2, 0.0f, 0.0f, *OutBuffer);
+	OutBuffer->RotateField(-M_PI_2, 0.0f, 0.0f);
 	OutBuffer->ConvertFuMatoACN();*/
 
-	/* ambisonicSoundFieldController->GetSoundFieldController().DownMixing(1);
-	OutBuffer->DownMixing(1);*/
-
 	// Decodificación a altavoces
-	ambisonicProcessor.FOADecodeToSpeakerArray(speakerArrayController, *OutBuffer, decoding);
+	ambisonicProcessor.DecodeToSpeakerArray(speakerArrayController, *OutBuffer, decoding);
 
 	Common::CEarPair<CMonoBuffer<float>> bufferProcessed;
 
