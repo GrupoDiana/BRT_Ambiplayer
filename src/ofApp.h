@@ -4,7 +4,7 @@
 #define SAMPLERATE 48000
 #define LISTENER_ID "listener1"
 
-#define SOURCE_FILEPATH "../resources/ambi_1OA_test.wav"
+#define SOURCE_FILEPATH "../resources/ambi_3OA_test.wav"
 
 #include "ofMain.h"
 #include "GUI/GuiManager.hpp"
@@ -16,16 +16,16 @@
 #include "LoudSpeakerArrayController.hpp"
 
 ofSoundStream soundStream;
-Common::CGlobalParameters globalParameters; // Class where the global BRT parameters are defined.
-BRTBase::CBRTManager brtManager; // BRT global manager interface
-std::shared_ptr<BRTBase::CListener> listener; // Pointer to listener mode
-size_t currentSample = 0; // posición de reproducción global
+Common::CGlobalParameters globalParameters; 
+BRTBase::CBRTManager brtManager; 
+std::shared_ptr<BRTBase::CListener> listener; 
+size_t currentSample = 0; 
 std::string decoding;
 
 CConfigurationA configurationA;
 
-Common::CEarPair<CMonoBuffer<float>> outputBufferStereo; // Stereo buffer containing processed audio
-unsigned int wavSamplePositionSource; // Storages, respectively, the starting and ending position of the frame being rendered for each source
+Common::CEarPair<CMonoBuffer<float>> outputBufferStereo; 
+unsigned int wavSamplePositionSource; 
 unsigned int positionEndFrameSource;
 
 
@@ -52,7 +52,6 @@ class ofApp : public ofBaseApp{
 		void audioOut(ofSoundBuffer & buffer);
 		void audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, int uiBufferSize);
 		ofSoundDevice ShowSelectAudioDeviceMenu();
-		void FillBuffer(CMonoBuffer<float> & output, unsigned int & position, unsigned int & endFrame, std::vector<float> & samplesVector);
 
 	private:
 		CGuiManager guiManager;

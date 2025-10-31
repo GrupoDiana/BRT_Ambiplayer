@@ -4,6 +4,7 @@
 #include "LoudspeakerArrayController.hpp"
 #include "ofxAudioFile.h"
 #include "ofxBRTLibrary.h"
+#include "Matrix.hpp"
 
 #include <Common/Buffer.hpp>
 #include <cmath>
@@ -16,6 +17,8 @@ std::vector<int> ACN_to_FuMa_order_0_3 = {
 	6, 7, 5, 8, 4, // V,T,R,S,U
 	12, 13, 11, 14, 10, 15, 9 // Q,O,M,K,L,N,P
 };
+
+int m_order[7] = { 0, 1, -1, 2, -2, 3, -3 }; 
 
 
 class CAmbisonicSoundField {
@@ -78,10 +81,7 @@ public:
 
 
 	/// Fill multi-channel soundFieldArray from multi-channel samples
-	void GetSegment(unsigned int & position,
-		unsigned int & endFrame,
-		CAmbisonicSoundField & source,
-		size_t bufferSize) {
+	void GetSegment(unsigned int & position, unsigned int & endFrame, CAmbisonicSoundField & source, size_t bufferSize) {
 		if (!setupDone) return;
 
 		const auto & sourceBuffers = source.GetSoundFieldArray();
@@ -139,40 +139,74 @@ public:
 		}
 	}
 
+	CMatrix<double> R_1(float yaw,float pitch,float roll) {
+		if (!setupDone) return CMatrix<double>(0,0);
+
+		Common::CQuaternion q = Common::CQuaternion::FromYawPitchRoll(yaw, pitch, roll);
+		Common::CVector3 X_axis(1, 0, 0);
+		Common::CVector3 Y_axis(0, 1, 0);
+		Common::CVector3 Z_axis(0, 0, 1);
+
+		Common::CVector3 R_col1 = q.RotateVector(X_axis);
+		Common::CVector3 R_col2 = q.RotateVector(Y_axis);
+		Common::CVector3 R_col3 = q.RotateVector(Z_axis);
+
+		CMatrix<double> R_1(3, 3);
+
+		R_1 = {{ R_col1.x, R_col2.x, R_col3.x },{ R_col1.y, R_col2.y, R_col3.y },{ R_col1.z, R_col2.z, R_col3.z }};
+
+		return R_1;
+	}
+
 	// Rotate the field depending on how coordinates have changed
-	void RotateField(float yaw, float pitch, float roll) {//quaternion
-		float A[3][3];
-		A[0][0] = cos(yaw) * cos(pitch);
-		A[0][1] = -sin(yaw) * cos(pitch);
-		A[0][2] = sin(pitch);
+	void RotateField(float _yaw, float _pitch, float _roll) { 
 
-		A[1][0] = sin(roll) * sin(pitch) * cos(yaw) + cos(roll) * sin(yaw);
-		A[1][1] = -sin(roll) * sin(pitch) * sin(yaw) + cos(roll) * cos(yaw);
-		A[1][2] = -sin(roll) * cos(pitch);
-
-		A[2][0] = -cos(roll) * sin(pitch) * cos(yaw) + sin(roll) * sin(yaw);
-		A[2][1] = cos(roll) * sin(pitch) * sin(yaw) + sin(roll) * cos(yaw);
-		A[2][2] = cos(roll) * cos(pitch);
+		if (!setupDone) return;
 
 		int numChannels = pow(ambisonicOrder + 1, 2);
 		vector<CMonoBuffer<float>> buffer(numChannels, CMonoBuffer<float>(bufferSize, 0.0f));
 		buffer[0] = soundFieldArray[0];
 
+		CMatrix<double> R1 = R_1(_yaw, _pitch, _roll);
+
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
 				for (int k = 0; k < bufferSize; k++) {
-					buffer[i + 1][k] += A[i][j] * soundFieldArray[j + 1][k];
+					buffer[i + 1][k] += R1(i,j) * soundFieldArray[j + 1][k];
 				}
 			}
 		}
 
-		for (int i = 4; i < numChannels - 1; i++) {
-			buffer[i] = soundFieldArray[i];
+		if (ambisonicOrder > 1) {
+			CMatrix<double> R2 = CalculateRMatrix(2, R_1(_yaw, _pitch, _roll));
+
+			for (int i = 0; i < 5; i++) {
+				for (int j = 0; j < 5; j++) {
+					for (int k = 0; k < bufferSize; k++) {
+						buffer[i + 4][k] += R2(i,j) * soundFieldArray[j + 4][k];
+					}
+				}
+			}
+
+			if (ambisonicOrder > 2) {
+				CMatrix<double> R3 = CalculateRMatrix(3, R_1(_yaw, _pitch, _roll));
+
+				for (int i = 0; i < 7; i++) {
+					for (int j = 0; j < 7; j++) {
+						for (int k = 0; k < bufferSize; k++) {
+							buffer[i + 9][k] += R3(i, j) * soundFieldArray[j + 9][k];
+						}
+					}
+				}
+			}
 		}
+
 		soundFieldArray = buffer;
 	}
 
 	void DownMixing(int order) {
+		if (!setupDone) return;
+
 		soundFieldArray.resize(pow(order + 1, 2));
 		ambisonicOrder = order;
 	}
@@ -201,6 +235,126 @@ private:
 	std::string ordering;
 
 	std::vector<CMonoBuffer<float>> soundFieldArray;
+
+	CMatrix<double> CalculateRMatrix(int l, CMatrix<double> R_1) {
+		int dim = (2 * l + 1);
+		CMatrix<double> R_l(dim, dim);
+
+		for (int i = 0; i < dim; i++) {
+			for (int j = 0; j < dim; j++) {
+				R_l(i, j) = Rmm(l, m_order[i], m_order[j], R_1);
+			}
+		}
+
+		return R_l;
+	}
+
+	inline int delta(int i, int j) {
+		return (i == j) ? 1 : 0;
+	}
+
+	double Rmm(int l, int m, int mp, CMatrix<double> R_1) {
+		if (l == 1) {
+			if (m < -1 || m > 1 || mp < -1 || mp > 1)
+				return 0.0;
+			return R_1(m + 1, mp + 1);
+		}
+
+		return umm(l, m, mp) * Umm(l, m, mp, R_1)
+			+ vmm(l, m, mp) * Vmm(l, m, mp, R_1)
+			+ wmm(l, m, mp) * Wmm(l, m, mp, R_1);
+	}
+
+	double umm(int l, int m, int mp) {
+		double umm = 0.0f;
+
+		if (abs(mp) < l) {
+			umm = sqrt(((l + m) * (l - m)) / ((l + mp) * (l - mp)));
+		} else {
+			umm = sqrt(((l + m) * (l - m)) / ((2 * l) * (2 * l - 1)));
+		}
+
+		return umm;
+	}
+
+	double Umm(int l, int m, int mp, CMatrix<double> R_1) {
+		double Umm = 0.0f;
+
+		if (m == 0) {
+			return P(0, l, 0, mp, R_1);
+		} else if (m > 0) {
+			return P(0, l, m, mp, R_1);
+		} else if (m < 0) {
+			return P(0, l, m, mp, R_1);
+		}
+
+		return Umm;
+	}
+
+	double vmm(int l, int m, int mp) {
+		double vmm = 0.0f;
+
+		if (abs(mp) < l) {
+			vmm = 0.5 * sqrt(((1 + delta(m, 0)) * (l + abs(m) - 1) * (l + abs(m))) / ((l + mp) * (l - mp))) * (1 - 2 * delta(m, 0));
+		} else {
+			vmm = 0.5 * sqrt(((1 + delta(m, 0)) * (l + abs(m) - 1) * (l + abs(m))) / ((2 * l) * (2 * l - 1))) * (1 - 2 * delta(m, 0));
+		}
+
+		return vmm;
+	}
+
+	double Vmm(int l, int m, int mp, CMatrix<double> R_1) {
+		double Vmm = 0.0f;
+
+		if (m == 0) {
+			return P(1, l, 1, mp, R_1) + P(-1, l, -1, mp, R_1);
+		} else if (m > 0) {
+			return P(1, l, m - 1, mp, R_1) * sqrt(1 + delta(m, 1)) - P(-1, l, -m + 1, mp, R_1) * (1 - delta(m, 1));
+		} else if (m < 0) {
+			return P(1, l, m + 1, mp, R_1) * (1 - delta(m, -1)) + P(-1, l, -m - 1, mp, R_1) * sqrt(1 - delta(m, -1));
+		}
+
+		return Vmm;
+	}
+
+	double wmm(int l, int m, int mp) {
+		double wmm = 0.0f;
+
+		if (abs(mp) < l) {
+			wmm = -0.5 * sqrt(((l - abs(m) - 1) * (l - abs(m))) / ((l + mp) * (l - mp))) * (1 - delta(m, 0));
+		} else {
+			wmm = -0.5 * sqrt(((l - abs(m) - 1) * (l - abs(m))) / ((2 * l) * (2 * l - 1))) * (1 - delta(m, 0));
+		}
+
+		return wmm;
+	}
+
+	double Wmm(int l, int m, int mp, CMatrix<double> R_1) {
+		double Wmm = 0.0f;
+
+		if (m == 0) {
+			return 0.0;
+		} else if (m > 0) {
+			return P(1, l, m + 1, mp, R_1) + P(-1, l, -m - 1, mp, R_1);
+		} else if (m < 0) {
+			return P(1, l, m - 1, mp, R_1) - P(-1, l, -m + 1, mp, R_1);
+		}
+
+		return Wmm;
+	}
+
+	double P(int i, int l, int mu, int mp, CMatrix<double> R_1) {
+		if (abs(mp) < l) {
+			return R_1(i + 1, 1) * Rmm(l - 1, mu, mp, R_1);
+		} else if (mp == l) {
+			return R_1(i + 1, 2) * Rmm(l - 1, mu, l - 1, R_1) - R_1(i + 1, 0) * Rmm(l - 1, mu, -l + 1, R_1);
+		} else if (mp == -l) {
+			return R_1(i + 1, 2) * Rmm(l - 1, mu,-l + 1, R_1) + R_1(i + 1, 0) * Rmm(l - 1, mu, l - 1, R_1);
+		} else {
+			return 0.0f;
+		}
+	}
+	
 };
 
 #endif // _CAMBISONIC_SOUND_FIELD_HPP_

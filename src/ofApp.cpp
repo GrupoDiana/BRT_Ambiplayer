@@ -206,9 +206,9 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 	//SFbuffer->GetSegment(wavSamplePositionSource, positionEndFrameSource, ambisonicSoundFieldController->GetSoundFieldController(), bufferSize);
 	OutBuffer->GetSegment(wavSamplePositionSource, positionEndFrameSource, ambisonicSoundFieldController->GetSoundFieldController(), bufferSize);
 
-	/* OutBuffer->ConvertACNtoFuMa();
-	OutBuffer->RotateField(-M_PI_2, 0.0f, 0.0f);
-	OutBuffer->ConvertFuMatoACN();*/
+	OutBuffer->ConvertACNtoFuMa();
+	ambisonicProcessor.RotateField(M_PI_2, 0.0f, 0.0f, *OutBuffer);
+	OutBuffer->ConvertFuMatoACN();
 
 	// Decodificación a altavoces
 	ambisonicProcessor.DecodeToSpeakerArray(speakerArrayController, *OutBuffer, decoding);

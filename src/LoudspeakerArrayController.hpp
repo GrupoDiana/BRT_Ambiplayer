@@ -78,42 +78,71 @@ public:
 			speakers[i] = CreateOmnidirectionalSoundSource(brtManager, "Speaker" + std::to_string(i));
 			speakers[i]->SetSourceTransform(Common::CTransform(vertices[i]));
 		}
+
+		setupDone = true;
 	}
 
 	std::shared_ptr<BRTSourceModel::CSourceOmnidirectionalModel> GetSpeaker(size_t index) const {
+		if (!setupDone) return nullptr;
 		if (index >= speakers.size()) throw std::out_of_range("Speaker index out of range");
 		return speakers[index];
 	}
 
 	const std::vector<std::shared_ptr<BRTSourceModel::CSourceOmnidirectionalModel>> & GetSpeakers() const {
+		if (!setupDone) return std::vector<std::shared_ptr<BRTSourceModel::CSourceOmnidirectionalModel>>();
 		return speakers;
 	}
 
-	int GetNumSpeakers() const { return speakers.size(); }
+	int GetNumSpeakers() const {
+		if (!setupDone) return -1;
+		return speakers.size();
+	}
 
 	void DecodeToSpeakerArray(const CAmbisonicSoundField & OutBuffer, std::string decoding) {
+		if (!setupDone) return;
+
 		const auto & field = OutBuffer.GetSoundFieldArray();
 		size_t order = OutBuffer.GetOrder();
 
+		//Esto esta asumiendo ACN
+		//Falta ampliar al orden 3
 		const CMonoBuffer<float> & Wbuf = field[0];
 		const CMonoBuffer<float> & Xbuf = field[3];
 		const CMonoBuffer<float> & Ybuf = field[1];
 		const CMonoBuffer<float> & Zbuf = field[2];
+
 		const CMonoBuffer<float> * Vbuf = (order >= 2 && field.size() > 6) ? &field[6] : nullptr;
 		const CMonoBuffer<float> * Tbuf = (order >= 2 && field.size() > 7) ? &field[7] : nullptr;
 		const CMonoBuffer<float> * Rbuf = (order >= 2 && field.size() > 5) ? &field[5] : nullptr;
 		const CMonoBuffer<float> * Sbuf = (order >= 2 && field.size() > 8) ? &field[8] : nullptr;
 		const CMonoBuffer<float> * Ubuf = (order >= 2 && field.size() > 4) ? &field[4] : nullptr;
 
+		const CMonoBuffer<float> * Qbuf = (order >= 2 && field.size() > 12) ? &field[12] : nullptr;
+		const CMonoBuffer<float> * Obuf = (order >= 2 && field.size() > 13) ? &field[13] : nullptr;
+		const CMonoBuffer<float> * Mbuf = (order >= 2 && field.size() > 11) ? &field[11] : nullptr;
+		const CMonoBuffer<float> * Kbuf = (order >= 2 && field.size() > 14) ? &field[14] : nullptr;
+		const CMonoBuffer<float> * Lbuf = (order >= 2 && field.size() > 10) ? &field[10] : nullptr;
+		const CMonoBuffer<float> * Nbuf = (order >= 2 && field.size() > 15) ? &field[15] : nullptr;
+		const CMonoBuffer<float> * Pbuf = (order >= 2 && field.size() > 9) ? &field[9] : nullptr;
+
 		const float * W = Wbuf.data();
 		const float * X = Xbuf.data();
 		const float * Y = Ybuf.data();
 		const float * Z = Zbuf.data();
+
 		const float * V = Vbuf ? Vbuf->data() : nullptr;
 		const float * T = Tbuf ? Tbuf->data() : nullptr;
 		const float * R = Rbuf ? Rbuf->data() : nullptr;
 		const float * S = Sbuf ? Sbuf->data() : nullptr;
 		const float * U = Ubuf ? Ubuf->data() : nullptr;
+
+		const float * Q = Vbuf ? Vbuf->data() : nullptr;
+		const float * O = Tbuf ? Tbuf->data() : nullptr;
+		const float * M = Rbuf ? Rbuf->data() : nullptr;
+		const float * K = Sbuf ? Sbuf->data() : nullptr;
+		const float * L = Ubuf ? Ubuf->data() : nullptr;
+		const float * N = Sbuf ? Sbuf->data() : nullptr;
+		const float * P = Ubuf ? Ubuf->data() : nullptr;
 
 		size_t numSamples = OutBuffer.GetBufferSize();
 
@@ -144,7 +173,12 @@ public:
 				if (order == 1) {
 					buffer[n] = Wgain * W[n] + XYZgain * (pos.x * X[n] + pos.y * Y[n] + pos.z * Z[n]);
 				} else if (order == 2) {
-					buffer[n] = Gain * (W[n] + pos.x * X[n] + pos.y * Y[n] + pos.z * Z[n] + sqrt(3) * pos.x * pos.y * V[n] + sqrt(3) * pos.y * pos.z * T[n] + (1 / 2) * ((3 * pow(pos.z, 2)) - 1) * R[n] + sqrt(3) * pos.x * pos.z * S[n] + sqrt(3 / 4) * (pow(pos.x, 2) - pow(pos.y, 2)) * U[n]);
+					buffer[n] = Wgain * (W[n] + pos.x * X[n] + pos.y * Y[n] + pos.z * Z[n])
+						+ XYZgain * (sqrt(3) * pos.x * pos.y * V[n] + sqrt(3) * pos.y * pos.z * T[n] + (1 / 2) * ((3 * pow(pos.z, 2)) - 1) * R[n] + sqrt(3) * pos.x * pos.z * S[n] + sqrt(3 / 4) * (pow(pos.x, 2) - pow(pos.y, 2)) * U[n]);
+				} else if (order == 3) {
+					buffer[n] = Wgain * (W[n] + pos.x * X[n] + pos.y * Y[n] + pos.z * Z[n])
+						+ XYZgain * (sqrt(3) * pos.x * pos.y * V[n] + sqrt(3) * pos.y * pos.z * T[n] + (1 / 2) * ((3 * pow(pos.z, 2)) - 1) * R[n] + sqrt(3) * pos.x * pos.z * S[n] + sqrt(3 / 4) * (pow(pos.x, 2) - pow(pos.y, 2)) * U[n]
+						+ sqrt(5 / 8) * pos.y * (3 * pow(pos.x, 2) - pow(pos.y, 2)) * Q[n] + sqrt(15) * pos.x * pos.y * pos.z * O[n] + sqrt(3 / 8) * pos.y * (5 * pow(pos.z, 2) - 1) * M[n] + (1 / 2) * pos.z * (5 * pow(pos.z, 2) - 3) * K[n] + sqrt(3 / 8) * pos.x * (5 * pow(pos.z, 2) - 1) * L[n] + sqrt(15 / 4) * pos.z * (pow(pos.x, 2) - pow(pos.y, 2)) * N[n] + sqrt(5 / 8) * pos.x * (pow(pos.x, 2) - 3 * pow(pos.y, 2)) * P[n]);
 				}
 			}
 
@@ -153,6 +187,8 @@ public:
 	}
 
 private:
+	bool setupDone;
+
 	using SourceModelPtr = std::shared_ptr<BRTSourceModel::CSourceOmnidirectionalModel>;
 	std::vector<SourceModelPtr> speakers;
 
