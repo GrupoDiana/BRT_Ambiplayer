@@ -17,6 +17,7 @@ public:
 		, cols(values[0].size())
 		, data(values) { }
 
+	//Para inicializacion con llaves {{1,2,3},{4,5,6}}
 	CMatrix(std::initializer_list<std::initializer_list<TypeD>> initList) {
 		rows = initList.size();
 		cols = initList.begin()->size();
@@ -63,6 +64,18 @@ public:
 					result(i, j) += data[i][k] * other(k, j);
 		return result;
 	}
+
+	Common::CVector3 operator*(const Common::CVector3 & v) const {
+		if (rows != 3 || cols != 3) {
+			return Common::CVector3(0.0, 0.0, 0.0);
+		}
+
+		return Common::CVector3(
+			data[0][0] * v.x + data[0][1] * v.y + data[0][2] * v.z,
+			data[1][0] * v.x + data[1][1] * v.y + data[1][2] * v.z,
+			data[2][0] * v.x + data[2][1] * v.y + data[2][2] * v.z);
+	}
+
 
 	void print() const {
 		for (size_t i = 0; i < rows; ++i) {

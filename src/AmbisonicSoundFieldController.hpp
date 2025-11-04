@@ -11,13 +11,23 @@
 #include <string>
 #include <vector>
 
+std::vector<int> ACN_to_FuMa_order_0_3 = {
+	0, // W
+	3, 1, 2, // Y,Z,X
+	6, 7, 5, 8, 4, // V,T,R,S,U
+	12, 13, 11, 14, 10, 15, 9 // Q,O,M,K,L,N,P
+};
+
 class CAmbisonicSoundFieldController {
 public:
-	CAmbisonicSoundFieldController(): soundFieldController(), setupDone { false } {}
+	CAmbisonicSoundFieldController(): soundFieldController(), setupDone { false }, ordering { "" } { }
 
-	void SetUp(size_t ambisonicOrder_, unsigned int sampleRate_, size_t blockSize_){
+	void SetUp(size_t ambisonicOrder_, unsigned int sampleRate_, size_t blockSize_, std::string ordering_){
 		// Inicializa el controlador interno de campo ambisónico
-		soundFieldController.SetUp(ambisonicOrder_, sampleRate_, blockSize_, "ACN");
+		soundFieldController.SetUp(ambisonicOrder_, sampleRate_, blockSize_);
+		ordering = ordering_;
+
+		setupDone = true;
 	}
 
 
@@ -33,7 +43,9 @@ public:
 
 	// Load WAV file and fill soundFieldArray with samples mapped by ambisonic order and channel
 	//Prototype
-	void LoadWav(const char * filePath, const std::string & ordering) {
+	void LoadWav(const char * filePath, const std::string & ordering_) {
+		if (!setupDone) return;
+
 		ofxAudioFile audioFile;
 		audioFile.load(filePath);
 
@@ -53,14 +65,20 @@ public:
 			soundFieldController.GetSoundFieldArray()[ch].resize(numFrames);
 		}
 
-		for (size_t i = 0; i < numFrames; ++i) {
-			for (int ch = 0; ch < numChannels; ++ch) {
-				soundFieldController.GetSoundFieldArray()[ch][i] = audioFile.sample(i, ch);
+		for (int ch = 0; ch < numChannels; ++ch) {
+			CMonoBuffer<float> channelData(numFrames);
+
+			for (size_t i = 0; i < numFrames; ++i) {
+				channelData[i] = audioFile.sample(i, ch);
 			}
+
+			soundFieldController.FillChannel(ch, channelData);
+
 		}
 
-		if (ordering == "FuMa") {
-			soundFieldController.ConvertFuMatoACN();
+		if (ordering_ == "ACN") {
+			ConvertACNtoFuMa();
+			ordering = "FuMa";
 		}
 
 		std::cout << "Loaded WAV: " << filePath
@@ -145,8 +163,37 @@ public:
 		return true;
 	}*/
 
+	void ConvertACNtoFuMa() {
+		if (!setupDone) return;
 
-	//Prototype
+		std::vector<CMonoBuffer<float>> aux = soundFieldController.GetSoundFieldArray();
+		int numChannels = pow(soundFieldController.GetOrder() + 1, 2);
+		numChannels = std::min(numChannels, static_cast<int>(ACN_to_FuMa_order_0_3.size()));
+
+		for (int i = 0; i < numChannels; i++) {
+			soundFieldController.GetSoundFieldArray()[i] = aux[ACN_to_FuMa_order_0_3[i]];
+		}
+	}
+
+	void ConvertFuMatoACN() {
+		if (!setupDone) return;
+
+		static std::vector<int> FuMa_to_ACN_order3 = []() {
+			std::vector<int> inv(ACN_to_FuMa_order_0_3.size());
+			for (size_t i = 0; i < ACN_to_FuMa_order_0_3.size(); ++i)
+				inv[ACN_to_FuMa_order_0_3[i]] = i;
+			return inv;
+		}();
+
+		std::vector<CMonoBuffer<float>> aux = soundFieldController.GetSoundFieldArray();
+		int numChannels = pow(soundFieldController.GetOrder() + 1, 2);
+		numChannels = std::min(numChannels, static_cast<int>(FuMa_to_ACN_order3.size()));
+
+		for (int i = 0; i < numChannels; i++) {
+			soundFieldController.GetSoundFieldArray()[i] = aux[FuMa_to_ACN_order3[i]];
+		}
+	}
+
 	CAmbisonicSoundFieldController & operator+=(const CAmbisonicSoundFieldController & other) {
 		const auto & otherArray = other.soundFieldController.GetSoundFieldArray();
 		auto & arr = soundFieldController.GetSoundFieldArray();
@@ -163,9 +210,7 @@ public:
 	}
 
 private:
-	/* size_t ambisonicOrder;
-	size_t sampleRate;
-	int blockSize;*/
+	std::string ordering;
 
 	bool setupDone;
 	CAmbisonicSoundField soundFieldController;

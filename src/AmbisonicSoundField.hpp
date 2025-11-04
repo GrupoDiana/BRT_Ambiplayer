@@ -11,33 +11,21 @@
 #include <string>
 #include <vector>
 
-std::vector<int> ACN_to_FuMa_order_0_3 = {
-	0, // W
-	3, 1, 2, // Y,Z,X
-	6, 7, 5, 8, 4, // V,T,R,S,U
-	12, 13, 11, 14, 10, 15, 9 // Q,O,M,K,L,N,P
-};
-
 int m_order[7] = { 0, 1, -1, 2, -2, 3, -3 }; 
 
 
 class CAmbisonicSoundField {
 public:
-	CAmbisonicSoundField(): sampleRate(-1), ambisonicOrder(-1), bufferSize(-1), ordering(""), setupDone {false} {}
+	CAmbisonicSoundField(): sampleRate(-1), ambisonicOrder(-1), bufferSize(-1), setupDone {false} {}
 
-	void SetUp(int ambisonicOrder_, size_t sampleRate_, size_t bufferSize_, std::string ordering_){
+	void SetUp(int ambisonicOrder_, size_t sampleRate_, size_t bufferSize_){
 		ambisonicOrder = ambisonicOrder_;
 		sampleRate = sampleRate_;
 		bufferSize = bufferSize_;
-		ordering = ordering_;
 
 		// Initialize buffers for each channel
 		int calculatedChannels = pow(ambisonicOrder + 1, 2);
 		soundFieldArray = std::vector<CMonoBuffer<float>>(calculatedChannels, CMonoBuffer<float>(bufferSize, 0.0f));
-
-		if (ordering == "FuMa") {
-			ConvertFuMatoACN();
-		}
 		
 		setupDone = true;
 		std::cout << "CAmbisonicSoundField created with "
@@ -79,6 +67,15 @@ public:
 			soundFieldArray = other.soundFieldArray;
 	}
 
+	void FillChannel(int channel, CMonoBuffer<float> data) {
+		if (!setupDone) return;
+		soundFieldArray[channel].resize(data.size());
+		soundFieldArray[channel] = data;
+	}
+
+	CMonoBuffer<float> GetChannel(int channel) {
+		return soundFieldArray[channel];
+	}
 
 	/// Fill multi-channel soundFieldArray from multi-channel samples
 	void GetSegment(unsigned int & position, unsigned int & endFrame, CAmbisonicSoundField & source, size_t bufferSize) {
@@ -108,58 +105,8 @@ public:
 	}
 
 
-	void ConvertACNtoFuMa() {
-		if (!setupDone) return;
-
-		std::vector<CMonoBuffer<float>> aux = soundFieldArray;
-		int numChannels = pow(ambisonicOrder + 1, 2);
-		numChannels = std::min(numChannels, static_cast<int>(ACN_to_FuMa_order_0_3.size()));
-
-		for (int i = 0; i < numChannels; i++) {
-			soundFieldArray[i] = aux[ACN_to_FuMa_order_0_3[i]];
-		}
-	}
-
-	void ConvertFuMatoACN() {
-		if (!setupDone) return;
-
-		static std::vector<int> FuMa_to_ACN_order3 = []() {
-			std::vector<int> inv(ACN_to_FuMa_order_0_3.size());
-			for (size_t i = 0; i < ACN_to_FuMa_order_0_3.size(); ++i)
-				inv[ACN_to_FuMa_order_0_3[i]] = i;
-			return inv;
-		}();
-
-		std::vector<CMonoBuffer<float>> aux = soundFieldArray;
-		int numChannels = pow(ambisonicOrder + 1, 2);
-		numChannels = std::min(numChannels, static_cast<int>(FuMa_to_ACN_order3.size()));
-
-		for (int i = 0; i < numChannels; i++) {
-			soundFieldArray[i] = aux[FuMa_to_ACN_order3[i]];
-		}
-	}
-
-	CMatrix<double> R_1(float yaw,float pitch,float roll) {
-		if (!setupDone) return CMatrix<double>(0,0);
-
-		Common::CQuaternion q = Common::CQuaternion::FromYawPitchRoll(yaw, pitch, roll);
-		Common::CVector3 X_axis(1, 0, 0);
-		Common::CVector3 Y_axis(0, 1, 0);
-		Common::CVector3 Z_axis(0, 0, 1);
-
-		Common::CVector3 R_col1 = q.RotateVector(X_axis);
-		Common::CVector3 R_col2 = q.RotateVector(Y_axis);
-		Common::CVector3 R_col3 = q.RotateVector(Z_axis);
-
-		CMatrix<double> R_1(3, 3);
-
-		R_1 = {{ R_col1.x, R_col2.x, R_col3.x },{ R_col1.y, R_col2.y, R_col3.y },{ R_col1.z, R_col2.z, R_col3.z }};
-
-		return R_1;
-	}
-
 	// Rotate the field depending on how coordinates have changed
-	void RotateField(float _yaw, float _pitch, float _roll) { 
+	void RotateField(Common::CQuaternion q) { 
 
 		if (!setupDone) return;
 
@@ -167,7 +114,7 @@ public:
 		vector<CMonoBuffer<float>> buffer(numChannels, CMonoBuffer<float>(bufferSize, 0.0f));
 		buffer[0] = soundFieldArray[0];
 
-		CMatrix<double> R1 = R_1(_yaw, _pitch, _roll);
+		CMatrix<double> R1 = q.R_1();
 
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
@@ -178,7 +125,7 @@ public:
 		}
 
 		if (ambisonicOrder > 1) {
-			CMatrix<double> R2 = CalculateRMatrix(2, R_1(_yaw, _pitch, _roll));
+			CMatrix<double> R2 = CalculateRMatrix(2, q.R_1());
 
 			for (int i = 0; i < 5; i++) {
 				for (int j = 0; j < 5; j++) {
@@ -189,7 +136,7 @@ public:
 			}
 
 			if (ambisonicOrder > 2) {
-				CMatrix<double> R3 = CalculateRMatrix(3, R_1(_yaw, _pitch, _roll));
+				CMatrix<double> R3 = CalculateRMatrix(3, q.R_1());
 
 				for (int i = 0; i < 7; i++) {
 					for (int j = 0; j < 7; j++) {
@@ -232,7 +179,6 @@ private:
 	int ambisonicOrder;
 	int sampleRate;
 	int bufferSize;
-	std::string ordering;
 
 	std::vector<CMonoBuffer<float>> soundFieldArray;
 
@@ -345,6 +291,7 @@ private:
 
 	double P(int i, int l, int mu, int mp, CMatrix<double> R_1) {
 		if (abs(mp) < l) {
+			//Se suma 1 en R_1 porque los indices van de 0 a 2 e i va de -1 a 1
 			return R_1(i + 1, 1) * Rmm(l - 1, mu, mp, R_1);
 		} else if (mp == l) {
 			return R_1(i + 1, 2) * Rmm(l - 1, mu, l - 1, R_1) - R_1(i + 1, 0) * Rmm(l - 1, mu, -l + 1, R_1);

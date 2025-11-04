@@ -39,6 +39,9 @@ void ofApp::setup() {
 	speakerArrayController = CLoudSpeakerArrayController();
 	speakerArrayController.SetUp(brtManager, static_cast<PlatonicSolid>(solid));
 
+	q = Common::CQuaternion::FromYawPitchRoll(M_PI_2, 0.0f, 0.0f);
+	speakerArrayController.RotateLoudspeakerArray(q);
+
 	for (int i = 0; i < speakerArrayController.GetNumSpeakers(); i++) {
 		configurationA.ConnectSoundSource(&brtManager, "Speaker" + std::to_string(i));
 	}
@@ -55,15 +58,15 @@ void ofApp::setup() {
 	// Load Wav Files
 	/////////////////////
 	ambisonicSoundFieldController = std::make_shared<CAmbisonicSoundFieldController>();
-	ambisonicSoundFieldController->SetUp(1,48000,512);
+	ambisonicSoundFieldController->SetUp(1, 48000, 512, "FuMa");
 	ambisonicSoundFieldController->LoadWav(SOURCE_FILEPATH, "ACN");
 
 	cout << "orden:"<< ambisonicSoundFieldController->GetSoundFieldController().GetOrder() << "canales:" << ambisonicSoundFieldController->GetSoundFieldController().GetSoundFieldArray().size() << endl;
 
 	SFbuffer = std::make_shared<CAmbisonicSoundField>();
-	SFbuffer->SetUp(ambisonicSoundFieldController->GetSoundFieldController().GetOrder(), 48000, 512, "ACN");
+	SFbuffer->SetUp(ambisonicSoundFieldController->GetSoundFieldController().GetOrder(), 48000, 512);
 	OutBuffer = std::make_shared<CAmbisonicSoundField>();
-	OutBuffer->SetUp(ambisonicSoundFieldController->GetSoundFieldController().GetOrder(), 48000, 512, "ACN");
+	OutBuffer->SetUp(ambisonicSoundFieldController->GetSoundFieldController().GetOrder(), 48000, 512);
 
 	/////////////////////
 	// Start AUDIO Render
@@ -206,9 +209,9 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 	//SFbuffer->GetSegment(wavSamplePositionSource, positionEndFrameSource, ambisonicSoundFieldController->GetSoundFieldController(), bufferSize);
 	OutBuffer->GetSegment(wavSamplePositionSource, positionEndFrameSource, ambisonicSoundFieldController->GetSoundFieldController(), bufferSize);
 
-	OutBuffer->ConvertACNtoFuMa();
-	ambisonicProcessor.RotateField(M_PI_2, 0.0f, 0.0f, *OutBuffer);
-	OutBuffer->ConvertFuMatoACN();
+	//q = Common::CQuaternion::FromYawPitchRoll(M_PI_2, 0.0f, 0.0f);
+	//ambisonicProcessor.RotateField(q, *OutBuffer);
+
 
 	// Decodificación a altavoces
 	ambisonicProcessor.DecodeToSpeakerArray(speakerArrayController, *OutBuffer, decoding);
