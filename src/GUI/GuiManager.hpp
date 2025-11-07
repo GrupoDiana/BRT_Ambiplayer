@@ -8,14 +8,20 @@
 class CGuiManager {
 public:
 	CGuiManager() {
-		gui.setup(ofGetCurrentWindow(), nullptr, true, ImGuiConfigFlags_ViewportsEnable, true);
+		gui.setup(ofGetCurrentWindow(), nullptr, true, 0, true);
 		yawRad = pitchRad = rollRad = 0.0f;
 	}
 
 	void draw() {
 		gui.begin();
+		ImGuiViewport * viewport = ImGui::GetMainViewport();
+		float screenWidth = viewport->Size.x;
+		float screenHeight = viewport->Size.y;
 
-		ImGui::Begin("Ambisonic Controls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+		ImGui::SetNextWindowPos(ImVec2(10, 100)); 
+		ImGui::SetNextWindowSize(ImVec2(screenWidth / 5, screenHeight *0.85));
+
+		ImGui::Begin("Ambisonic Controls", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
 		if (ImGui::Button("PLAY")) {
 			if (onPlay) onPlay();
