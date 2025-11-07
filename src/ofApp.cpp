@@ -41,6 +41,7 @@ void ofApp::setup() {
 
 	q = Common::CQuaternion::FromYawPitchRoll(M_PI_2, 0.0f, 0.0f);
 	speakerArrayController.RotateLoudspeakerArray(q);
+	q.R_1().print();
 
 	for (int i = 0; i < speakerArrayController.GetNumSpeakers(); i++) {
 		configurationA.ConnectSoundSource(&brtManager, "Speaker" + std::to_string(i));
@@ -59,9 +60,8 @@ void ofApp::setup() {
 	/////////////////////
 	ambisonicSoundFieldController = std::make_shared<CAmbisonicSoundFieldController>();
 	ambisonicSoundFieldController->SetUp(1, 48000, 512, "FuMa");
-	ambisonicSoundFieldController->LoadWav(SOURCE_FILEPATH, "ACN");
-
-	cout << "orden:"<< ambisonicSoundFieldController->GetSoundFieldController().GetOrder() << "canales:" << ambisonicSoundFieldController->GetSoundFieldController().GetSoundFieldArray().size() << endl;
+	//ambisonicSoundFieldController->LoadWav(SOURCE_FILEPATH, "ACN");
+	ambisonicSoundFieldController->GenerateSyntheticYField(48000 * 10); // 10 seconds
 
 	SFbuffer = std::make_shared<CAmbisonicSoundField>();
 	SFbuffer->SetUp(ambisonicSoundFieldController->GetSoundFieldController().GetOrder(), 48000, 512);
@@ -87,6 +87,13 @@ void ofApp::setup() {
 		soundStream.stop();
 		//soundStream.close();
 	};
+
+	guiManager.onRotationChanged = [this](float yaw, float pitch, float roll) {
+		yawRad = yaw;
+		pitchRad = pitch;
+		rollRad = roll;
+	};
+
 	
 }
 
@@ -97,6 +104,13 @@ void ofApp::update() {
 //--------------------------------------------------------------
 void ofApp::draw() {
 	guiManager.draw();
+
+	if (!directionalEnergies.empty()) {
+		float cx = ofGetWidth() / 2.0f;
+		float cy = ofGetHeight() / 2.0f;
+		float maxRadius = 200.0f; // tamaño del lóbulo
+		DrawDirectionalLobeProjected(directionalEnergies, numAz, numEl, cx, cy, maxRadius);
+	}
 }
 
 //--------------------------------------------------------------
@@ -209,12 +223,14 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 	//SFbuffer->GetSegment(wavSamplePositionSource, positionEndFrameSource, ambisonicSoundFieldController->GetSoundFieldController(), bufferSize);
 	OutBuffer->GetSegment(wavSamplePositionSource, positionEndFrameSource, ambisonicSoundFieldController->GetSoundFieldController(), bufferSize);
 
-	//q = Common::CQuaternion::FromYawPitchRoll(M_PI_2, 0.0f, 0.0f);
-	//ambisonicProcessor.RotateField(q, *OutBuffer);
+	q = Common::CQuaternion::FromYawPitchRoll(yawRad, pitchRad, rollRad);
+	ambisonicProcessor.RotateField(q, *OutBuffer);
 
 
 	// Decodificación a altavoces
 	ambisonicProcessor.DecodeToSpeakerArray(speakerArrayController, *OutBuffer, decoding);
+	directionalEnergies = speakerArrayController.ComputeDirectionalEnergyMap(*OutBuffer, numAz, numEl);
+
 
 	Common::CEarPair<CMonoBuffer<float>> bufferProcessed;
 
@@ -259,5 +275,39 @@ ofSoundDevice ofApp::ShowSelectAudioDeviceMenu() {
 	std::cout << std::endl;
 	return devices[selectAudioDevice];
 }
+
+
+//--------------------------------------------------------------
+void ofApp::DrawDirectionalLobeProjected(const std::vector<float> & energies, int numAz, int numEl, float cx, float cy, float maxRadius) {
+	if (energies.empty()) return;
+	std::vector<float> azE(numAz, 0.0f);
+	float globalMax = 0.0f;
+	for (int ia = 0; ia < numAz; ++ia) {
+		float acc = 0.0f;
+		for (int ie = 0; ie < numEl; ++ie)
+			acc += energies[ia * numEl + ie];
+		azE[ia] = acc / (float)numEl;
+		if (azE[ia] > globalMax) globalMax = azE[ia];
+	}
+	float scale = (globalMax > 0.0f) ? (maxRadius / std::sqrt(globalMax)) : 0.0f;
+	ofPushStyle();
+	ofNoFill();
+	ofSetLineWidth(2);
+	ofBeginShape();
+	for (int ia = 0; ia < numAz; ++ia) {
+		float az = (2.0f * M_PI * ia) / numAz + M_PI_2;
+		float r = scale * std::sqrt(azE[ia]);
+		float x = cx + r * std::cos(az);
+		float y = cy - r * std::sin(az);
+		ofVertex(x, y);
+	}
+	ofEndShape(true);
+	ofPopStyle();
+}
+
+
+
+
+
 
 

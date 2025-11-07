@@ -1,3 +1,35 @@
+/**
+ * \class CAmbisonicSoundFieldController
+ *
+ * \brief Controller class for managing and processing Ambisonic sound fields.
+ * 
+ * \details This class handles the loading, conversion, and manipulation
+ * of Ambisonic sound fields, including ACN–FuMa format conversions and
+ * combination of multichannel ambisonic data. It is designed to integrate
+ * with the LoudspeakerArrayController and AmbisonicSoundField components.
+ *
+ * \date November 2025
+ *
+ * \author R. Liceras-Ramírez  
+ * \b Tutor: A. Reyes-Lecuona (University of Málaga)  
+ * \b Institution: Universidad de Málaga
+ *
+ * \b Contact: areyes@uma.es
+ *
+ * \b Copyright: © 2025 University of Málaga. All rights reserved.
+ *
+ * \b Note: This class is part of the Bachelor's Thesis of R. Liceras-Ramírez
+ * developed at the University of Málaga under the supervision of
+ * A. Reyes-Lecuona.
+ *
+ * \b Licence: This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License as published 
+ * by the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
+ */
+
+
+
 #ifndef _CAMBISONIC_SOUNDFIELD_CONTROLLER_HPP_
 #define _CAMBISONIC_SOUNDFIELD_CONTROLLER_HPP_
 
@@ -162,6 +194,38 @@ public:
 		std::cout << "Successfully saved WAV: " << filePath << std::endl;
 		return true;
 	}*/
+
+void GenerateSyntheticYField(size_t numFrames = 1024) {
+		if (!setupDone) {
+			std::cerr << "Error: setup not done before generating synthetic field." << std::endl;
+			return;
+		}
+
+		int order = 3;
+		int numChannels = (order + 1) * (order + 1);
+		soundFieldController.SetOrder(order);
+
+		soundFieldController.GetSoundFieldArray().resize(numChannels);
+		for (int ch = 0; ch < numChannels; ++ch) {
+			soundFieldController.GetSoundFieldArray()[ch].resize(numFrames, 0.0f);
+		}
+
+		int channelX = 6; 
+		float freq = 440.0f; // Frecuencia (Hz)
+		float sampleRate = 48000; // Hz
+		float phase = 0.0f;
+		float twoPiF = 2.0f * M_PI * freq / sampleRate;
+
+		for (size_t i = 0; i < numFrames; ++i) {
+			float sample = sinf(twoPiF * i + phase);
+			soundFieldController.GetSoundFieldArray()[channelX][i] = sample;
+		}
+
+		std::cout << "Generated 440 Hz sine tone in Ambisonic field (order 2, channel X)." << std::endl;
+	}
+
+
+
 
 	void ConvertACNtoFuMa() {
 		if (!setupDone) return;

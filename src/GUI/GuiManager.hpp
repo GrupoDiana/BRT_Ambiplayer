@@ -9,39 +9,45 @@ class CGuiManager {
 public:
 	CGuiManager() {
 		gui.setup(ofGetCurrentWindow(), nullptr, true, ImGuiConfigFlags_ViewportsEnable, true);
+		yawRad = pitchRad = rollRad = 0.0f;
 	}
 
 	void draw() {
 		gui.begin();
 
-		static bool ImGuiChildFlags_Borders = true;
+		ImGui::Begin("Ambisonic Controls", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
-		// Simple window with a Play button
-		ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
-		ImGui::Begin("prueba",nullptr,0);
-		
-		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
-
+		if (ImGui::Button("PLAY")) {
+			if (onPlay) onPlay();
+		}
 		ImGui::SameLine();
-		 if (ImGui::ArrowButton("##right", ImGuiDir_Right)) {
-			if (onPlay) onPlay(); // callback
+		if (ImGui::Button("STOP")) {
+			if (onStop) onStop();
 		}
 
-		 ImGui::SameLine();
-		if (ImGui::Button("STOP")) {
-			if (onStop) onStop(); // callback
+		ImGui::Separator();
+
+		ImGui::Text("Field Rotation:");
+		bool changed = false;
+		changed |= ImGui::SliderAngle("Yaw", &yawRad, -180.0f, 180.0f);
+		changed |= ImGui::SliderAngle("Pitch", &pitchRad, -180.0f, 180.0f);
+		changed |= ImGui::SliderAngle("Roll", &rollRad, -180.0f, 180.0f);
+
+		if (changed && onRotationChanged) {
+			onRotationChanged(yawRad, pitchRad, rollRad);
 		}
-		
-		ImGui::PopStyleVar();
+
 		ImGui::End();
 		gui.end();
 	}
 
-	// Callback for the Play button
+	// --- Callbacks ---
 	std::function<void()> onPlay;
-
-	// Callback for the Stop button
 	std::function<void()> onStop;
+	std::function<void(float, float, float)> onRotationChanged;
+
+	// --- Estado actual de rotaciones ---
+	float yawRad, pitchRad, rollRad;
 
 private:
 	ofxImGui::Gui gui;

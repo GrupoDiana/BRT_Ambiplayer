@@ -1,3 +1,44 @@
+/**
+ * \class CAmbisonicSoundField
+ *
+ * \brief Core class for representing and manipulating Ambisonic sound fields.
+ * 
+ * \details This class defines the internal data structure and operations
+ * for Ambisonic sound fields. It provides methods for initialization,
+ * buffer management, rotation using quaternions, channel manipulation,
+ * and Ambisonic order downmixing.
+ * 
+ * The implementation assumes **FuMa channel ordering**, ensuring
+ * compatibility with standard first- and higher-order Ambisonic workflows.
+ * 
+ * \date November 2025
+ *
+ * \author R. Liceras-Ramírez  
+ * \b Tutor: A. Reyes-Lecuona (University of Málaga)  
+ * \b Institution: Universidad de Málaga
+ *
+ * \b Contact: areyes@uma.es
+ *
+ * \b Copyright: © 2025 University of Málaga. All rights reserved.
+ *
+ * \b Note: This class was developed as part of the Bachelor's Thesis of 
+ * R. Liceras-Ramírez, under the supervision of A. Reyes-Lecuona.  
+ * It does not belong to any external funded project.
+ * 
+ * \b Remarks:
+ * - The Ambisonic field is internally stored as a set of mono buffers,
+ *   one per channel, following FuMa ordering.  
+ * - Rotations are performed via quaternion-derived rotation matrices.  
+ * - Channel indexing and R matrix computation follow the Ambisonic
+ *   rotation formalism for orders up to 3.
+ *
+ * \b Licence: This program is free software; you can redistribute it 
+ * and/or modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation, either version 3 of 
+ * the License, or (at your option) any later version.
+ */
+
+
 #ifndef _CAMBISONIC_SOUND_FIELD_HPP_
 #define _CAMBISONIC_SOUND_FIELD_HPP_
 
@@ -11,7 +52,7 @@
 #include <string>
 #include <vector>
 
-int m_order[7] = { 0, 1, -1, 2, -2, 3, -3 }; 
+int m_order[7] = { 0, 1, -1, 2, -2, 3, -3 };
 
 
 class CAmbisonicSoundField {
@@ -104,6 +145,23 @@ public:
 		position = (position + bufferSize) % sourceSize;
 	}
 
+	//Ira en clase Quaternion
+	CMatrix<double> R_1(Common::CQuaternion q) {
+
+		Common::CVector3 X_axis(1, 0, 0);
+		Common::CVector3 Y_axis(0, 1, 0);
+		Common::CVector3 Z_axis(0, 0, 1);
+
+		Common::CVector3 R_col1 = q.RotateVector(X_axis);
+		Common::CVector3 R_col2 = q.RotateVector(Y_axis);
+		Common::CVector3 R_col3 = q.RotateVector(Z_axis);
+
+		CMatrix<double> R_1(3, 3);
+
+		R_1 = { { R_col1.x, R_col2.x, R_col3.x }, { R_col1.y, R_col2.y, R_col3.y }, { R_col1.z, R_col2.z, R_col3.z } };
+
+		return R_1;
+	}
 
 	// Rotate the field depending on how coordinates have changed
 	void RotateField(Common::CQuaternion q) { 
@@ -114,7 +172,7 @@ public:
 		vector<CMonoBuffer<float>> buffer(numChannels, CMonoBuffer<float>(bufferSize, 0.0f));
 		buffer[0] = soundFieldArray[0];
 
-		CMatrix<double> R1 = q.R_1();
+		CMatrix<double> R1 = R_1(q);
 
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
@@ -125,7 +183,7 @@ public:
 		}
 
 		if (ambisonicOrder > 1) {
-			CMatrix<double> R2 = CalculateRMatrix(2, q.R_1());
+			CMatrix<double> R2 = CalculateRMatrix(2, R_1(q));
 
 			for (int i = 0; i < 5; i++) {
 				for (int j = 0; j < 5; j++) {
@@ -136,7 +194,7 @@ public:
 			}
 
 			if (ambisonicOrder > 2) {
-				CMatrix<double> R3 = CalculateRMatrix(3, q.R_1());
+				CMatrix<double> R3 = CalculateRMatrix(3, R_1(q));
 
 				for (int i = 0; i < 7; i++) {
 					for (int j = 0; j < 7; j++) {
@@ -201,23 +259,41 @@ private:
 
 	double Rmm(int l, int m, int mp, CMatrix<double> R_1) {
 		if (l == 1) {
-			if (m < -1 || m > 1 || mp < -1 || mp > 1)
-				return 0.0;
-			return R_1(m + 1, mp + 1);
+			return R_1(m +1 , mp +1 );
 		}
 
-		return umm(l, m, mp) * Umm(l, m, mp, R_1)
-			+ vmm(l, m, mp) * Vmm(l, m, mp, R_1)
-			+ wmm(l, m, mp) * Wmm(l, m, mp, R_1);
+		double u = umm(l, m, mp);
+		double v = vmm(l, m, mp);
+		double w = wmm(l, m, mp);
+
+		double result = 0.0;
+		constexpr double EPS = 1e-9; 
+
+		if (std::abs(u) > EPS) {
+			result += u * Umm(l, m, mp, R_1);
+		}
+
+		if (std::abs(v) > EPS) {
+			result += v * Vmm(l, m, mp, R_1);
+		}
+
+		if (std::abs(w) > EPS) {
+			result += w * Wmm(l, m, mp, R_1);
+		}
+
+		return result;
 	}
+
 
 	double umm(int l, int m, int mp) {
 		double umm = 0.0f;
 
 		if (abs(mp) < l) {
 			umm = sqrt(((l + m) * (l - m)) / ((l + mp) * (l - mp)));
-		} else {
+		} else if (abs(mp) == l) {
 			umm = sqrt(((l + m) * (l - m)) / ((2 * l) * (2 * l - 1)));
+		} else {
+			umm = 0.0f;
 		}
 
 		return umm;
@@ -242,8 +318,10 @@ private:
 
 		if (abs(mp) < l) {
 			vmm = 0.5 * sqrt(((1 + delta(m, 0)) * (l + abs(m) - 1) * (l + abs(m))) / ((l + mp) * (l - mp))) * (1 - 2 * delta(m, 0));
-		} else {
+		} else if (abs(mp) == l) {
 			vmm = 0.5 * sqrt(((1 + delta(m, 0)) * (l + abs(m) - 1) * (l + abs(m))) / ((2 * l) * (2 * l - 1))) * (1 - 2 * delta(m, 0));
+		} else {
+			vmm = 0.0f;
 		}
 
 		return vmm;
@@ -257,7 +335,7 @@ private:
 		} else if (m > 0) {
 			return P(1, l, m - 1, mp, R_1) * sqrt(1 + delta(m, 1)) - P(-1, l, -m + 1, mp, R_1) * (1 - delta(m, 1));
 		} else if (m < 0) {
-			return P(1, l, m + 1, mp, R_1) * (1 - delta(m, -1)) + P(-1, l, -m - 1, mp, R_1) * sqrt(1 - delta(m, -1));
+			return P(1, l, m + 1, mp, R_1) * (1 - delta(m, -1)) + P(-1, l, -m - 1, mp, R_1) * sqrt(1 + delta(m, -1));
 		}
 
 		return Vmm;
@@ -268,8 +346,10 @@ private:
 
 		if (abs(mp) < l) {
 			wmm = -0.5 * sqrt(((l - abs(m) - 1) * (l - abs(m))) / ((l + mp) * (l - mp))) * (1 - delta(m, 0));
-		} else {
+		} else if(abs(mp) == l) {
 			wmm = -0.5 * sqrt(((l - abs(m) - 1) * (l - abs(m))) / ((2 * l) * (2 * l - 1))) * (1 - delta(m, 0));
+		} else {
+			wmm = 0.0f;
 		}
 
 		return wmm;
@@ -290,8 +370,8 @@ private:
 	}
 
 	double P(int i, int l, int mu, int mp, CMatrix<double> R_1) {
+
 		if (abs(mp) < l) {
-			//Se suma 1 en R_1 porque los indices van de 0 a 2 e i va de -1 a 1
 			return R_1(i + 1, 1) * Rmm(l - 1, mu, mp, R_1);
 		} else if (mp == l) {
 			return R_1(i + 1, 2) * Rmm(l - 1, mu, l - 1, R_1) - R_1(i + 1, 0) * Rmm(l - 1, mu, -l + 1, R_1);
@@ -301,6 +381,30 @@ private:
 			return 0.0f;
 		}
 	}
+
+	CMatrix<double> ReorderMatrix(const CMatrix<double> & R_in, const std::vector<int> & m_order) {
+		int dim = m_order.size();
+		CMatrix<double> R_out(dim, dim);
+
+		std::map<int, int> m_to_index;
+		for (int i = 0; i < dim; ++i)
+			m_to_index[m_order[i]] = i;
+
+		for (int i = 0; i < dim; ++i) {
+			int m_row = -((dim - 1) / 2) + i;
+			for (int j = 0; j < dim; ++j) {
+				int m_col = -((dim - 1) / 2) + j;
+
+				int old_row = m_to_index[m_row];
+				int old_col = m_to_index[m_col];
+
+				R_out(i, j) = R_in(old_row, old_col);
+			}
+		}
+
+		return R_out;
+	}
+
 	
 };
 

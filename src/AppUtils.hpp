@@ -1,5 +1,6 @@
 #include <string>
 #include "ofxBRTLibrary.h"
+#include "SofaReader.hpp"
 
 
 #ifndef _APP_UTILS_HPP_

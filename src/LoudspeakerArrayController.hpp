@@ -1,3 +1,53 @@
+/**
+ * \class CLoudSpeakerArrayController
+ *
+ * \brief Controls the configuration and spatial arrangement of loudspeakers in a 3D array.
+ *
+ * \details This class is responsible for creating and managing a set of omnidirectional
+ * sound sources (loudspeakers) placed at the vertices of Platonic solids.
+ * It enables consistent loudspeaker placement for Ambisonic decoding and
+ * allows rotation of the entire loudspeaker array using quaternion-based transformations.
+ *
+ * The class supports multiple Platonic solid configurations:
+ * - Octahedron (6 speakers)
+ * - Cube (8 speakers)
+ * - Icosahedron (12 speakers)
+ * - Dodecahedron (20 speakers)
+ *
+ * Each loudspeaker is created as a `CSourceOmnidirectionalModel` through the
+ * BRT framework (`ofxBRTLibrary`) and positioned in 3D space according to
+ * the selected geometry.
+ *
+ * \date November 2025
+ *
+ * \author R. Liceras-Ramírez  
+ * \b Tutor: A. Reyes-Lecuona (University of Málaga)  
+ * \b Institution: Universidad de Málaga
+ *
+ * \b Contact: areyes@uma.es
+ *
+ * \b Copyright:
+ * © 2025 University of Málaga. All rights reserved.
+ *
+ * \b Context:
+ * Developed as part of the Bachelor's Thesis (TFG) of R. Liceras-Ramírez
+ * under the supervision of Prof. A. Reyes-Lecuona at the University of Málaga.
+ * This component belongs to the CAMBISONIC framework for Ambisonic processing and decoding.
+ *
+ * \b Remarks:
+ * - Integrates with the `BRTBase::CBRTManager` and `BRTSourceModel` libraries.
+ * - Supports quaternion-based rotation of the loudspeaker array.
+ * - Provides easy access to individual speakers and their transforms.
+ * - Geometric arrangements are normalized for unit sphere representation.
+ *
+ * \b Licence:
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 3 of the License, or (at your option)
+ * any later version.
+ */
+
+
 #ifndef _CLOUDSPEAKER_ARRAY_CONTROLLER_HPP_
 #define _CLOUDSPEAKER_ARRAY_CONTROLLER_HPP_
 
@@ -108,6 +158,85 @@ public:
 			speaker->SetSourceTransform(Common::CTransform(rotatedPos));
 		}
 	}
+
+	std::vector<float> ComputeDirectionalEnergyMap(
+		const CAmbisonicSoundField & field,
+		int numAz ,
+		int numEl ) {
+		std::vector<float> energies;
+		energies.resize(numAz * numEl, 0.0f);
+
+		const auto & soundField = field.GetSoundFieldArray();
+		if (soundField.empty()) return energies;
+
+		size_t order = field.GetOrder();
+		size_t numChannels = soundField.size();
+		size_t numSamples = field.GetBufferSize();
+		if (numSamples == 0) return energies;
+
+		std::vector<const float *> channels;
+		channels.reserve(numChannels);
+		for (const auto & ch : soundField)
+			channels.push_back(ch.data());
+
+		for (int ia = 0; ia < numAz; ++ia) {
+			float az = (2.0f * M_PI * ia) / numAz; // 0..2pi
+			for (int ie = 0; ie < numEl; ++ie) {
+				// Elevation from -pi/2 to +pi/2
+				float el = -M_PI_2 + ((float)ie / (float)(numEl - 1)) * M_PI;
+				// unit vector in Cartesian
+				float cosEl = std::cos(el);
+				Common::CVector3 pos(cosEl * std::cos(az),
+					cosEl * std::sin(az),
+					std::sin(el));
+
+				// accumulate energy over samples
+				double energySum = 0.0;
+				for (size_t n = 0; n < numSamples; ++n) {
+					float sample = 0.0f;
+
+					if (order >= 1 && numChannels >= 4) {
+						const float W = channels[0][n];
+						const float X = channels[1][n];
+						const float Y = channels[2][n];
+						const float Z = channels[3][n];
+
+						sample += W + pos.x * X + pos.y * Y + pos.z * Z;
+					}
+
+					if (order >= 2 && numChannels > 8) {
+						const float R = channels[4][n];
+						const float S = channels[5][n];
+						const float T = channels[6][n];
+						const float U = channels[7][n];
+						const float V = channels[8][n];
+
+						sample += sqrtf(3.f) * pos.x * pos.y * V + sqrtf(3.f) * pos.y * pos.z * T + 0.5f * ((3.f * pos.z * pos.z) - 1.f) * R + sqrtf(3.f) * pos.x * pos.z * S + sqrtf(3.f / 4.f) * (pos.x * pos.x - pos.y * pos.y) * U;
+					}
+
+					if (order >= 3 && numChannels > 15) {
+						const float K = channels[9][n];
+						const float L = channels[10][n];
+						const float Mv = channels[11][n];
+						const float N = channels[12][n];
+						const float O = channels[13][n];
+						const float P = channels[14][n];
+						const float Q = channels[15][n];
+
+						sample += sqrtf(5.f / 8.f) * pos.y * (3.f * pos.x * pos.x - pos.y * pos.y) * Q + sqrtf(15.f) * pos.x * pos.y * pos.z * O + sqrtf(3.f / 8.f) * pos.y * (5.f * pos.z * pos.z - 1.f) * Mv + 0.5f * pos.z * (5.f * pos.z * pos.z - 3.f) * K + sqrtf(3.f / 8.f) * pos.x * (5.f * pos.z * pos.z - 1.f) * L + sqrtf(15.f / 4.f) * pos.z * (pos.x * pos.x - pos.y * pos.y) * N + sqrtf(5.f / 8.f) * pos.x * (pos.x * pos.x - 3.f * pos.y * pos.y) * P;
+					}
+
+					energySum += (double)sample * (double)sample;
+				} // samples
+
+				float energyAvg = static_cast<float>(energySum / (double)numSamples);
+				energies[ia * numEl + ie] = energyAvg;
+			} // elevation
+		} // azimuth
+
+		return energies;
+	}
+
 
 private:
 	bool setupDone;

@@ -23,11 +23,18 @@ size_t currentSample = 0;
 std::string decoding;
 Common::CQuaternion q;
 
+std::vector<float> directionalEnergies;
+int numAz = 72; // resolución angular
+int numEl = 36;
+
+
 CConfigurationA configurationA;
 
 Common::CEarPair<CMonoBuffer<float>> outputBufferStereo; 
 unsigned int wavSamplePositionSource; 
 unsigned int positionEndFrameSource;
+
+float yawRad = 0.0f, pitchRad = 0.0f, rollRad = 0.0f;
 
 
 class ofApp : public ofBaseApp{
@@ -53,6 +60,7 @@ class ofApp : public ofBaseApp{
 		void audioOut(ofSoundBuffer & buffer);
 		void audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, int uiBufferSize);
 		ofSoundDevice ShowSelectAudioDeviceMenu();
+		void DrawDirectionalLobeProjected(const std::vector<float> & energies, int numAz, int numEl, float cx, float cy, float maxRadius);
 
 	private:
 		CGuiManager guiManager;
