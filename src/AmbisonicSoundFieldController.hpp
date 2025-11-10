@@ -201,7 +201,7 @@ void GenerateSyntheticYField(size_t numFrames = 1024) {
 			return;
 		}
 
-		int order = 3;
+		int order = 2;
 		int numChannels = (order + 1) * (order + 1);
 		soundFieldController.SetOrder(order);
 
@@ -210,21 +210,25 @@ void GenerateSyntheticYField(size_t numFrames = 1024) {
 			soundFieldController.GetSoundFieldArray()[ch].resize(numFrames, 0.0f);
 		}
 
-		int channelX = 6; 
+		int channelX = 4; 
 		float freq = 440.0f; // Frecuencia (Hz)
 		float sampleRate = 48000; // Hz
 		float phase = 0.0f;
 		float twoPiF = 2.0f * M_PI * freq / sampleRate;
 
+		//int channelR = 4;
+
 		for (size_t i = 0; i < numFrames; ++i) {
+			//CAMBIAR POR RUIDO BLANCO->GAUSSIANO
 			float sample = sinf(twoPiF * i + phase);
 			soundFieldController.GetSoundFieldArray()[channelX][i] = sample;
+			//soundFieldController.GetSoundFieldArray()[channelR][i] = sample;
 		}
 
 		std::cout << "Generated 440 Hz sine tone in Ambisonic field (order 2, channel X)." << std::endl;
 	}
 
-
+//X->ROJO Y->VEREDE, Y->AZUL
 
 
 	void ConvertACNtoFuMa() {

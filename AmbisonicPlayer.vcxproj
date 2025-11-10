@@ -256,6 +256,8 @@
     <ClInclude Include="src\AppUtils.hpp" />
     <ClInclude Include="src\ConfigurationA.hpp" />
     <ClInclude Include="src\GUI\GuiManager.hpp" />
+    <ClInclude Include="src\GUI\Logo.hpp" />
+    <ClInclude Include="src\GUI\Projection.hpp" />
     <ClInclude Include="src\LoudspeakerArrayController.hpp" />
     <ClInclude Include="src\Matrix.hpp" />
     <ClInclude Include="src\ofApp.h" />

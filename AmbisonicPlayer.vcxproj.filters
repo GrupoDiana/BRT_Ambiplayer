@@ -3752,6 +3752,12 @@
     <ClInclude Include="src\Matrix.hpp">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\GUI\Logo.hpp">
+      <Filter>src\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GUI\Projection.hpp">
+      <Filter>src\GUI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="icon.rc" />

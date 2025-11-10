@@ -103,14 +103,14 @@ void ofApp::update() {
 
 //--------------------------------------------------------------
 void ofApp::draw() {
-	guiManager.draw();
+	guiManager.draw(directionalEnergies);
 
-	if (!directionalEnergies.empty()) {
+	/* if (!directionalEnergies.empty()) {
 		float cx = ofGetWidth() / 2.0f;
 		float cy = ofGetHeight() / 2.0f;
 		float maxRadius = 200.0f; // tamaño del lóbulo
 		DrawDirectionalLobeProjected(directionalEnergies, numAz, numEl, cx, cy, maxRadius);
-	}
+	}*/
 }
 
 //--------------------------------------------------------------
@@ -280,20 +280,27 @@ ofSoundDevice ofApp::ShowSelectAudioDeviceMenu() {
 //--------------------------------------------------------------
 void ofApp::DrawDirectionalLobeProjected(const std::vector<float> & energies, int numAz, int numEl, float cx, float cy, float maxRadius) {
 	if (energies.empty()) return;
+
 	std::vector<float> azE(numAz, 0.0f);
 	float globalMax = 0.0f;
+
 	for (int ia = 0; ia < numAz; ++ia) {
-		float acc = 0.0f;
-		for (int ie = 0; ie < numEl; ++ie)
-			acc += energies[ia * numEl + ie];
-		azE[ia] = acc / (float)numEl;
-		if (azE[ia] > globalMax) globalMax = azE[ia];
+		float maxVal = 0.0f;
+		for (int ie = 0; ie < numEl; ++ie) {
+			float val = energies[ia * numEl + ie];
+			if (val > maxVal) maxVal = val;
+		}
+		azE[ia] = maxVal;
+		if (maxVal > globalMax) globalMax = maxVal;
 	}
+
 	float scale = (globalMax > 0.0f) ? (maxRadius / std::sqrt(globalMax)) : 0.0f;
+
 	ofPushStyle();
 	ofNoFill();
 	ofSetLineWidth(2);
 	ofBeginShape();
+
 	for (int ia = 0; ia < numAz; ++ia) {
 		float az = (2.0f * M_PI * ia) / numAz + M_PI_2;
 		float r = scale * std::sqrt(azE[ia]);
@@ -301,9 +308,12 @@ void ofApp::DrawDirectionalLobeProjected(const std::vector<float> & energies, in
 		float y = cy - r * std::sin(az);
 		ofVertex(x, y);
 	}
+
 	ofEndShape(true);
 	ofPopStyle();
 }
+
+
 
 
 

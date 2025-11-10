@@ -24,8 +24,6 @@ std::string decoding;
 Common::CQuaternion q;
 
 std::vector<float> directionalEnergies;
-int numAz = 72; // resolución angular
-int numEl = 36;
 
 
 CConfigurationA configurationA;
@@ -35,6 +33,9 @@ unsigned int wavSamplePositionSource;
 unsigned int positionEndFrameSource;
 
 float yawRad = 0.0f, pitchRad = 0.0f, rollRad = 0.0f;
+
+int numAz = 72; // resolución angular
+int numEl = 36;
 
 
 class ofApp : public ofBaseApp{

@@ -4,6 +4,8 @@
 #include "imgui.h"
 #include "ofMain.h"
 #include "ofxImGui.h"
+#include "Logo.hpp"
+#include "Projection.hpp"
 
 class CGuiManager {
 public:
@@ -12,14 +14,14 @@ public:
 		yawRad = pitchRad = rollRad = 0.0f;
 	}
 
-	void draw() {
+	void draw(const std::vector<float> & energies) {
 		gui.begin();
 		ImGuiViewport * viewport = ImGui::GetMainViewport();
 		float screenWidth = viewport->Size.x;
 		float screenHeight = viewport->Size.y;
 
-		ImGui::SetNextWindowPos(ImVec2(10, 100)); 
-		ImGui::SetNextWindowSize(ImVec2(screenWidth / 5, screenHeight *0.85));
+		ImGui::SetNextWindowPos(ImVec2(10, 150)); 
+		ImGui::SetNextWindowSize(ImVec2(screenWidth / 5, screenHeight -160));
 
 		ImGui::Begin("Ambisonic Controls", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
@@ -43,6 +45,12 @@ public:
 			onRotationChanged(yawRad, pitchRad, rollRad);
 		}
 
+		logo.draw(10, 10, screenWidth-20, 150-20);
+
+		lobeZX.draw(energies, (20 + screenWidth / 5) * 2, 160*2, (screenWidth / 2) , (screenHeight / 2) , XZ);
+		lobeYZ.draw(energies, (20 + screenWidth / 5) * 2 + (screenWidth / 4), 160 * 2, (screenWidth / 2), (screenHeight / 2), YZ);
+		lobeXY.draw(energies, (20 + screenWidth / 5) * 2, 160 * 2 + (screenWidth / 4), (screenWidth / 2), (screenHeight / 2), XY);
+
 		ImGui::End();
 		gui.end();
 	}
@@ -57,6 +65,12 @@ public:
 
 private:
 	ofxImGui::Gui gui;
+	CLogo logo;
+
+	CProjection lobeXY;
+	CProjection lobeYZ;
+	CProjection lobeZX;
+
 };
 
 #endif
