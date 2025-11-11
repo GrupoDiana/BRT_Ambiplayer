@@ -24,25 +24,25 @@ public:
 		ofNoFill();
 		ofSetColor(255);
 		ofSetLineWidth(1.0);
-		ofDrawRectangle(x, y, width, height);
+		ofDrawRectangle(x + margen, y + margen, width - 2 * margen, height - 2 * margen);
 
 		if (width > 850) {
 			if (titleFont.isLoaded()) {
 				string title = "Ambisonic Player";
 				ofSetColor(255);
-				titleFont.drawString(title, x + width / 2 - titleFont.stringWidth(title) / 2, y + height / 2 + 10);
+				titleFont.drawString(title, x + 2 * margen + width / 2 - titleFont.stringWidth(title) / 2, y + margen + height / 2 );
 			}
 
 			// Imagen
 			if (logoUMA.isAllocated()) {
 				ofSetColor(255);
-				logoUMA.draw(width - x - logoUMA.getWidth(), y + (height - logoUMA.getHeight()) / 2);
+				logoUMA.draw(width - x -  2 * margen - logoUMA.getWidth(), y + (height - logoUMA.getHeight()) / 2);
 			}
 		} else{
 			if (titleFont.isLoaded()) {
 				string title = "AmbiPlayer";
 				ofSetColor(255);
-				titleFont.drawString(title, x + width / 2 - titleFont.stringWidth(title) / 2, y + height / 2 + 10);
+				titleFont.drawString(title, x + 2 * margen + width / 2 - titleFont.stringWidth(title) / 2, y + margen + height / 2);
 			} 
 		}
 
@@ -53,6 +53,8 @@ public:
 private:
 	ofImage logoUMA;
 	ofTrueTypeFont titleFont;
+
+	int margen = 10;
 };
 
 #endif

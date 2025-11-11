@@ -21,14 +21,19 @@ public:
 
 		ofPushMatrix();
 
-		/* ofPushStyle();
+		ofPushStyle();
 		ofNoFill();
 		ofSetColor(255);
 		ofSetLineWidth(1.0);
-		ofDrawRectangle(cx, cy, width, height);
-		ofPopStyle();*/
+		ofDrawRectangle(cx, cy , width - margen , height - margen);
+		ofPopStyle();
 
-		ofTranslate(cx, cy);
+		float axisSize = std::min(width, height) * 0.15f;
+		float x0 = cx + width - margen - axisSize*1.5;
+		float y0 = cy + height - margen - axisSize/2;
+		DrawAxes(x0, y0, axisSize, plane);
+
+		ofTranslate(cx + width / 2.0f, cy + height / 2.0f);
 
 		// dibujamos el lóbulo en coordenadas locales (0,0)
 		DrawDirectionalLobeProjected(energies, 0, 0, maxRadius, plane);
@@ -37,12 +42,15 @@ public:
 	}
 
 private:
+	int margen = 10;
+
 	void DrawDirectionalLobeProjected(
 		const std::vector<float> & energies,
 		float cx,
 		float cy,
 		float maxRadius,
 		Plane plane) {
+		 
 		if (energies.empty()) return;
 
 		ofPushStyle();
@@ -89,6 +97,44 @@ private:
 		ofEndShape(true);
 		ofPopStyle();
 	}
+
+	 void DrawAxes(float x0, float y0, float size, Plane plane) {
+		ofPushStyle();
+		ofSetLineWidth(2);
+
+		switch (plane) {
+		case XY:
+			ofSetColor(0, 0, 255);
+			ofDrawLine(x0, y0, x0 + size, y0);
+			ofDrawTriangle(x0 + size, y0, x0 + size - 5, y0 - 3, x0 + size - 5, y0 + 3);
+
+			ofSetColor(255, 0, 0);
+			ofDrawLine(x0, y0, x0, y0 - size);
+			ofDrawTriangle(x0, y0 - size, x0 - 3, y0 - size + 5, x0 + 3, y0 - size + 5);
+			break;
+
+		case YZ:
+			ofSetColor(255, 0, 0);
+			ofDrawLine(x0, y0, x0 + size, y0);
+			ofDrawTriangle(x0 + size, y0, x0 + size - 5, y0 - 3, x0 + size - 5, y0 + 3);
+
+			ofSetColor(0, 255, 0);
+			ofDrawLine(x0, y0, x0, y0 - size);
+			ofDrawTriangle(x0, y0 - size, x0 - 3, y0 - size + 5, x0 + 3, y0 - size + 5);
+			break;
+
+		case XZ:
+			ofSetColor(0, 0, 255);
+			ofDrawLine(x0, y0, x0 + size, y0);
+			ofDrawTriangle(x0 + size, y0, x0 + size - 5, y0 - 3, x0 + size - 5, y0 + 3);
+
+			ofSetColor(0, 255, 0);
+			ofDrawLine(x0, y0, x0, y0 - size);
+			ofDrawTriangle(x0, y0 - size, x0 - 3, y0 - size + 5, x0 + 3, y0 - size + 5);
+			break;
+		}
+	 ofPopStyle();
+}
 
 
 	int numAz = 72; // resolución angular

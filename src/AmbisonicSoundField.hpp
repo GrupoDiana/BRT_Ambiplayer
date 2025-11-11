@@ -173,6 +173,7 @@ public:
 		buffer[0] = soundFieldArray[0];
 
 		CMatrix<double> R1 = R_1(q);
+		
 
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
@@ -184,6 +185,8 @@ public:
 
 		if (ambisonicOrder > 1) {
 			CMatrix<double> R2 = CalculateRMatrix(2, R_1(q));
+			R2.print();
+			cout << endl;
 
 			for (int i = 0; i < 5; i++) {
 				for (int j = 0; j < 5; j++) {

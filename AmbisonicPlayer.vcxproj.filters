@@ -3758,6 +3758,9 @@
     <ClInclude Include="src\GUI\Projection.hpp">
       <Filter>src\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="src\GUI\MenuPanel.hpp">
+      <Filter>src\GUI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="icon.rc" />

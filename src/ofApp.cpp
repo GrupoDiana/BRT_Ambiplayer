@@ -39,22 +39,14 @@ void ofApp::setup() {
 	speakerArrayController = CLoudSpeakerArrayController();
 	speakerArrayController.SetUp(brtManager, static_cast<PlatonicSolid>(solid));
 
-	q = Common::CQuaternion::FromYawPitchRoll(M_PI_2, 0.0f, 0.0f);
+	q = Common::CQuaternion::FromYawPitchRoll(M_PI/6, 0.0f, 0.0f);
 	speakerArrayController.RotateLoudspeakerArray(q);
 	q.R_1().print();
 
 	for (int i = 0; i < speakerArrayController.GetNumSpeakers(); i++) {
 		configurationA.ConnectSoundSource(&brtManager, "Speaker" + std::to_string(i));
 	}
-
-	/////////////////////
-	// Setup Sources
-	/////////////////////
 	
-	std::cout << "Please select decoding metohd: ";
-	std::cin >> decoding;
-	
-
 	// /////////////////////
 	// Load Wav Files
 	/////////////////////
@@ -104,13 +96,6 @@ void ofApp::update() {
 //--------------------------------------------------------------
 void ofApp::draw() {
 	guiManager.draw(directionalEnergies);
-
-	/* if (!directionalEnergies.empty()) {
-		float cx = ofGetWidth() / 2.0f;
-		float cy = ofGetHeight() / 2.0f;
-		float maxRadius = 200.0f; // tamaño del lóbulo
-		DrawDirectionalLobeProjected(directionalEnergies, numAz, numEl, cx, cy, maxRadius);
-	}*/
 }
 
 //--------------------------------------------------------------
@@ -228,7 +213,7 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 
 
 	// Decodificación a altavoces
-	ambisonicProcessor.DecodeToSpeakerArray(speakerArrayController, *OutBuffer, decoding);
+	ambisonicProcessor.DecodeToSpeakerArray(speakerArrayController, *OutBuffer, "basic");
 	directionalEnergies = speakerArrayController.ComputeDirectionalEnergyMap(*OutBuffer, numAz, numEl);
 
 

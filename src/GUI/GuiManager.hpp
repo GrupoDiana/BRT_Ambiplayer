@@ -1,57 +1,61 @@
 ﻿#ifndef _GUI_MANAGER_HPP_
 #define _GUI_MANAGER_HPP_
 
+#include "Logo.hpp"
+#include "MenuPanel.hpp"
+#include "Projection.hpp"
 #include "imgui.h"
 #include "ofMain.h"
 #include "ofxImGui.h"
-#include "Logo.hpp"
-#include "Projection.hpp"
 
 class CGuiManager {
 public:
 	CGuiManager() {
 		gui.setup(ofGetCurrentWindow(), nullptr, true, 0, true);
-		yawRad = pitchRad = rollRad = 0.0f;
+
+		menuPanel.onPlay = [this]() { if (onPlay) onPlay(); };
+		menuPanel.onStop = [this]() { if (onStop) onStop(); };
+		menuPanel.onRotationChanged = [this](float yaw, float pitch, float roll) {
+			if (onRotationChanged) onRotationChanged(yaw, pitch, roll);
+		};
 	}
 
 	void draw(const std::vector<float> & energies) {
 		gui.begin();
+
 		ImGuiViewport * viewport = ImGui::GetMainViewport();
 		float screenWidth = viewport->Size.x;
 		float screenHeight = viewport->Size.y;
 
-		ImGui::SetNextWindowPos(ImVec2(10, 150)); 
-		ImGui::SetNextWindowSize(ImVec2(screenWidth / 5, screenHeight -160));
+		logo.draw(0, 0, screenWidth, screenHeight/5);
 
-		ImGui::Begin("Ambisonic Controls", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+		if (screenWidth > 1024) {
+			menuPanel.draw(0, screenHeight / 5, width_menu, screenHeight - screenHeight / 5);
 
-		if (ImGui::Button("PLAY")) {
-			if (onPlay) onPlay();
+			lobeZX.draw(energies, width_menu, screenHeight / 5,
+				(screenWidth - width_menu) / 2, (screenHeight - screenHeight / 5) / 2, XZ);
+
+			lobeYZ.draw(energies, width_menu + (screenWidth - width_menu) / 2, screenHeight / 5,
+				(screenWidth - width_menu) / 2, (screenHeight - screenHeight / 5) / 2, YZ);
+
+			lobeXY.draw(energies, width_menu, screenHeight / 5 + (screenHeight - screenHeight / 5) / 2,
+				(screenWidth - width_menu) / 2, (screenHeight - screenHeight / 5) / 2, XY);
+		} else {
+
+			menuPanel.draw(0, screenHeight / 5, screenWidth / 4, screenHeight - screenHeight / 5);
+
+			lobeZX.draw(energies, screenWidth / 4, screenHeight / 5,
+				screenWidth * 1.5 / 4, (screenHeight - screenHeight / 5) / 2, XZ);
+
+			lobeYZ.draw(energies, screenWidth / 4 + screenWidth * 1.5 / 4, screenHeight / 5,
+				screenWidth * 1.5 / 4, (screenHeight - screenHeight / 5) / 2, YZ);
+
+			lobeXY.draw(energies, screenWidth / 4, screenHeight / 5 + (screenHeight - screenHeight / 5) / 2,
+				screenWidth * 1.5 / 4, (screenHeight - screenHeight / 5) / 2, XY);
 		}
-		ImGui::SameLine();
-		if (ImGui::Button("STOP")) {
-			if (onStop) onStop();
-		}
 
-		ImGui::Separator();
+		
 
-		ImGui::Text("Field Rotation:");
-		bool changed = false;
-		changed |= ImGui::SliderAngle("Yaw", &yawRad, -180.0f, 180.0f);
-		changed |= ImGui::SliderAngle("Pitch", &pitchRad, -180.0f, 180.0f);
-		changed |= ImGui::SliderAngle("Roll", &rollRad, -180.0f, 180.0f);
-
-		if (changed && onRotationChanged) {
-			onRotationChanged(yawRad, pitchRad, rollRad);
-		}
-
-		logo.draw(10, 10, screenWidth-20, 150-20);
-
-		lobeZX.draw(energies, (20 + screenWidth / 5) * 2, 160*2, (screenWidth / 2) , (screenHeight / 2) , XZ);
-		lobeYZ.draw(energies, (20 + screenWidth / 5) * 2 + (screenWidth / 4), 160 * 2, (screenWidth / 2), (screenHeight / 2), YZ);
-		lobeXY.draw(energies, (20 + screenWidth / 5) * 2, 160 * 2 + (screenWidth / 4), (screenWidth / 2), (screenHeight / 2), XY);
-
-		ImGui::End();
 		gui.end();
 	}
 
@@ -60,16 +64,14 @@ public:
 	std::function<void()> onStop;
 	std::function<void(float, float, float)> onRotationChanged;
 
-	// --- Estado actual de rotaciones ---
-	float yawRad, pitchRad, rollRad;
-
 private:
 	ofxImGui::Gui gui;
 	CLogo logo;
 
-	CProjection lobeXY;
-	CProjection lobeYZ;
-	CProjection lobeZX;
+	CMenuPanel menuPanel;
+	CProjection lobeXY, lobeYZ, lobeZX;
+
+	int width_menu = 256;
 
 };
 
