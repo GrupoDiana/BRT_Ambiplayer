@@ -39,9 +39,8 @@ void ofApp::setup() {
 	speakerArrayController = CLoudSpeakerArrayController();
 	speakerArrayController.SetUp(brtManager, static_cast<PlatonicSolid>(solid));
 
-	q = Common::CQuaternion::FromYawPitchRoll(M_PI/6, 0.0f, 0.0f);
-	speakerArrayController.RotateLoudspeakerArray(q);
-	q.R_1().print();
+	//q = Common::CQuaternion::FromYawPitchRoll(M_PI/6, 0.0f, 0.0f);
+	//speakerArrayController.RotateLoudspeakerArray(q);
 
 	for (int i = 0; i < speakerArrayController.GetNumSpeakers(); i++) {
 		configurationA.ConnectSoundSource(&brtManager, "Speaker" + std::to_string(i));
@@ -52,8 +51,8 @@ void ofApp::setup() {
 	/////////////////////
 	ambisonicSoundFieldController = std::make_shared<CAmbisonicSoundFieldController>();
 	ambisonicSoundFieldController->SetUp(1, 48000, 512, "FuMa");
-	//ambisonicSoundFieldController->LoadWav(SOURCE_FILEPATH, "ACN");
-	ambisonicSoundFieldController->GenerateSyntheticYField(48000 * 10); // 10 seconds
+	ambisonicSoundFieldController->LoadWav(SOURCE_FILEPATH, "ACN");
+	//ambisonicSoundFieldController->GenerateSyntheticYField(48000 * 10); // 10 seconds
 
 	SFbuffer = std::make_shared<CAmbisonicSoundField>();
 	SFbuffer->SetUp(ambisonicSoundFieldController->GetSoundFieldController().GetOrder(), 48000, 512);

@@ -53,6 +53,7 @@
 #include <vector>
 
 int m_order[7] = { 0, 1, -1, 2, -2, 3, -3 };
+int m_order_1[3] = { 1,-1,0};
 
 
 class CAmbisonicSoundField {
@@ -172,8 +173,7 @@ public:
 		vector<CMonoBuffer<float>> buffer(numChannels, CMonoBuffer<float>(bufferSize, 0.0f));
 		buffer[0] = soundFieldArray[0];
 
-		CMatrix<double> R1 = R_1(q);
-		
+		CMatrix<double> R1 = CalculateRMatrix(1, R_1(q));
 
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
@@ -185,8 +185,6 @@ public:
 
 		if (ambisonicOrder > 1) {
 			CMatrix<double> R2 = CalculateRMatrix(2, R_1(q));
-			R2.print();
-			cout << endl;
 
 			for (int i = 0; i < 5; i++) {
 				for (int j = 0; j < 5; j++) {
@@ -249,7 +247,12 @@ private:
 
 		for (int i = 0; i < dim; i++) {
 			for (int j = 0; j < dim; j++) {
-				R_l(i, j) = Rmm(l, m_order[i], m_order[j], R_1);
+				if (l == 1) {
+					R_l(i, j) = Rmm(l, m_order_1[i], m_order_1[j], R_1);
+				} else {
+					R_l(i, j) = Rmm(l, m_order[i], m_order[j], R_1);
+				}
+				
 			}
 		}
 
@@ -384,30 +387,6 @@ private:
 			return 0.0f;
 		}
 	}
-
-	CMatrix<double> ReorderMatrix(const CMatrix<double> & R_in, const std::vector<int> & m_order) {
-		int dim = m_order.size();
-		CMatrix<double> R_out(dim, dim);
-
-		std::map<int, int> m_to_index;
-		for (int i = 0; i < dim; ++i)
-			m_to_index[m_order[i]] = i;
-
-		for (int i = 0; i < dim; ++i) {
-			int m_row = -((dim - 1) / 2) + i;
-			for (int j = 0; j < dim; ++j) {
-				int m_col = -((dim - 1) / 2) + j;
-
-				int old_row = m_to_index[m_row];
-				int old_col = m_to_index[m_col];
-
-				R_out(i, j) = R_in(old_row, old_col);
-			}
-		}
-
-		return R_out;
-	}
-
 	
 };
 

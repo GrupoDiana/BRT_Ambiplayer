@@ -87,6 +87,14 @@ public:
 		return transposed;
 	}
 
+	void FlipRows3() {
+		if (rows < 3) return; // asegurarnos de que hay al menos 3 filas
+
+		std::swap(data[0], data[2]);
+		std::swap(data[1], data[0]);
+		std::swap(data[2], data[1]); 
+	}
+
 	CMatrix & operator=(std::initializer_list<std::initializer_list<TypeD>> initList) {
 		size_t i = 0;
 		for (const auto & row : initList) {

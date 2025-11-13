@@ -123,7 +123,7 @@ public:
 	
 	// Save a sound field to a WAV file
 	//Prototype
-	/* bool SaveToWav(const std::string & filePath) {
+	 bool SaveToWav(const std::string & filePath) {
 		auto & in = soundFieldController.GetSoundFieldArray();
 		size_t numChannels = in.size();
 
@@ -141,8 +141,6 @@ public:
 			}
 		}
 
-		soundFieldController.ConvertACNtoFuMa();
-
 		auto & audioArray = soundFieldController.GetSoundFieldArray();
 
 		// --- Interleave ---
@@ -159,10 +157,11 @@ public:
 		uint16_t audioFormat = 3; // IEEE float
 		uint16_t wavNumChannels = static_cast<uint16_t>(numChannels);
 		uint32_t blockAlign = wavNumChannels * sizeof(float);
-		uint32_t byteRate = sampleRate * blockAlign;
+		uint32_t byteRate = 48000 * blockAlign;
 		uint32_t dataSize = static_cast<uint32_t>(interleavedSamples.size() * sizeof(float));
 		uint32_t chunkSize = 36 + dataSize;
 		uint32_t subchunk1Size = 16;
+		uint32_t sampleRate = 48000;
 
 		std::ofstream outFile(filePath, std::ios::binary);
 		if (!outFile) {
@@ -193,43 +192,7 @@ public:
 		outFile.close();
 		std::cout << "Successfully saved WAV: " << filePath << std::endl;
 		return true;
-	}*/
-
-void GenerateSyntheticYField(size_t numFrames = 1024) {
-		if (!setupDone) {
-			std::cerr << "Error: setup not done before generating synthetic field." << std::endl;
-			return;
-		}
-
-		int order = 2;
-		int numChannels = (order + 1) * (order + 1);
-		soundFieldController.SetOrder(order);
-
-		soundFieldController.GetSoundFieldArray().resize(numChannels);
-		for (int ch = 0; ch < numChannels; ++ch) {
-			soundFieldController.GetSoundFieldArray()[ch].resize(numFrames, 0.0f);
-		}
-
-		int channelX = 4; 
-		float freq = 440.0f; // Frecuencia (Hz)
-		float sampleRate = 48000; // Hz
-		float phase = 0.0f;
-		float twoPiF = 2.0f * M_PI * freq / sampleRate;
-
-		//int channelR = 4;
-
-		for (size_t i = 0; i < numFrames; ++i) {
-			//CAMBIAR POR RUIDO BLANCO->GAUSSIANO
-			float sample = sinf(twoPiF * i + phase);
-			soundFieldController.GetSoundFieldArray()[channelX][i] = sample;
-			//soundFieldController.GetSoundFieldArray()[channelR][i] = sample;
-		}
-
-		std::cout << "Generated 440 Hz sine tone in Ambisonic field (order 2, channel X)." << std::endl;
 	}
-
-//X->ROJO Y->VEREDE, Y->AZUL
-
 
 	void ConvertACNtoFuMa() {
 		if (!setupDone) return;
@@ -261,6 +224,43 @@ void GenerateSyntheticYField(size_t numFrames = 1024) {
 			soundFieldController.GetSoundFieldArray()[i] = aux[FuMa_to_ACN_order3[i]];
 		}
 	}
+
+void GenerateSyntheticYField(size_t numFrames = 1024) {
+		if (!setupDone) {
+			std::cerr << "Error: setup not done before generating synthetic field." << std::endl;
+			return;
+		}
+
+		int order = 2;
+		int numChannels = (order + 1) * (order + 1);
+		soundFieldController.SetOrder(order);
+
+		soundFieldController.GetSoundFieldArray().resize(numChannels);
+		for (int ch = 0; ch < numChannels; ++ch) {
+			soundFieldController.GetSoundFieldArray()[ch].resize(numFrames, 0.0f);
+		}
+
+		int channelX = 4; 
+		float freq = 440.0f; // Frecuencia (Hz)
+		float sampleRate = 48000; // Hz
+		float phase = 0.0f;
+		float twoPiF = 2.0f * M_PI * freq / sampleRate;
+
+		//int channelR = 4;
+
+		for (size_t i = 0; i < numFrames; ++i) {
+			//CAMBIAR POR RUIDO BLANCO->GAUSSIANO
+			float sample = sinf(twoPiF * i + phase);
+			soundFieldController.GetSoundFieldArray()[channelX][i] = sample;
+		}
+
+		std::cout << "Generated 440 Hz sine tone in Ambisonic field (order 2, channel X)." << std::endl;
+	}
+
+//X->ROJO Y->VEREDE, Y->AZUL
+
+
+	
 
 	CAmbisonicSoundFieldController & operator+=(const CAmbisonicSoundFieldController & other) {
 		const auto & otherArray = other.soundFieldController.GetSoundFieldArray();
