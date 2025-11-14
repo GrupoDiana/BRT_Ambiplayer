@@ -29,7 +29,7 @@ public:
 		ofPopStyle();
 
 		float axisSize = std::min(width, height) * 0.15f;
-		float x0 = cx + width - margen - axisSize*1.5;
+		float x0 = cx + width - margen - axisSize;
 		float y0 = cy + height - margen - axisSize/2;
 		DrawAxes(x0, y0, axisSize, plane);
 
@@ -55,7 +55,7 @@ private:
 
 		ofPushStyle();
 		ofNoFill();
-		ofSetLineWidth(2);
+		ofSetLineWidth(1.0);
 		ofBeginShape();
 
 		// recorremos todos los puntos del lóbulo
@@ -77,17 +77,18 @@ private:
 				// proyectamos según el plano
 				switch (plane) {
 				case XY:
-					px = cx + x3D * maxRadius;
-					py = cy - y3D * maxRadius;
+					px = cx - y3D * maxRadius; 
+					py = cy - x3D * maxRadius; 
 					break;
 				case YZ:
-					px = cx + y3D * maxRadius;
-					py = cy - z3D * maxRadius;
+					px = cx - y3D * maxRadius; 
+					py = cy - z3D * maxRadius; 
 					break;
 				case XZ:
-					px = cx + x3D * maxRadius;
-					py = cy - z3D * maxRadius;
+					px = cx - x3D * maxRadius; 
+					py = cy - z3D * maxRadius; 
 					break;
+
 				}
 
 				ofVertex(px, py);
@@ -98,43 +99,47 @@ private:
 		ofPopStyle();
 	}
 
-	 void DrawAxes(float x0, float y0, float size, Plane plane) {
+void DrawAxes(float x0, float y0, float size, Plane plane) {
 		ofPushStyle();
-		ofSetLineWidth(2);
+		ofSetLineWidth(1.0);
 
 		switch (plane) {
-		case XY:
-			ofSetColor(0, 0, 255);
-			ofDrawLine(x0, y0, x0 + size, y0);
-			ofDrawTriangle(x0 + size, y0, x0 + size - 5, y0 - 3, x0 + size - 5, y0 + 3);
 
+		case XY:
 			ofSetColor(255, 0, 0);
 			ofDrawLine(x0, y0, x0, y0 - size);
-			ofDrawTriangle(x0, y0 - size, x0 - 3, y0 - size + 5, x0 + 3, y0 - size + 5);
+			ofDrawTriangle(x0, y0 - size,x0 - 3, y0 - size + 5,x0 + 3, y0 - size + 5);
+
+			ofSetColor(0, 255, 0);
+			ofDrawLine(x0, y0, x0 - size, y0); 
+			ofDrawTriangle(x0 - size, y0,x0 - size + 5, y0 - 3,x0 - size + 5, y0 + 3);
 			break;
 
 		case YZ:
-			ofSetColor(255, 0, 0);
-			ofDrawLine(x0, y0, x0 + size, y0);
-			ofDrawTriangle(x0 + size, y0, x0 + size - 5, y0 - 3, x0 + size - 5, y0 + 3);
-
 			ofSetColor(0, 255, 0);
-			ofDrawLine(x0, y0, x0, y0 - size);
-			ofDrawTriangle(x0, y0 - size, x0 - 3, y0 - size + 5, x0 + 3, y0 - size + 5);
+			ofDrawLine(x0, y0, x0 - size, y0);
+			ofDrawTriangle(x0 - size, y0,x0 - size + 5, y0 - 3,x0 - size + 5, y0 + 3);
+
+			ofSetColor(0, 0, 255);
+			ofDrawLine(x0, y0, x0, y0 - size); 
+			ofDrawTriangle(x0, y0 - size,x0 - 3, y0 - size + 5,x0 + 3, y0 - size + 5);
 			break;
 
-		case XZ:
-			ofSetColor(0, 0, 255);
-			ofDrawLine(x0, y0, x0 + size, y0);
-			ofDrawTriangle(x0 + size, y0, x0 + size - 5, y0 - 3, x0 + size - 5, y0 + 3);
 
-			ofSetColor(0, 255, 0);
+		case XZ:
+			ofSetColor(255, 0, 0);
+			ofDrawLine(x0, y0, x0 - size, y0);
+			ofDrawTriangle(x0 - size, y0, x0 - size + 5, y0 - 3, x0 + size + 5, y0 + 3);
+
+			ofSetColor(0, 0, 255);
 			ofDrawLine(x0, y0, x0, y0 - size);
 			ofDrawTriangle(x0, y0 - size, x0 - 3, y0 - size + 5, x0 + 3, y0 - size + 5);
 			break;
 		}
-	 ofPopStyle();
-}
+
+		ofPopStyle();
+	}
+
 
 
 	int numAz = 72; // resolución angular

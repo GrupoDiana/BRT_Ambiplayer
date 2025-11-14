@@ -240,6 +240,8 @@ void GenerateSyntheticYField(size_t numFrames = 1024) {
 			soundFieldController.GetSoundFieldArray()[ch].resize(numFrames, 0.0f);
 		}
 
+		// x hacia arriba, y hacia izq
+
 		int channelX = 4; 
 		float freq = 440.0f; // Frecuencia (Hz)
 		float sampleRate = 48000; // Hz
