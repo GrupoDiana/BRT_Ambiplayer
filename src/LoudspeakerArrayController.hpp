@@ -159,12 +159,11 @@ public:
 		}
 	}
 
-	std::vector<float> ComputeDirectionalEnergyMap(
+std::vector<float> ComputeDirectionalEnergyMap(
 		const CAmbisonicSoundField & field,
-		int numAz ,
-		int numEl ) {
-		std::vector<float> energies;
-		energies.resize(numAz * numEl, 0.0f);
+		int numAz,
+		int numEl) {
+		std::vector<float> energies(numAz * numEl, 0.0f);
 
 		const auto & soundField = field.GetSoundFieldArray();
 		if (soundField.empty()) return energies;
@@ -180,17 +179,16 @@ public:
 			channels.push_back(ch.data());
 
 		for (int ia = 0; ia < numAz; ++ia) {
-			float az = (2.0f * M_PI * ia) / numAz; // 0..2pi
+			float az = (2.0f * M_PI * ia) / numAz;
 			for (int ie = 0; ie < numEl; ++ie) {
-				// Elevation from -pi/2 to +pi/2
 				float el = -M_PI_2 + ((float)ie / (float)(numEl - 1)) * M_PI;
-				// unit vector in Cartesian
+
+				// vector unitario 3D
 				float cosEl = std::cos(el);
 				Common::CVector3 pos(cosEl * std::cos(az),
 					cosEl * std::sin(az),
 					std::sin(el));
 
-				// accumulate energy over samples
 				double energySum = 0.0;
 				for (size_t n = 0; n < numSamples; ++n) {
 					float sample = 0.0f;
@@ -226,13 +224,13 @@ public:
 						sample += sqrtf(5.f / 8.f) * pos.y * (3.f * pos.x * pos.x - pos.y * pos.y) * Q + sqrtf(15.f) * pos.x * pos.y * pos.z * O + sqrtf(3.f / 8.f) * pos.y * (5.f * pos.z * pos.z - 1.f) * Mv + 0.5f * pos.z * (5.f * pos.z * pos.z - 3.f) * K + sqrtf(3.f / 8.f) * pos.x * (5.f * pos.z * pos.z - 1.f) * L + sqrtf(15.f / 4.f) * pos.z * (pos.x * pos.x - pos.y * pos.y) * N + sqrtf(5.f / 8.f) * pos.x * (pos.x * pos.x - 3.f * pos.y * pos.y) * P;
 					}
 
-					energySum += (double)sample * (double)sample;
-				} // samples
+					energySum += sample * sample;
+				}
 
 				float energyAvg = static_cast<float>(energySum / (double)numSamples);
 				energies[ia * numEl + ie] = energyAvg;
-			} // elevation
-		} // azimuth
+			}
+		}
 
 		return energies;
 	}

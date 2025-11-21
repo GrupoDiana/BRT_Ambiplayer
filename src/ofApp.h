@@ -34,7 +34,7 @@ unsigned int positionEndFrameSource;
 
 float yawRad = 0.0f, pitchRad = 0.0f, rollRad = 0.0f;
 
-int numAz = 72; // resolución angular
+int numAz = 72;
 int numEl = 36;
 
 
@@ -61,7 +61,6 @@ class ofApp : public ofBaseApp{
 		void audioOut(ofSoundBuffer & buffer);
 		void audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, int uiBufferSize);
 		ofSoundDevice ShowSelectAudioDeviceMenu();
-		void DrawDirectionalLobeProjected(const std::vector<float> & energies, int numAz, int numEl, float cx, float cy, float maxRadius);
 
 	private:
 		CGuiManager guiManager;

@@ -257,6 +257,7 @@
     <ClInclude Include="src\ConfigurationA.hpp" />
     <ClInclude Include="src\GUI\GuiManager.hpp" />
     <ClInclude Include="src\GUI\Logo.hpp" />
+    <ClInclude Include="src\GUI\Loudspeakers.hpp" />
     <ClInclude Include="src\GUI\MenuPanel.hpp" />
     <ClInclude Include="src\GUI\Projection.hpp" />
     <ClInclude Include="src\LoudspeakerArrayController.hpp" />

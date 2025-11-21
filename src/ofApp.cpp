@@ -51,8 +51,8 @@ void ofApp::setup() {
 	/////////////////////
 	ambisonicSoundFieldController = std::make_shared<CAmbisonicSoundFieldController>();
 	ambisonicSoundFieldController->SetUp(1, 48000, 512, "FuMa");
-	//ambisonicSoundFieldController->LoadWav(SOURCE_FILEPATH, "ACN");
-	ambisonicSoundFieldController->GenerateSyntheticYField(48000 * 10); // 10 seconds
+	ambisonicSoundFieldController->LoadWav(SOURCE_FILEPATH, "ACN");
+	//ambisonicSoundFieldController->GenerateSyntheticYField(48000 * 10); // 10 seconds
 
 	SFbuffer = std::make_shared<CAmbisonicSoundField>();
 	SFbuffer->SetUp(ambisonicSoundFieldController->GetSoundFieldController().GetOrder(), 48000, 512);
@@ -215,7 +215,6 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 	ambisonicProcessor.DecodeToSpeakerArray(speakerArrayController, *OutBuffer, "basic");
 	directionalEnergies = speakerArrayController.ComputeDirectionalEnergyMap(*OutBuffer, numAz, numEl);
 
-
 	Common::CEarPair<CMonoBuffer<float>> bufferProcessed;
 
 	brtManager.ProcessAll();
@@ -258,43 +257,6 @@ ofSoundDevice ofApp::ShowSelectAudioDeviceMenu() {
 	} while (!(selectAudioDevice > -1 && selectAudioDevice <= devices.size()));
 	std::cout << std::endl;
 	return devices[selectAudioDevice];
-}
-
-
-//--------------------------------------------------------------
-void ofApp::DrawDirectionalLobeProjected(const std::vector<float> & energies, int numAz, int numEl, float cx, float cy, float maxRadius) {
-	if (energies.empty()) return;
-
-	std::vector<float> azE(numAz, 0.0f);
-	float globalMax = 0.0f;
-
-	for (int ia = 0; ia < numAz; ++ia) {
-		float maxVal = 0.0f;
-		for (int ie = 0; ie < numEl; ++ie) {
-			float val = energies[ia * numEl + ie];
-			if (val > maxVal) maxVal = val;
-		}
-		azE[ia] = maxVal;
-		if (maxVal > globalMax) globalMax = maxVal;
-	}
-
-	float scale = (globalMax > 0.0f) ? (maxRadius / std::sqrt(globalMax)) : 0.0f;
-
-	ofPushStyle();
-	ofNoFill();
-	ofSetLineWidth(2);
-	ofBeginShape();
-
-	for (int ia = 0; ia < numAz; ++ia) {
-		float az = (2.0f * M_PI * ia) / numAz + M_PI_2;
-		float r = scale * std::sqrt(azE[ia]);
-		float x = cx + r * std::cos(az);
-		float y = cy - r * std::sin(az);
-		ofVertex(x, y);
-	}
-
-	ofEndShape(true);
-	ofPopStyle();
 }
 
 
