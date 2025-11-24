@@ -24,6 +24,7 @@ std::string decoding;
 Common::CQuaternion q;
 
 std::vector<float> directionalEnergies;
+std::vector<float> speakerEnergies;
 
 
 CConfigurationA configurationA;
@@ -68,6 +69,9 @@ class ofApp : public ofBaseApp{
 		std::shared_ptr<CAmbisonicSoundField> SFbuffer, OutBuffer;
 		CLoudSpeakerArrayController speakerArrayController;
 		CAmbisonicProcessor ambisonicProcessor;
+
+		 std::mutex energiesMutex;
+		std::vector<Common::CVector3> originalPositions;
 
 		void setRealTimePriority() {
 			HANDLE hThread = GetCurrentThread();

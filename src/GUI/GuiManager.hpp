@@ -21,7 +21,11 @@ public:
 		};
 	}
 
-	void draw(const std::vector<float> & energies) {
+	void setSpeakerController(const CLoudSpeakerArrayController * controller) {
+		loudspeakers.setController(controller);
+	}
+
+	void draw(const std::vector<float> & energies, const std::vector<float> & speakersEnergies) {
 		gui.begin();
 
 		ImGuiViewport * viewport = ImGui::GetMainViewport();
@@ -39,7 +43,7 @@ public:
 
 			lobeXY.draw(energies, width_menu, screenHeight / 5 + (screenHeight - screenHeight / 5) / 2, (screenWidth - width_menu) / 2, (screenHeight - screenHeight / 5) / 2, XY);
 
-			//loudspeakers.draw(width_menu + (screenWidth - width_menu) / 2, screenHeight / 5 + (screenHeight - screenHeight / 5) / 2, (screenWidth - width_menu) / 2, (screenHeight - screenHeight / 5) / 2);
+			loudspeakers.draw(width_menu + (screenWidth - width_menu) / 2, screenHeight / 5 + (screenHeight - screenHeight / 5) / 2, (screenWidth - width_menu) / 2, (screenHeight - screenHeight / 5) / 2, speakersEnergies);
 		} else {
 
 			menuPanel.draw(0, screenHeight / 5, screenWidth / 4, screenHeight - screenHeight / 5);
@@ -50,7 +54,7 @@ public:
 
 			lobeXY.draw(energies, screenWidth / 4, screenHeight / 5 + (screenHeight - screenHeight / 5) / 2, screenWidth * 1.5 / 4, (screenHeight - screenHeight / 5) / 2, XY);
 
-			loudspeakers.draw(screenWidth / 4 + screenWidth * 1.5 / 4, screenHeight / 5 + (screenHeight - screenHeight / 5) / 2, screenWidth * 1.5 / 4, (screenHeight - screenHeight / 5) / 2);
+			loudspeakers.draw(screenWidth / 4 + screenWidth * 1.5 / 4, screenHeight / 5 + (screenHeight - screenHeight / 5) / 2, screenWidth * 1.5 / 4, (screenHeight - screenHeight / 5) / 2, speakersEnergies);
 		}
 
 		

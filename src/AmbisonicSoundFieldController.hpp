@@ -240,29 +240,20 @@ void GenerateSyntheticYField(size_t numFrames = 1024) {
 			soundFieldController.GetSoundFieldArray()[ch].resize(numFrames, 0.0f);
 		}
 
-		// x hacia arriba, y hacia izq
+		int channel = 1;
 
-		int channelX = 4; 
-		float freq = 440.0f; // Frecuencia (Hz)
-		float sampleRate = 48000; // Hz
-		float phase = 0.0f;
-		float twoPiF = 2.0f * M_PI * freq / sampleRate;
-
-		//int channelR = 4;
+		// --- Generador de ruido gaussiano ---
+		static std::mt19937 rng(std::random_device {}());
+		static std::normal_distribution<float> gaussian(0.0f, 1.0f); // media=0, sigma=1
 
 		for (size_t i = 0; i < numFrames; ++i) {
-			//CAMBIAR POR RUIDO BLANCO->GAUSSIANO
-			float sample = sinf(twoPiF * i + phase);
-			soundFieldController.GetSoundFieldArray()[channelX][i] = sample;
+			float sample = gaussian(rng); // ruido blanco
+			soundFieldController.GetSoundFieldArray()[channel][i] = sample;
 		}
 
-		std::cout << "Generated 440 Hz sine tone in Ambisonic field (order 2, channel X)." << std::endl;
+		std::cout << "Generated white noise in Ambisonic field" << std::endl;
 	}
 
-//X->ROJO Y->VEREDE, Y->AZUL
-
-
-	
 
 	CAmbisonicSoundFieldController & operator+=(const CAmbisonicSoundFieldController & other) {
 		const auto & otherArray = other.soundFieldController.GetSoundFieldArray();

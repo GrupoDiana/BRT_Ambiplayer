@@ -39,12 +39,13 @@ void ofApp::setup() {
 	speakerArrayController = CLoudSpeakerArrayController();
 	speakerArrayController.SetUp(brtManager, static_cast<PlatonicSolid>(solid));
 
-	//q = Common::CQuaternion::FromYawPitchRoll(M_PI/6, 0.0f, 0.0f);
-	//speakerArrayController.RotateLoudspeakerArray(q);
-
 	for (int i = 0; i < speakerArrayController.GetNumSpeakers(); i++) {
 		configurationA.ConnectSoundSource(&brtManager, "Speaker" + std::to_string(i));
 	}
+	for (auto & sp : speakerArrayController.GetSpeakers()) {
+		originalPositions.push_back(sp->GetSourceTransform().GetPosition());
+	}
+
 	
 	// /////////////////////
 	// Load Wav Files
@@ -85,6 +86,7 @@ void ofApp::setup() {
 		rollRad = roll;
 	};
 
+	guiManager.setSpeakerController(&speakerArrayController);
 	
 }
 
@@ -94,7 +96,12 @@ void ofApp::update() {
 
 //--------------------------------------------------------------
 void ofApp::draw() {
-	guiManager.draw(directionalEnergies);
+	std::vector<float> energiesCopy;
+	{
+		std::lock_guard<std::mutex> lock(energiesMutex);
+		energiesCopy = directionalEnergies;
+	}
+	guiManager.draw(energiesCopy, speakerEnergies);
 }
 
 //--------------------------------------------------------------
@@ -209,11 +216,28 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 
 	q = Common::CQuaternion::FromYawPitchRoll(yawRad, pitchRad, rollRad);
 	ambisonicProcessor.RotateField(q, *OutBuffer);
+	for (size_t i = 0; i < speakerArrayController.GetNumSpeakers(); ++i) {
+		Common::CVector3 rotatedPos = q.R_1() * originalPositions[i];
+		speakerArrayController.GetSpeaker(i)->SetSourceTransform(Common::CTransform(rotatedPos));
+	}
 
 
 	// Decodificación a altavoces
 	ambisonicProcessor.DecodeToSpeakerArray(speakerArrayController, *OutBuffer, "basic");
+	speakerEnergies.clear();
+	for (size_t i = 0; i < speakerArrayController.GetNumSpeakers(); ++i) {
+		const auto & buf = speakerArrayController.GetSpeaker(i)->GetBuffer();
+		float energy = 0.0f;
+		for (auto s : buf)
+			energy += s * s; // suma de cuadrados
+		energy = sqrt(energy / buf.size()); // RMS
+		speakerEnergies.push_back(energy);
+	}
+
+
+	std::lock_guard<std::mutex> lock(energiesMutex);
 	directionalEnergies = speakerArrayController.ComputeDirectionalEnergyMap(*OutBuffer, numAz, numEl);
+
 
 	Common::CEarPair<CMonoBuffer<float>> bufferProcessed;
 
