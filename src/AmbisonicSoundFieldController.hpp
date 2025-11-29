@@ -240,7 +240,7 @@ void GenerateSyntheticYField(size_t numFrames = 1024) {
 			soundFieldController.GetSoundFieldArray()[ch].resize(numFrames, 0.0f);
 		}
 
-		int channel = 1;
+		int channel = 4;
 
 		// --- Generador de ruido gaussiano ---
 		static std::mt19937 rng(std::random_device {}());
