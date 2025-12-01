@@ -29,15 +29,15 @@ void ofApp::setup() {
 	/////////////////////
 	// Create Sources
 	/////////////////////
-	int solid;
+	/* int solid;
 	std::cout << "Please choose the platonic solid: "<<endl;
 	std::cout << "0: Octahedron" << endl;
 	std::cout << "1: Cube" << endl;
 	std::cout << "2: Icosahedron" << endl;
 	std::cout << "3: Dodecahedron" << endl;
-	std::cin >> solid;
+	std::cin >> solid;*/
 	speakerArrayController = CLoudSpeakerArrayController();
-	speakerArrayController.SetUp(brtManager, static_cast<PlatonicSolid>(solid));
+	speakerArrayController.SetUp(brtManager, static_cast<PlatonicSolid>(0));
 
 	for (int i = 0; i < speakerArrayController.GetNumSpeakers(); i++) {
 		configurationA.ConnectSoundSource(&brtManager, "Speaker" + std::to_string(i));
@@ -52,8 +52,8 @@ void ofApp::setup() {
 	/////////////////////
 	ambisonicSoundFieldController = std::make_shared<CAmbisonicSoundFieldController>();
 	ambisonicSoundFieldController->SetUp(1, 48000, 512, "FuMa");
-	ambisonicSoundFieldController->LoadWav(SOURCE_FILEPATH, "ACN");
-	//ambisonicSoundFieldController->GenerateSyntheticYField(48000 * 10); // 10 seconds
+	//ambisonicSoundFieldController->LoadWav(SOURCE_FILEPATH, "ACN");
+	ambisonicSoundFieldController->GenerateSyntheticYField(48000 * 10); // 10 seconds
 
 	SFbuffer = std::make_shared<CAmbisonicSoundField>();
 	SFbuffer->SetUp(ambisonicSoundFieldController->GetSoundFieldController().GetOrder(), 48000, 512);
@@ -84,6 +84,15 @@ void ofApp::setup() {
 		yawRad = yaw;
 		pitchRad = pitch;
 		rollRad = roll;
+	};
+
+	guiManager.onLayoutChanged = [this](int layoutIndex) {
+		speakerArrayController.UpdateSpeakerLayout(brtManager, static_cast<PlatonicSolid>(layoutIndex));
+		originalPositions.clear();
+		for (int i = 0; i < speakerArrayController.GetNumSpeakers(); i++) {
+			configurationA.ConnectSoundSource(&brtManager, "Speaker" + std::to_string(i));
+			originalPositions.push_back(speakerArrayController.GetSpeaker(i)->GetSourceTransform().GetPosition());
+		}
 	};
 
 	guiManager.setSpeakerController(&speakerArrayController);
@@ -156,8 +165,12 @@ void ofApp::AudioSetup() {
 	outputParameters.numOutputChannels = 2;
 
 	//outputParameters.getOutDevice();
-	ofSoundDevice device = ShowSelectAudioDeviceMenu();
-	outputParameters.setOutDevice(device); 
+	//ofSoundDevice device = ShowSelectAudioDeviceMenu();
+	auto outDevices = soundStream.getMatchingDevices("Default");
+	if (!outDevices.empty()) {
+		outputParameters.setOutDevice(outDevices[0]); 
+	}
+	
 
 	// Setting real-time audio output.
 	setRealTimePriority();

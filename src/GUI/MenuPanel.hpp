@@ -29,6 +29,30 @@ public:
 
 		ImGui::Separator();
 
+		// --- ComboBox ---
+		const char * items[] = { "Octahedron", "Cube", "Icosahedron", "Dodecahedron" };
+		static int item_selected_idx = 0;
+		static ImGuiComboFlags flags = 0;
+
+		ImGui::Text("Loudspeaker Layout:");
+
+		const char * combo_preview_value = items[item_selected_idx];
+		if (ImGui::BeginCombo("", items[item_selected_idx], flags)) {
+			for (int n = 0; n < IM_ARRAYSIZE(items); n++) {
+				const bool is_selected = (item_selected_idx == n);
+				if (ImGui::Selectable(items[n], is_selected)) {
+					item_selected_idx = n;
+					layoutIndex = n; // actualizamos el índice
+					if (onLayoutChanged) // llamamos al callback
+						onLayoutChanged(layoutIndex);
+				}
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+
+
 		// --- Sliders---
 		ImGui::Text("Field Rotation:");
 		bool changed = false;
@@ -57,9 +81,11 @@ public:
 	std::function<void()> onPlay;
 	std::function<void()> onStop;
 	std::function<void(float, float, float)> onRotationChanged;
+	std::function<void(int)> onLayoutChanged;
 
 private:
 	float yawRad, pitchRad, rollRad;
+	int layoutIndex;
 
 	int margen = 10;
 };

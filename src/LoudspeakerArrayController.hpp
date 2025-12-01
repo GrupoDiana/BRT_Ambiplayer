@@ -132,6 +132,59 @@ public:
 		setupDone = true;
 	}
 
+	void UpdateSpeakerLayout(BRTBase::CBRTManager & brtManager, PlatonicSolid solid) {
+		// --- Generar los vértices del nuevo sólido ---
+		std::vector<Common::CVector3> vertices;
+		switch (solid) {
+		case PlatonicSolid::octahedron:
+			vertices = { { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
+			break;
+		case PlatonicSolid::cube: {
+			float norm = 1.0f / std::sqrt(3.0f);
+			vertices = { { norm, norm, norm }, { -norm, -norm, norm }, { -norm, norm, -norm }, { norm, -norm, -norm },
+				{ -norm, norm, norm }, { norm, -norm, norm }, { norm, norm, -norm }, { -norm, -norm, -norm } };
+			break;
+		}
+		case PlatonicSolid::icosahedron: {
+			float norm = 1.0f / std::sqrt(1 + phi * phi);
+			vertices = { { 0, norm, phi * norm }, { 0, norm, -phi * norm }, { 0, -norm, phi * norm }, { 0, -norm, -phi * norm },
+				{ norm * 1, phi * norm, 0 }, { norm * 1, -phi * norm, 0 }, { -norm * 1, phi * norm, 0 }, { -norm * 1, -phi * norm, 0 },
+				{ phi * norm, 0, norm }, { phi * norm, 0, -norm }, { -phi * norm, 0, norm }, { -phi * norm, 0, -norm } };
+			break;
+		}
+		case PlatonicSolid::dodecahedron: {
+			float norm = 1.0f / std::sqrt(3.0f);
+			float normPhi = 1.0f / std::sqrt(1 + phi * phi);
+			vertices = { { norm, norm, norm }, { -norm, norm, norm }, { norm, -norm, norm }, { -norm, -norm, norm },
+				{ norm, norm, -norm }, { -norm, norm, -norm }, { norm, -norm, -norm }, { -norm, -norm, -norm },
+				{ 0, normPhi / phi, phi * normPhi }, { 0, -normPhi / phi, phi * normPhi }, { 0, normPhi / phi, -phi * normPhi }, { 0, -normPhi / phi, -phi * normPhi },
+				{ normPhi / phi, phi * normPhi, 0 }, { -normPhi / phi, phi * normPhi, 0 }, { normPhi / phi, -phi * normPhi, 0 }, { -normPhi / phi, -phi * normPhi, 0 },
+				{ phi * normPhi, 0, normPhi / phi }, { -phi * normPhi, 0, normPhi / phi }, { phi * normPhi, 0, -normPhi / phi }, { -phi * normPhi, 0, -normPhi / phi } };
+			break;
+		}
+		}
+
+		size_t newNum = vertices.size();
+		size_t currentNum = speakers.size();
+
+		for (size_t i = currentNum; i < newNum; ++i) {
+			auto sp = CreateOmnidirectionalSoundSource(brtManager, "Speaker" + std::to_string(i));
+			speakers.push_back(sp);
+		}
+
+		for (size_t i = currentNum; i > newNum; --i) {
+			brtManager.RemoveSoundSource("Speaker" + std::to_string(i - 1));
+			speakers.pop_back();
+		}
+
+		for (size_t i = 0; i < newNum; ++i) {
+			speakers[i]->SetSourceTransform(Common::CTransform(vertices[i]));
+		}
+
+		setupDone = true;
+	}
+
+
 	std::shared_ptr<BRTSourceModel::CSourceOmnidirectionalModel> GetSpeaker(size_t index) const {
 		if (!setupDone) return nullptr;
 		if (index >= speakers.size()) throw std::out_of_range("Speaker index out of range");

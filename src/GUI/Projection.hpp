@@ -62,32 +62,36 @@ private:
 		ofSetLineWidth(1.0);
 
 		for (int ia = 0; ia < numAz; ++ia) {
+			float az = TWO_PI * ia / numAz;
+
 			for (int ie = 0; ie < numEl; ++ie) {
-				float val = energies[ia * numEl + ie];
-				float r = std::sqrt(val / maxVal);
-
-				float az = TWO_PI * ia / numAz;
 				float el = -HALF_PI + ie * (PI / (numEl - 1));
+				float r = sqrtf(energies[ia * numEl + ie] / maxVal);
 
-				// Coordenadas 3D
-				float x3D = r * cos(el) * cos(az);
-				float y3D = r * cos(el) * sin(az);
-				float z3D = r * sin(el);
+				// 1) dirección unitaria
+				glm::vec3 dir = glm::vec3(cos(el) * cos(az),
+					cos(el) * sin(az),
+					sin(el)); // X+ dentro, Y+ izquierda, Z+ arriba
 
-				float px, py;
+				// 2) aplicar escala r
+				glm::vec3 pos3D = dir * r;
 
-				if (plane == YZ) {
-					if (x3D >= 0.0f) continue;
-					px = -y3D * maxRadius; 
-					py = -z3D * maxRadius;
-				} else if (plane == XY) {
-					px = -y3D * maxRadius;
-					py = -x3D * maxRadius;
-				} else { // XZ
-					//Falta arreglarlo
-					if (y3D >= 0.0f) continue; 
-					px = -x3D * maxRadius; 
-					py = -z3D * maxRadius;
+				float px = 0, py = 0;
+
+				// 3) proyectar al plano
+				switch (plane) {
+				case XY:
+					px = pos3D.y * maxRadius;
+					py = -pos3D.x * maxRadius;
+					break;
+				case YZ:
+					px = pos3D.y * maxRadius;
+					py = -pos3D.z * maxRadius;
+					break;
+				case XZ:
+					px = pos3D.x * maxRadius;
+					py = -pos3D.z * maxRadius;
+					break;
 				}
 
 				ofDrawCircle(px, py, 1.5f);

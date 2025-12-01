@@ -19,6 +19,9 @@ public:
 		menuPanel.onRotationChanged = [this](float yaw, float pitch, float roll) {
 			if (onRotationChanged) onRotationChanged(yaw, pitch, roll);
 		};
+		menuPanel.onLayoutChanged = [this](int layoutIndex) {
+			if (onLayoutChanged) onLayoutChanged(layoutIndex);
+		};
 	}
 
 	void setSpeakerController(const CLoudSpeakerArrayController * controller) {
@@ -66,6 +69,7 @@ public:
 	std::function<void()> onPlay;
 	std::function<void()> onStop;
 	std::function<void(float, float, float)> onRotationChanged;
+	std::function<void(int)> onLayoutChanged;
 
 private:
 	ofxImGui::Gui gui;
