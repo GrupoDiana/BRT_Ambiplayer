@@ -106,31 +106,31 @@ public:
 
 				if (order >= 1) {
 					const float W = channels[0][n];
-					const float X = channels[1][n];
-					const float Y = channels[2][n];
-					const float Z = channels[3][n];
+					const float Y = channels[1][n];
+					const float Z = channels[2][n];
+					const float X = channels[3][n];
 
 					sample += Wgain * W + XYZgain * (pos.x * X + pos.y * Y + pos.z * Z);
 				}
 
 				if (order >= 2 && channels.size() > 8) {
-					const float R = channels[4][n];
-					const float S = channels[5][n];
-					const float T = channels[6][n];
-					const float U = channels[7][n];
-					const float V = channels[8][n];
+					const float V = channels[4][n];
+					const float T = channels[5][n];
+					const float R = channels[6][n];
+					const float S = channels[7][n];
+					const float U = channels[8][n];
 
 					sample += VTRSUgain * (sqrtf(3.f) * pos.x * pos.y * V + sqrtf(3.f) * pos.y * pos.z * T + 0.5f * ((3.f * pos.z * pos.z) - 1.f) * R + sqrtf(3.f) * pos.x * pos.z * S + sqrtf(3.f / 4.f) * (pos.x * pos.x - pos.y * pos.y) * U);
 				}
 
 				if (order >= 3 && channels.size() > 15) {
-					const float K = channels[9][n];
-					const float L = channels[10][n];
+					const float Q = channels[9][n];
+					const float O = channels[10][n];
 					const float M = channels[11][n];
-					const float N = channels[12][n];
-					const float O = channels[13][n];
-					const float P = channels[14][n];
-					const float Q = channels[15][n];
+					const float K = channels[12][n];
+					const float L = channels[13][n];
+					const float N = channels[14][n];
+					const float P = channels[15][n];
 
 					sample += XYZgain * (sqrtf(5.f / 8.f) * pos.y * (3.f * pos.x * pos.x - pos.y * pos.y) * Q + sqrtf(15.f) * pos.x * pos.y * pos.z * O + sqrtf(3.f / 8.f) * pos.y * (5.f * pos.z * pos.z - 1.f) * M + 0.5f * pos.z * (5.f * pos.z * pos.z - 3.f) * K + sqrtf(3.f / 8.f) * pos.x * (5.f * pos.z * pos.z - 1.f) * L + sqrtf(15.f / 4.f) * pos.z * (pos.x * pos.x - pos.y * pos.y) * N + sqrtf(5.f / 8.f) * pos.x * (pos.x * pos.x - 3.f * pos.y * pos.y) * P);
 				}

@@ -52,7 +52,7 @@
 #include <string>
 #include <vector>
 
-int m_order[7] = { 0, 1, -1, 2, -2, 3, -3 };
+int m_order[7] = { -2, -1, 0, 1, 2};
 
 int mapR1toMath[3] = { 1, 2, 0 }; 
 
@@ -174,14 +174,24 @@ public:
 		vector<CMonoBuffer<float>> buffer(numChannels, CMonoBuffer<float>(bufferSize, 0.0f));
 		buffer[0] = soundFieldArray[0];
 
-		CMatrix<float> R1 = CalculateRMatrix(1, R_1(q));
+		CMatrix<float> R1 = R_1(q);
 		CMatrix<float> R1_mapped(3, 3);
 
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
 				for (int k = 0; k < bufferSize; k++) {
-					buffer[i + 1][k] += R1(i,j) * soundFieldArray[j + 1][k];
 					R1_mapped(i, j) = R1(mapR1toMath[i], mapR1toMath[j]);
+				}
+			}
+		}
+		cout << "R1_mapped: " << endl;
+		R1_mapped.print();
+
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				for (int k = 0; k < bufferSize; k++) {
+					buffer[i + 1][k] += R1_mapped(i,j) * soundFieldArray[j + 1][k];
+					
 				}
 			}
 		}
@@ -196,6 +206,9 @@ public:
 					}
 				}
 			}
+
+			cout << "R2: " << endl;
+			R2.print();
 
 			if (ambisonicOrder > 2) {
 				CMatrix<float> R3 = CalculateRMatrix(3, R1_mapped);
@@ -253,7 +266,8 @@ private:
 				if (l == 1) {
 					R_l(i, j) = R_1(i, j);
 				} else {
-					R_l(i, j) = Rmm(l, m_order[i], m_order[j], R_1);
+				cout << "Calculating R for l=" << l << ", m=" << m_order[i] << ", mp=" << m_order[j] << endl;
+					R_l(j, i) = Rmm(l, m_order[i], m_order[j], R_1);
 				}
 				
 			}
@@ -304,6 +318,7 @@ private:
 		} else {
 			umm = 0.0f;
 		}
+		cout << "u(" << m<< ", " << mp<< ")=" << umm;
 
 		return umm;
 	}
@@ -332,6 +347,7 @@ private:
 		} else {
 			vmm = 0.0f;
 		}
+		cout << "v(" << m << ", " << mp << ")=" << vmm;
 
 		return vmm;
 	}
@@ -361,6 +377,8 @@ private:
 			wmm = 0.0f;
 		}
 
+		cout << "w(" << m << ", " << mp << ")=" << wmm;
+
 		return wmm;
 	}
 
@@ -381,10 +399,13 @@ private:
 	float P(int i, int l, int mu, int mp, CMatrix<float> R_1) {
 
 		if (abs(mp) < l) {
+			cout << "R1(" << i + 1 << ", 1)*R" << l - 1 << "(" << mu << ", " << mp << ")" << endl;
 			return R_1(i + 1, 1) * Rmm(l - 1, mu, mp, R_1);
 		} else if (mp == l) {
+			cout << "R1(" << i + 1 << ", 2)*R" << l - 1 << "(" << mu << ", " << l - 1 << ") - R1(" << i + 1 << ", 0)*R" << l - 1 << "(" << mu << ", " << -l + 1 << ")" << endl;
 			return R_1(i + 1, 2) * Rmm(l - 1, mu, l - 1, R_1) - R_1(i + 1, 0) * Rmm(l - 1, mu, -l + 1, R_1);
 		} else if (mp == -l) {
+			cout << "R1(" << i + 1 << ", 2)*R" << l - 1 << "(" << mu << ", " << -l + 1 << ") + R1(" << i + 1 << ", 0)*R" << l - 1 << "(" << mu << ", " << l - 1 << ")" << endl;
 			return R_1(i + 1, 2) * Rmm(l - 1, mu,-l + 1, R_1) + R_1(i + 1, 0) * Rmm(l - 1, mu, l - 1, R_1);
 		} else {
 			return 0.0f;

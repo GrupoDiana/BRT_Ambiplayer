@@ -240,17 +240,21 @@ void GenerateSyntheticYField(size_t numFrames = 1024) {
 			soundFieldController.GetSoundFieldArray()[ch].resize(numFrames, 0.0f);
 		}
 
-		int channel = 4;
+		int channel = 6;
 
 		// --- Generador de ruido gaussiano ---
 		static std::mt19937 rng(std::random_device {}());
 		static std::normal_distribution<float> gaussian(0.0f, 1.0f); // media=0, sigma=1
 
 		for (size_t i = 0; i < numFrames; ++i) {
-			//for (int j = 0; j < channel; j++) {
-				float sample = gaussian(rng); // ruido blanco
-				soundFieldController.GetSoundFieldArray()[channel][i] = sample;
-			//}
+			float sample = gaussian(rng); // ruido blanco
+			soundFieldController.GetSoundFieldArray()[channel][i] = sample;
+				
+			/* soundFieldController.GetSoundFieldArray()[4][i] = 0.25f;
+			soundFieldController.GetSoundFieldArray()[5][i] = -0.612f;
+			soundFieldController.GetSoundFieldArray()[6][i] = -0.612f;
+			soundFieldController.GetSoundFieldArray()[7][i] = 0.306f;
+			soundFieldController.GetSoundFieldArray()[8][i] = 0.306f;*/
 		}
 
 		std::cout << "Generated white noise in Ambisonic field" << std::endl;

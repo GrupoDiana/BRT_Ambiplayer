@@ -65,13 +65,14 @@ private:
 			float az = TWO_PI * ia / numAz;
 
 			for (int ie = 0; ie < numEl; ++ie) {
-				float el = -HALF_PI + ie * (PI / (numEl - 1));
+				float el = ie * (PI / (numEl - 1)); 
 				float r = sqrtf(energies[ia * numEl + ie] / maxVal);
 
 				// 1) dirección unitaria
-				glm::vec3 dir = glm::vec3(cos(el) * cos(az),
-					cos(el) * sin(az),
-					sin(el)); // X+ dentro, Y+ izquierda, Z+ arriba
+				glm::vec3 dir = glm::vec3(
+					sin(el) * cos(az),
+					sin(el) * sin(az),
+					cos(el));
 
 				// 2) aplicar escala r
 				glm::vec3 pos3D = dir * r;
