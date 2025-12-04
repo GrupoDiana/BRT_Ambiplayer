@@ -4,7 +4,7 @@
 #define SAMPLERATE 48000
 #define LISTENER_ID "listener1"
 
-#define SOURCE_FILEPATH "../resources/ambi_2OA_test.wav"
+#define SOURCE_FILEPATH "../resources/ambi_3OA_test.wav"
 
 #include "ofMain.h"
 #include "GUI/GuiManager.hpp"

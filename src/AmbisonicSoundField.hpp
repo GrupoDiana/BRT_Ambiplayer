@@ -52,8 +52,6 @@
 #include <string>
 #include <vector>
 
-int m_order[7] = { -2, -1, 0, 1, 2};
-
 int mapR1toMath[3] = { 1, 2, 0 }; 
 
 
@@ -252,17 +250,26 @@ private:
 
 	std::vector<CMonoBuffer<float>> soundFieldArray;
 
+	//vector de matrices
+
+	std::vector<int> range_l(int l) {
+		std::vector<int> v;
+		for (int i = -l; i <= l; ++i)
+			v.push_back(i);
+		return v;
+	}
+
 	CMatrix<float> CalculateRMatrix(float l, CMatrix<float> R_1) {
 		int dim = (2 * l + 1);
 		CMatrix<float> R_l(dim, dim);
+		vector<int> range= range_l(l);
 
 		for (int i = 0; i < dim; i++) {
 			for (int j = 0; j < dim; j++) {
 				if (l == 1) {
 					R_l(i, j) = R_1(i, j);
 				} else {
-					//tyj
-					R_l(i, j) = Rmm(l, m_order[i], m_order[j], R_1);
+					R_l(i, j) = Rmm(l, range[i], range[j], R_1);
 				}
 				
 			}

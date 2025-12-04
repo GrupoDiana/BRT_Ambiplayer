@@ -5,6 +5,7 @@
 #include <cmath>
 #include <vector>
 
+
 enum Plane { XY,
 	YZ,
 	XZ };
@@ -62,40 +63,34 @@ private:
 		ofSetLineWidth(1.0);
 
 		for (int ia = 0; ia < numAz; ++ia) {
-			float az = TWO_PI * ia / numAz;
-
 			for (int ie = 0; ie < numEl; ++ie) {
-				float el = ie * (PI / (numEl - 1)); 
-				float r = sqrtf(energies[ia * numEl + ie] / maxVal);
+				float val = energies[ia * numEl + ie];
+				float r = std::sqrt(val / maxVal);
 
-				// 1) dirección unitaria
-				glm::vec3 dir = glm::vec3(
-					sin(el) * cos(az),
-					sin(el) * sin(az),
-					cos(el));
+				float az = TWO_PI * ia / numAz;
+				float el = -HALF_PI + ie * (PI / (numEl - 1));
 
-				// 2) aplicar escala r
-				glm::vec3 pos3D = dir * r;
+				// Coordenadas 3D
+				float x3D = r * cos(el) * cos(az);
+				float y3D = r * cos(el) * sin(az);
+				float z3D = r * sin(el);
 
-				float px = 0, py = 0;
+				float px, py;
 
-				// 3) proyectar al plano
-				switch (plane) {
-				case XY:
-					px = pos3D.y * maxRadius;
-					py = -pos3D.x * maxRadius;
-					break;
-				case YZ:
-					px = pos3D.y * maxRadius;
-					py = -pos3D.z * maxRadius;
-					break;
-				case XZ:
-					px = pos3D.x * maxRadius;
-					py = -pos3D.z * maxRadius;
-					break;
+				if (plane == YZ) {
+					px = -y3D * maxRadius;
+					py = -z3D * maxRadius;
+				} else if (plane == XY) {
+					px = -y3D * maxRadius;
+					py = -x3D * maxRadius;
+				} else { // XZ
+					//Falta arreglarlo
+					px = -x3D * maxRadius;
+					py = -z3D * maxRadius;
 				}
 
 				ofDrawCircle(px, py, 1.5f);
+				//of3dGraphics::drawBox(const glm::vec3 & position, float size);
 			}
 		}
 
