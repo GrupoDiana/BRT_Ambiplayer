@@ -51,9 +51,9 @@ void ofApp::setup() {
 	// Load Wav Files
 	/////////////////////
 	ambisonicSoundFieldController = std::make_shared<CAmbisonicSoundFieldController>();
-	ambisonicSoundFieldController->SetUp(1, 48000, 512, "FuMa");
-	//ambisonicSoundFieldController->LoadWav(SOURCE_FILEPATH, "ACN");
-	ambisonicSoundFieldController->GenerateSyntheticYField(48000 * 10); // 10 seconds
+	ambisonicSoundFieldController->SetUp(1, 48000, 512, "ACN");
+	ambisonicSoundFieldController->LoadWav(SOURCE_FILEPATH, "ACN");
+	//ambisonicSoundFieldController->GenerateSyntheticYField(48000 * 10); // 10 seconds
 
 	SFbuffer = std::make_shared<CAmbisonicSoundField>();
 	SFbuffer->SetUp(ambisonicSoundFieldController->GetSoundFieldController().GetOrder(), 48000, 512);

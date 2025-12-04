@@ -108,9 +108,9 @@ public:
 
 		}
 
-		if (ordering_ == "ACN") {
-			ConvertACNtoFuMa();
-			ordering = "FuMa";
+		if (ordering_ == "FuMa") {
+			ConvertFuMatoACN();
+			ordering = "ACN";
 		}
 
 		std::cout << "Loaded WAV: " << filePath
@@ -240,7 +240,7 @@ void GenerateSyntheticYField(size_t numFrames = 1024) {
 			soundFieldController.GetSoundFieldArray()[ch].resize(numFrames, 0.0f);
 		}
 
-		int channel = 6;
+		int channel = 1;
 
 		// --- Generador de ruido gaussiano ---
 		static std::mt19937 rng(std::random_device {}());
@@ -248,13 +248,9 @@ void GenerateSyntheticYField(size_t numFrames = 1024) {
 
 		for (size_t i = 0; i < numFrames; ++i) {
 			float sample = gaussian(rng); // ruido blanco
-			soundFieldController.GetSoundFieldArray()[channel][i] = sample;
+			soundFieldController.GetSoundFieldArray()[1][i] = sample;
+			soundFieldController.GetSoundFieldArray()[6][i] = sample;
 				
-			/* soundFieldController.GetSoundFieldArray()[4][i] = 0.25f;
-			soundFieldController.GetSoundFieldArray()[5][i] = -0.612f;
-			soundFieldController.GetSoundFieldArray()[6][i] = -0.612f;
-			soundFieldController.GetSoundFieldArray()[7][i] = 0.306f;
-			soundFieldController.GetSoundFieldArray()[8][i] = 0.306f;*/
 		}
 
 		std::cout << "Generated white noise in Ambisonic field" << std::endl;

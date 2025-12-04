@@ -184,8 +184,6 @@ public:
 				}
 			}
 		}
-		cout << "R1_mapped: " << endl;
-		R1_mapped.print();
 
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
@@ -206,9 +204,6 @@ public:
 					}
 				}
 			}
-
-			cout << "R2: " << endl;
-			R2.print();
 
 			if (ambisonicOrder > 2) {
 				CMatrix<float> R3 = CalculateRMatrix(3, R1_mapped);
@@ -257,7 +252,7 @@ private:
 
 	std::vector<CMonoBuffer<float>> soundFieldArray;
 
-	CMatrix<float> CalculateRMatrix(int l, CMatrix<float> R_1) {
+	CMatrix<float> CalculateRMatrix(float l, CMatrix<float> R_1) {
 		int dim = (2 * l + 1);
 		CMatrix<float> R_l(dim, dim);
 
@@ -266,8 +261,8 @@ private:
 				if (l == 1) {
 					R_l(i, j) = R_1(i, j);
 				} else {
-				cout << "Calculating R for l=" << l << ", m=" << m_order[i] << ", mp=" << m_order[j] << endl;
-					R_l(j, i) = Rmm(l, m_order[i], m_order[j], R_1);
+					//tyj
+					R_l(i, j) = Rmm(l, m_order[i], m_order[j], R_1);
 				}
 				
 			}
@@ -276,11 +271,11 @@ private:
 		return R_l;
 	}
 
-	inline int delta(int i, int j) {
+	inline int delta(float i, float j) {
 		return (i == j) ? 1 : 0;
 	}
 
-	double Rmm(int l, int m, int mp, CMatrix<float> R_1) {
+	double Rmm(float l, float m, float mp, CMatrix<float> R_1) {
 		if (l == 1) {
 			return R_1(m +1 , mp +1 );
 		}
@@ -308,7 +303,7 @@ private:
 	}
 
 
-	float umm(int l, int m, int mp) {
+	float umm(float l, float m, float mp) {
 		float umm = 0.0f;
 
 		if (abs(mp) < l) {
@@ -318,12 +313,11 @@ private:
 		} else {
 			umm = 0.0f;
 		}
-		cout << "u(" << m<< ", " << mp<< ")=" << umm;
 
 		return umm;
 	}
 
-	float Umm(int l, int m, int mp, CMatrix<float> R_1) {
+	float Umm(float l, float m, float mp, CMatrix<float> R_1) {
 		float Umm = 0.0f;
 
 		if (m == 0) {
@@ -337,7 +331,7 @@ private:
 		return Umm;
 	}
 
-	float vmm(int l, int m, int mp) {
+	float vmm(float l, float m, float mp) {
 		float vmm = 0.0f;
 
 		if (abs(mp) < l) {
@@ -347,12 +341,11 @@ private:
 		} else {
 			vmm = 0.0f;
 		}
-		cout << "v(" << m << ", " << mp << ")=" << vmm;
 
 		return vmm;
 	}
 
-	float Vmm(int l, int m, int mp, CMatrix<float> R_1) {
+	float Vmm(float l, float m, float mp, CMatrix<float> R_1) {
 		float Vmm = 0.0f;
 
 		if (m == 0) {
@@ -366,7 +359,7 @@ private:
 		return Vmm;
 	}
 
-	float wmm(int l, int m, int mp) {
+	float wmm(float l, float m, float mp) {
 		float wmm = 0.0f;
 
 		if (abs(mp) < l) {
@@ -377,12 +370,10 @@ private:
 			wmm = 0.0f;
 		}
 
-		cout << "w(" << m << ", " << mp << ")=" << wmm;
-
 		return wmm;
 	}
 
-	float Wmm(int l, int m, int mp, CMatrix<float> R_1) {
+	float Wmm(float l, float m, float mp, CMatrix<float> R_1) {
 		float Wmm = 0.0f;
 
 		if (m == 0) {
@@ -396,16 +387,13 @@ private:
 		return Wmm;
 	}
 
-	float P(int i, int l, int mu, int mp, CMatrix<float> R_1) {
+	float P(float i, float l, float mu, float mp, CMatrix<float> R_1) {
 
 		if (abs(mp) < l) {
-			cout << "R1(" << i + 1 << ", 1)*R" << l - 1 << "(" << mu << ", " << mp << ")" << endl;
 			return R_1(i + 1, 1) * Rmm(l - 1, mu, mp, R_1);
 		} else if (mp == l) {
-			cout << "R1(" << i + 1 << ", 2)*R" << l - 1 << "(" << mu << ", " << l - 1 << ") - R1(" << i + 1 << ", 0)*R" << l - 1 << "(" << mu << ", " << -l + 1 << ")" << endl;
 			return R_1(i + 1, 2) * Rmm(l - 1, mu, l - 1, R_1) - R_1(i + 1, 0) * Rmm(l - 1, mu, -l + 1, R_1);
 		} else if (mp == -l) {
-			cout << "R1(" << i + 1 << ", 2)*R" << l - 1 << "(" << mu << ", " << -l + 1 << ") + R1(" << i + 1 << ", 0)*R" << l - 1 << "(" << mu << ", " << l - 1 << ")" << endl;
 			return R_1(i + 1, 2) * Rmm(l - 1, mu,-l + 1, R_1) + R_1(i + 1, 0) * Rmm(l - 1, mu, l - 1, R_1);
 		} else {
 			return 0.0f;
