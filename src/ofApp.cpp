@@ -53,8 +53,8 @@ void ofApp::setup() {
 	ambisonicSoundFieldController = std::make_shared<CAmbisonicSoundFieldController>();
 	ambisonicSoundFieldController->SetUp(1, 48000, 512, "ACN");
 	//ambisonicSoundFieldController->LoadWav(SOURCE_FILEPATH, "ACN");
-	//ambisonicSoundFieldController->GenerateSyntheticYField(48000 * 10); // 10 seconds
-	ambisonicSoundFieldController->GeneratePuntualSourceField(48000 * 10); // 10 seconds
+	ambisonicSoundFieldController->GenerateSyntheticYField(48000 * 10); // 10 seconds
+	//ambisonicSoundFieldController->GeneratePuntualSourceField(48000 * 10); // 10 seconds
 
 	SFbuffer = std::make_shared<CAmbisonicSoundField>();
 	SFbuffer->SetUp(ambisonicSoundFieldController->GetSoundFieldController().GetOrder(), 48000, 512);
@@ -231,7 +231,7 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 	q = Common::CQuaternion::FromYawPitchRoll(yawRad, pitchRad, rollRad);
 	ambisonicProcessor.RotateField(q, *OutBuffer);
 	for (size_t i = 0; i < speakerArrayController.GetNumSpeakers(); ++i) {
-		Common::CVector3 rotatedPos = q.R_1() * originalPositions[i];
+		Common::CVector3 rotatedPos = q.RotationMatrix() * originalPositions[i];
 		speakerArrayController.GetSpeaker(i)->SetSourceTransform(Common::CTransform(rotatedPos));
 	}
 

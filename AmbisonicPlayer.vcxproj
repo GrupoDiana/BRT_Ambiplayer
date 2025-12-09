@@ -250,6 +250,7 @@
     <ClCompile Include="addons\ofxImGui\libs\imgui\src\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="addons\ofxBRTLibrary\libs\brt\include\Common\Matrix.hpp" />
     <ClInclude Include="src\AmbisonicProcessor.hpp" />
     <ClInclude Include="src\AmbisonicSoundField.hpp" />
     <ClInclude Include="src\AmbisonicSoundFieldController.hpp" />
@@ -261,7 +262,6 @@
     <ClInclude Include="src\GUI\MenuPanel.hpp" />
     <ClInclude Include="src\GUI\Projection.hpp" />
     <ClInclude Include="src\LoudspeakerArrayController.hpp" />
-    <ClInclude Include="src\Matrix.hpp" />
     <ClInclude Include="src\ofApp.h" />
     <ClInclude Include="addons\ofxBRTLibrary\src\ofxBRTLibrary.h" />
     <ClInclude Include="addons\ofxBRTLibrary\libs\brt\include\Base\BRTManager.hpp" />

@@ -59,6 +59,8 @@
 #include <iostream>
 #include <vector>
 
+using namespace Common;
+
 const float phi = (1.0f + std::sqrt(5.0f)) / 2.0f;
 
 enum PlatonicSolid {
@@ -204,7 +206,7 @@ public:
 	void RotateLoudspeakerArray(Common::CQuaternion & q) {
 		if (!setupDone) return;
 		CMatrix<double> R(3,3,0.0);
-		R = q.R_1();
+		R = q.RotationMatrix();
 		for (auto & speaker : speakers) {
 			Common::CVector3 pos = speaker->GetSourceTransform().GetPosition();
 			Common::CVector3 rotatedPos = R * pos;

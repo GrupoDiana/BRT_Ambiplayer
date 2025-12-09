@@ -254,6 +254,7 @@ public:
 		std::cout << "Generated white noise in Ambisonic field" << std::endl;
 	}
 
+	//el orden tiene que ir global
 	void GeneratePuntualSourceField(size_t numFrames = 1024) {
 		if (!setupDone) {
 			std::cerr << "Error: setup not done before generating puntual source." << std::endl;

@@ -3749,9 +3749,6 @@
     <ClInclude Include="src\ConfigurationA.hpp">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\Matrix.hpp">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\GUI\Logo.hpp">
       <Filter>src\GUI</Filter>
     </ClInclude>
@@ -3763,6 +3760,9 @@
     </ClInclude>
     <ClInclude Include="src\GUI\Loudspeakers.hpp">
       <Filter>src\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="addons\ofxBRTLibrary\libs\brt\include\Common\Matrix.hpp">
+      <Filter>local_addons\ofxBRTLibrary\libs\brt\include\Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
