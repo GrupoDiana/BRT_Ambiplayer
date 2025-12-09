@@ -205,7 +205,7 @@ public:
 
 	void RotateLoudspeakerArray(Common::CQuaternion & q) {
 		if (!setupDone) return;
-		CMatrix<double> R(3,3,0.0);
+		CMatrix<float> R(3,3,0.0);
 		R = q.RotationMatrix();
 		for (auto & speaker : speakers) {
 			Common::CVector3 pos = speaker->GetSourceTransform().GetPosition();
