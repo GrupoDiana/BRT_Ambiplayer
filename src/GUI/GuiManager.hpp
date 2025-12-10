@@ -16,8 +16,12 @@ public:
 
 		menuPanel.onPlay = [this]() { if (onPlay) onPlay(); };
 		menuPanel.onStop = [this]() { if (onStop) onStop(); };
-		menuPanel.onRotationChanged = [this](float yaw, float pitch, float roll) {
-			if (onRotationChanged) onRotationChanged(yaw, pitch, roll);
+		menuPanel.onWAV = [this]() { if (onWAV) onWAV(); };
+		menuPanel.onSFRotationChanged = [this](float yaw, float pitch, float roll) {
+			if (onSFRotationChanged) onSFRotationChanged(yaw, pitch, roll);
+		};
+		menuPanel.onLSRotationChanged = [this](float yaw, float pitch, float roll) {
+			if (onLSRotationChanged) onLSRotationChanged(yaw, pitch, roll);
 		};
 		menuPanel.onLayoutChanged = [this](int layoutIndex) {
 			if (onLayoutChanged) onLayoutChanged(layoutIndex);
@@ -68,7 +72,9 @@ public:
 	// --- Callbacks ---
 	std::function<void()> onPlay;
 	std::function<void()> onStop;
-	std::function<void(float, float, float)> onRotationChanged;
+	std::function<void()> onWAV;
+	std::function<void(float, float, float)> onSFRotationChanged;
+	std::function<void(float, float, float)> onLSRotationChanged;
 	std::function<void(int)> onLayoutChanged;
 
 private:

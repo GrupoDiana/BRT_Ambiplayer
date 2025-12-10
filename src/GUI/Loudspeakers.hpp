@@ -67,26 +67,27 @@ void draw(float cx, float cy, float width, float height, const std::vector<float
 				float energy = speakerEnergies[i] / maxEnergy;
 				energy = ofClamp(energy, 0.0f, 1.0f);
 
+				energy = pow(energy, 0.6f); 
+
 				float haloBaseRadius = baseRadius + 5.0f;
-				int numSteps = 20;
+				int numSteps = 40;
+
+				ofColor haloColor = ofColor(255, 58, 135);
 
 				for (int s = 0; s < numSteps; ++s) {
 					float t = float(s) / float(numSteps - 1);
 					if (t > energy) break;
 
-					ofColor c;
-					if (t < 0.5f)
-						c = ofColor::green.getLerped(ofColor::yellow, t * 2.0f);
-					else
-						c = ofColor::yellow.getLerped(ofColor::red, (t - 0.5f) * 2.0f);
+					float r = haloBaseRadius + pow(t, 1.0f) * 10.0f;
 
-					float r = haloBaseRadius + t * 20.0f;
 					ofNoFill();
-					ofSetColor(c);
+					ofSetColor(haloColor);
 					ofSetLineWidth(2.0f);
 					ofDrawCircle(px, py, r);
 				}
 			}
+
+
 		}
 
 		ofPopStyle();

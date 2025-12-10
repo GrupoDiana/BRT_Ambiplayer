@@ -50,16 +50,14 @@ void ofApp::setup() {
 	// /////////////////////
 	// Load Wav Files
 	/////////////////////
-	ambisonicSoundFieldController = std::make_shared<CAmbisonicSoundFieldController>();
-	ambisonicSoundFieldController->SetUp(1, 48000, 512, "ACN");
 	//ambisonicSoundFieldController->LoadWav(SOURCE_FILEPATH, "ACN");
-	ambisonicSoundFieldController->GenerateSyntheticYField(48000 * 10); // 10 seconds
+	//ambisonicSoundFieldController->GenerateSyntheticYField(48000 * 10); // 10 seconds
 	//ambisonicSoundFieldController->GeneratePuntualSourceField(48000 * 10); // 10 seconds
 
 	SFbuffer = std::make_shared<CAmbisonicSoundField>();
-	SFbuffer->SetUp(ambisonicSoundFieldController->GetSoundFieldController().GetOrder(), 48000, 512);
+	SFbuffer->SetUp(order, 48000, 512);
 	OutBuffer = std::make_shared<CAmbisonicSoundField>();
-	OutBuffer->SetUp(ambisonicSoundFieldController->GetSoundFieldController().GetOrder(), 48000, 512);
+	OutBuffer->SetUp(order, 48000, 512);
 
 	/////////////////////
 	// Start AUDIO Render
@@ -81,10 +79,43 @@ void ofApp::setup() {
 		//soundStream.close();
 	};
 
-	guiManager.onRotationChanged = [this](float yaw, float pitch, float roll) {
-		yawRad = yaw;
-		pitchRad = pitch;
-		rollRad = roll;
+	guiManager.onWAV = [this]() {
+		soundStream.stop();
+
+		ofFileDialogResult result = ofSystemLoadDialog("Select a WAV file", false);
+
+		if (result.bSuccess) {
+			auto controller = std::make_shared<CAmbisonicSoundFieldController>();
+			controller->SetUp(1, 48000, 512, "ACN");
+
+			std::string filePath = result.getPath();
+			controller->LoadWav(filePath.c_str(), "ACN", order);
+
+			ambisonicSoundFieldControllers.push_back(controller);
+			wavSamplePositionSource.push_back(0);
+			positionEndFrameSource.push_back(0);
+		} else {
+			ofLog() << "No file selected";
+		}
+	};
+
+
+	guiManager.onSFRotationChanged = [this](float yaw, float pitch, float roll) {
+		SFyawRad = yaw;
+		SFpitchRad = pitch;
+		SFrollRad = roll;
+	};
+
+	guiManager.onLSRotationChanged = [this](float yaw, float pitch, float roll) {
+		LSyawRad = yaw;
+		LSpitchRad = pitch;
+		LSrollRad = roll;
+
+		qLoudSpeakers = Common::CQuaternion::FromYawPitchRoll(LSyawRad, LSpitchRad, LSrollRad);
+		for (size_t i = 0; i < speakerArrayController.GetNumSpeakers(); ++i) {
+			Common::CVector3 rotatedPos = qLoudSpeakers.RotationMatrix() * originalPositions[i];
+			speakerArrayController.GetSpeaker(i)->SetSourceTransform(Common::CTransform(rotatedPos));
+		}
 	};
 
 	guiManager.onLayoutChanged = [this](int layoutIndex) {
@@ -224,20 +255,27 @@ void ofApp::audioOut(ofSoundBuffer & buffer) {
 
 // Function to process audio
 void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, int bufferSize) {
+	qRotation = Common::CQuaternion::FromYawPitchRoll(SFyawRad, SFpitchRad, SFrollRad);
+	ambisonicProcessor.RotateField(qRotation, *OutBuffer);
 
-	//SFbuffer->GetSegment(wavSamplePositionSource, positionEndFrameSource, ambisonicSoundFieldController->GetSoundFieldController(), bufferSize);
-	OutBuffer->GetSegment(wavSamplePositionSource, positionEndFrameSource, ambisonicSoundFieldController->GetSoundFieldController(), bufferSize);
-
-	q = Common::CQuaternion::FromYawPitchRoll(yawRad, pitchRad, rollRad);
-	ambisonicProcessor.RotateField(q, *OutBuffer);
-	for (size_t i = 0; i < speakerArrayController.GetNumSpeakers(); ++i) {
-		Common::CVector3 rotatedPos = q.RotationMatrix() * originalPositions[i];
-		speakerArrayController.GetSpeaker(i)->SetSourceTransform(Common::CTransform(rotatedPos));
+	for (auto & ch : SFbuffer->GetSoundFieldArray()) {
+		std::fill(ch.begin(), ch.end(), 0.0f);
 	}
 
+	for (size_t i = 0; i < ambisonicSoundFieldControllers.size(); i++) {
+		for (auto & ch : OutBuffer->GetSoundFieldArray()) {
+			std::fill(ch.begin(), ch.end(), 0.0f);
+		}
 
-	// Decodificación a altavoces
-	ambisonicProcessor.DecodeToSpeakerArray(speakerArrayController, *OutBuffer, "basic");
+		OutBuffer->GetSegment(wavSamplePositionSource[i], positionEndFrameSource[i],
+			ambisonicSoundFieldControllers[i]->GetSoundFieldController(),
+			bufferSize);
+
+		*SFbuffer += *OutBuffer;
+	}
+
+	// Decodificación a altavoces usando la mezcla final
+	ambisonicProcessor.DecodeToSpeakerArray(speakerArrayController, *SFbuffer, "basic");
 	speakerEnergies.clear();
 	for (size_t i = 0; i < speakerArrayController.GetNumSpeakers(); ++i) {
 		const auto & buf = speakerArrayController.GetSpeaker(i)->GetBuffer();
@@ -249,8 +287,8 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 	}
 
 
-	std::lock_guard<std::mutex> lock(energiesMutex);
-	directionalEnergies = speakerArrayController.ComputeDirectionalEnergyMap(*OutBuffer, numAz, numEl);
+	//std::lock_guard<std::mutex> lock(energiesMutex);
+	//directionalEnergies = speakerArrayController.ComputeDirectionalEnergyMap(*OutBuffer, numAz, numEl);
 
 
 	Common::CEarPair<CMonoBuffer<float>> bufferProcessed;

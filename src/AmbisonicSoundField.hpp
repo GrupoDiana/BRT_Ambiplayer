@@ -143,26 +143,10 @@ public:
 			}
 		}
 
+		RotateFieldRecursive(1, soundFieldArray, soundFieldArray, 1);
+
 		endFrame = (position + bufferSize - 1) % sourceSize;
 		position = (position + bufferSize) % sourceSize;
-	}
-
-	//Ira en clase Quaternion
-	CMatrix<float> R_1(CQuaternion q) {
-
-		CVector3 X_axis(1, 0, 0);
-		CVector3 Y_axis(0, 1, 0);
-		CVector3 Z_axis(0, 0, 1);
-
-		CVector3 R_col1 = q.RotateVector(X_axis);
-		CVector3 R_col2 = q.RotateVector(Y_axis);
-		CVector3 R_col3 = q.RotateVector(Z_axis);
-
-		CMatrix<float> R_1(3, 3);
-
-		R_1 = { { R_col1.x, R_col2.x, R_col3.x }, { R_col1.y, R_col2.y, R_col3.y }, { R_col1.z, R_col2.z, R_col3.z } };
-
-		return R_1;
 	}
 
 	// Rotate the field depending on how coordinates have changed
@@ -170,19 +154,12 @@ public:
 	void RotateField(Common::CQuaternion q) {
 		if (!setupDone) return;
 
-		R_matrices.clear();
+		ambisonicRotationMatrices.clear();
 
-		int numChannels = pow(ambisonicOrder + 1, 2);
-		std::vector<CMonoBuffer<float>> buffer(numChannels, CMonoBuffer<float>(bufferSize, 0.0f));
-		buffer[0] = soundFieldArray[0]; 
-
-		CMatrix<float> R1 = MapR1(R_1(q));
+		CMatrix<float> R1 = MapR1(q.RotationMatrix());
 
 		CalculateRMatrix(ambisonicOrder, R1);
 
-		RotateFieldRecursive(1, R1, soundFieldArray, buffer, 1);
-
-		soundFieldArray = buffer;
 	}
 
 
@@ -193,9 +170,30 @@ public:
 		ambisonicOrder = order;
 	}
 
-	//TODO
-	CAmbisonicSoundField & operator+=(const CAmbisonicSoundField & other) {
+	CAmbisonicSoundField & CAmbisonicSoundField::operator+=(const CAmbisonicSoundField & other) {
+		if (!setupDone || !other.setupDone) return *this;
+
+		size_t numChannels = soundFieldArray.size();
+		if (other.soundFieldArray.size() != numChannels) {
+			std::cerr << "Channel mismatch in operator+=" << std::endl;
+			return *this;
+		}
+
+		for (size_t ch = 0; ch < numChannels; ++ch) {
+			auto & dest = soundFieldArray[ch];
+			const auto & src = other.soundFieldArray[ch];
+
+			if (dest.size() != src.size()) dest.resize(src.size(), 0.0f);
+
+			for (size_t i = 0; i < src.size(); ++i) {
+				dest[i] += src[i]; // suma canal a canal
+			}
+		}
+
+		return *this;
 	}
+
+
 
 	CAmbisonicSoundField operator+(const CAmbisonicSoundField & other) const {
 		CAmbisonicSoundField result = *this;
@@ -217,14 +215,13 @@ private:
 
 	std::vector<CMonoBuffer<float>> soundFieldArray;
 
-	//cambiar por ambisonicRotationMatrices;
-	std::vector<CMatrix<float>> R_matrices;
+	std::vector<CMatrix<float>> ambisonicRotationMatrices;
 
 	//Añadir comentarios
-	void RotateFieldRecursive(int l, const CMatrix<float> & R1, const std::vector<CMonoBuffer<float>> & source, std::vector<CMonoBuffer<float>> & dest, int offset) {
+	void RotateFieldRecursive(int l, const std::vector<CMonoBuffer<float>> & source, std::vector<CMonoBuffer<float>> & dest, int offset) {
 		if (l > ambisonicOrder) return;
 
-		const CMatrix<float> & R_l = R_matrices[l - 1]; 
+		const CMatrix<float> & R_l = ambisonicRotationMatrices[l - 1]; 
 		int dim = 2 * l + 1;
 
 		for (int i = 0; i < dim; i++) {
@@ -235,7 +232,7 @@ private:
 			}
 		}
 
-		RotateFieldRecursive(l + 1, R1, source, dest, offset + dim);
+		RotateFieldRecursive(l + 1, source, dest, offset + dim);
 	}
 
 	//Cambiar nombre a XYZtoYZX 
@@ -259,8 +256,8 @@ private:
 	 CMatrix<float> CalculateRMatrix(int l, const CMatrix<float> & R_1) {
 
 		if (l == 1) {
-			 if (R_matrices.empty())
-				 R_matrices.push_back(R_1);
+			 if (ambisonicRotationMatrices.empty())
+				ambisonicRotationMatrices.push_back(R_1);
 			return R_1;
 		}
 
@@ -276,7 +273,7 @@ private:
 			}
 		}
 
-		R_matrices.push_back(R_l);
+		ambisonicRotationMatrices.push_back(R_l);
 		return R_l;
 	}
 
@@ -397,7 +394,7 @@ private:
 	}
 
 	float P(int i, int l, int mu, int mp, const CMatrix<float> & R_1) {
-		const CMatrix<float> & R_prev = R_matrices[l - 2];
+		const CMatrix<float> & R_prev = ambisonicRotationMatrices[l - 2];
 
 		auto idx = [&](int m) { return m + (l - 1); };
 

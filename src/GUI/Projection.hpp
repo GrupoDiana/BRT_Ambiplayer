@@ -5,7 +5,6 @@
 #include <cmath>
 #include <vector>
 
-
 enum Plane { XY,
 	YZ,
 	XZ };
@@ -70,7 +69,6 @@ private:
 				float az = TWO_PI * ia / numAz;
 				float el = -HALF_PI + ie * (PI / (numEl - 1));
 
-				// Coordenadas 3D
 				float x3D = r * cos(el) * cos(az);
 				float y3D = r * cos(el) * sin(az);
 				float z3D = r * sin(el);
@@ -84,13 +82,11 @@ private:
 					px = -y3D * maxRadius;
 					py = -x3D * maxRadius;
 				} else { // XZ
-					//Falta arreglarlo
 					px = -x3D * maxRadius;
 					py = -z3D * maxRadius;
 				}
 
 				ofDrawCircle(px, py, 1.5f);
-				//of3dGraphics::drawBox(const glm::vec3 & position, float size);
 			}
 		}
 

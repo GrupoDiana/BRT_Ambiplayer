@@ -8,15 +8,19 @@
 class CMenuPanel {
 public:
 	CMenuPanel() {
-		yawRad = pitchRad = rollRad = 0.0f;
+		SFyawRad = SFpitchRad = SFrollRad = LSyawRad = LSpitchRad = LSrollRad = 0.0f;
 	}
 
 	void draw(float x, float y, float screenWidth, float screenHeight) {
-		ImGui::SetNextWindowPos(ImVec2(x + margen, y ));
-		ImGui::SetNextWindowSize(ImVec2(screenWidth - 2 * margen, screenHeight -  margen));
+		ImGui::SetNextWindowPos(ImVec2(x + margen, y));
+		ImGui::SetNextWindowSize(ImVec2(screenWidth - 2 * margen, screenHeight - margen));
+		ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.15f, 0.15f, 0.15f, 1.0f)); // fondo gris oscuro
+		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.05f, 0.05f, 0.05f, 1.0f)); // borde negro suave
+		ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.20f, 0.20f, 0.20f, 1.0f));
+		ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImVec4(0.22f, 0.22f, 0.22f, 1.0f));
 
 		ImGui::Begin("Ambisonic Controls", nullptr,
-			ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+			ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysVerticalScrollbar);
 
 		// --- Play/Stop Buttons ---
 		if (ImGui::Button("PLAY")) {
@@ -26,65 +30,69 @@ public:
 		if (ImGui::Button("STOP")) {
 			if (onStop) onStop();
 		}
+		ImGui::SameLine();
+		if (ImGui::Button("WAV")) {
+			if (onWAV) onWAV();
+		}
 
 		ImGui::Separator();
 
-		// --- ComboBox ---
+		// --- Combo ---
 		const char * items[] = { "Octahedron", "Cube", "Icosahedron", "Dodecahedron" };
 		static int item_selected_idx = 0;
-		static ImGuiComboFlags flags = 0;
 
 		ImGui::Text("Loudspeaker Layout:");
-
-		const char * combo_preview_value = items[item_selected_idx];
-		if (ImGui::BeginCombo("", items[item_selected_idx], flags)) {
-			for (int n = 0; n < IM_ARRAYSIZE(items); n++) {
-				const bool is_selected = (item_selected_idx == n);
-				if (ImGui::Selectable(items[n], is_selected)) {
+		if (ImGui::BeginCombo("##Layout", items[item_selected_idx])) {
+			for (int n = 0; n < IM_ARRAYSIZE(items); ++n) {
+				bool selected = (item_selected_idx == n);
+				if (ImGui::Selectable(items[n], selected)) {
 					item_selected_idx = n;
-					layoutIndex = n; // actualizamos el índice
-					if (onLayoutChanged) // llamamos al callback
-						onLayoutChanged(layoutIndex);
+					if (onLayoutChanged) onLayoutChanged(n);
 				}
-				if (is_selected)
-					ImGui::SetItemDefaultFocus();
+				if (selected) ImGui::SetItemDefaultFocus();
 			}
 			ImGui::EndCombo();
 		}
 
-
-		// --- Sliders---
+		// --- Sliders ---
+		ImGui::Separator();
 		ImGui::Text("Field Rotation:");
-		bool changed = false;
 
-		ImGui::PushItemWidth(screenWidth - 3 * margen);
+		bool SFchanged = false;
+		SFchanged |= ImGui::SliderAngle("Yaw##SF", &SFyawRad, -180, 180);
+		SFchanged |= ImGui::SliderAngle("Pitch##SF", &SFpitchRad, -180, 180);
+		SFchanged |= ImGui::SliderAngle("Roll##SF", &SFrollRad, -180, 180);
 
-		ImGui::Text("Yaw");
-		changed |= ImGui::SliderAngle("Yaw", &yawRad, -180.0f, 180.0f);
+		if (SFchanged && onSFRotationChanged)
+			onSFRotationChanged(SFyawRad, SFpitchRad, SFrollRad);
 
-		ImGui::Text("Pitch");
-		changed |= ImGui::SliderAngle("Pitch", &pitchRad, -180.0f, 180.0f);
+		ImGui::Separator();
+		ImGui::Text("Loudspeakers Rotation:");
 
-		ImGui::Text("Roll");
-		changed |= ImGui::SliderAngle("Roll", &rollRad, -180.0f, 180.0f);
+		bool LSchanged = false;
+		LSchanged |= ImGui::SliderAngle("Yaw##LS", &LSyawRad, -180, 180);
+		LSchanged |= ImGui::SliderAngle("Pitch##LS", &LSpitchRad, -180, 180);
+		LSchanged |= ImGui::SliderAngle("Roll##LS", &LSrollRad, -180, 180);
 
-		ImGui::PopItemWidth();
-
-		if (changed && onRotationChanged) {
-			onRotationChanged(yawRad, pitchRad, rollRad);
-		}
+		if (LSchanged && onLSRotationChanged)
+			onLSRotationChanged(LSyawRad, LSpitchRad, LSrollRad);
 
 		ImGui::End();
+		ImGui::PopStyleColor(5);
 	}
+
+
 
 	// --- Callbacks ---
 	std::function<void()> onPlay;
 	std::function<void()> onStop;
-	std::function<void(float, float, float)> onRotationChanged;
+	std::function<void()> onWAV;
+	std::function<void(float, float, float)> onSFRotationChanged;
+	std::function<void(float, float, float)> onLSRotationChanged;
 	std::function<void(int)> onLayoutChanged;
 
 private:
-	float yawRad, pitchRad, rollRad;
+	float SFyawRad, SFpitchRad, SFrollRad, LSyawRad, LSpitchRad, LSrollRad;
 	int layoutIndex;
 
 	int margen = 10;

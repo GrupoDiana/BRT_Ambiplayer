@@ -21,7 +21,7 @@ BRTBase::CBRTManager brtManager;
 std::shared_ptr<BRTBase::CListener> listener; 
 size_t currentSample = 0; 
 std::string decoding;
-Common::CQuaternion q;
+Common::CQuaternion qRotation, qLoudSpeakers;
 
 std::vector<float> directionalEnergies;
 std::vector<float> speakerEnergies;
@@ -30,10 +30,10 @@ std::vector<float> speakerEnergies;
 CConfigurationA configurationA;
 
 Common::CEarPair<CMonoBuffer<float>> outputBufferStereo; 
-unsigned int wavSamplePositionSource; 
-unsigned int positionEndFrameSource;
+vector<unsigned int> wavSamplePositionSource; 
+vector<unsigned int> positionEndFrameSource;
 
-float yawRad = 0.0f, pitchRad = 0.0f, rollRad = 0.0f;
+float SFyawRad = 0.0f, SFpitchRad = 0.0f, SFrollRad = 0.0f, LSyawRad = 0.0f, LSpitchRad = 0.0f, LSrollRad = 0.0f;
 
 int numAz = 72;
 int numEl = 36;
@@ -66,9 +66,12 @@ public:
 private:
 	CGuiManager guiManager;
 	std::shared_ptr<CAmbisonicSoundFieldController> ambisonicSoundFieldController;
+	vector<std::shared_ptr<CAmbisonicSoundFieldController>> ambisonicSoundFieldControllers;
 	std::shared_ptr<CAmbisonicSoundField> SFbuffer, OutBuffer;
 	CLoudSpeakerArrayController speakerArrayController;
 	CAmbisonicProcessor ambisonicProcessor;
+
+	int order=3;
 
 	std::mutex energiesMutex;
 	std::vector<Common::CVector3> originalPositions;

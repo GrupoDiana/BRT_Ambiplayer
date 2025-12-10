@@ -75,20 +75,20 @@ public:
 
 	// Load WAV file and fill soundFieldArray with samples mapped by ambisonic order and channel
 	//Prototype
-	void LoadWav(const char * filePath, const std::string & ordering_) {
+	void LoadWav(const char * filePath, const std::string & ordering_, int order) {
 		if (!setupDone) return;
 
 		ofxAudioFile audioFile;
 		audioFile.load(filePath);
 
-		if (!audioFile.loaded()) {
+		int numChannels = audioFile.channels();
+		size_t numFrames = audioFile.length();
+		int fileSampleRate = audioFile.samplerate();
+
+		if (!audioFile.loaded() or numChannels != pow(order + 1, 2)) {
 			std::cerr << "Error loading WAV: " << filePath << std::endl;
 			return;
 		}
-
-		int numChannels = audioFile.channels();
-		size_t numFrames = audioFile.length(); 
-		int fileSampleRate = audioFile.samplerate();
 
 		soundFieldController.GetSoundFieldArray().resize(numChannels);
 		soundFieldController.SetOrder(static_cast<int>(sqrt(numChannels)) - 1);
