@@ -72,7 +72,7 @@ void draw(float cx, float cy, float width, float height, const std::vector<float
 				float haloBaseRadius = baseRadius + 5.0f;
 				int numSteps = 40;
 
-				ofColor haloColor = ofColor(255, 58, 135);
+				ofColor haloColor = ofColor(179, 102, 127);
 
 				for (int s = 0; s < numSteps; ++s) {
 					float t = float(s) / float(numSteps - 1);

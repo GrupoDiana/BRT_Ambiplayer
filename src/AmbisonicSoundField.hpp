@@ -110,7 +110,7 @@ public:
 
 		soundFieldArray = buffer;
 
-		// ambisonicRotationMatrices.clear();
+		ambisonicRotationMatrices.clear();
 
 		return soundFieldArray;
 	}

@@ -23,7 +23,7 @@ public:
 		ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImVec4(0.22f, 0.22f, 0.22f, 1.0f));
 
 		ImGui::Begin("Ambisonic Controls", nullptr,
-			ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysVerticalScrollbar);
+			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysVerticalScrollbar);
 
 		// --- Play/Stop Buttons ---
 		if (ImGui::Button("PLAY")) {
@@ -40,6 +40,25 @@ public:
 		ImGui::SameLine();
 		if (ImGui::Button("Source")) {
 			showSourcePopup = true;
+		}
+
+		ImGui::Separator();
+
+		// --- Order Combo ---
+		const char * order_items[] = { "1", "2", "3"};
+		static int order_selected_idx = 0;
+
+		ImGui::Text("Order:");
+		if (ImGui::BeginCombo("##Order", order_items[order_selected_idx])) {
+			for (int n = 0; n < IM_ARRAYSIZE(order_items); ++n) {
+				bool selected = (order_selected_idx == n);
+				if (ImGui::Selectable(order_items[n], selected)) {
+					order_selected_idx = n;
+					if (onOrderChanged) onOrderChanged(n);
+				}
+				if (selected) ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
 		}
 
 		ImGui::Separator();
@@ -87,45 +106,44 @@ public:
 
 		// ----------------------------------------
 		ImGui::Separator();
-		ImGui::Text("Loaded WAV Controllers:");
+		ImGui::Text("Loaded Controllers:");
 
 		for (int i = 0; i < controllers.size(); ++i) {
-
 			ImGui::PushID(i);
 
-			ImGui::Separator();
-			ImGui::Text("SoundField %d", i+1);
+			std::string headerTitle = controllers[i]->GetFilePathName();
+			if (ImGui::CollapsingHeader(headerTitle.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
 
-			if (ImGui::Button("Play"))
-				if (onControllerPlay) onControllerPlay(i);
+				if (ImGui::Button("Play"))
+					if (onControllerPlay) onControllerPlay(i);
 
-			ImGui::SameLine();
+				ImGui::SameLine();
 
-			if (ImGui::Button("Stop"))
-				if (onControllerStop) onControllerStop(i);
+				if (ImGui::Button("Stop"))
+					if (onControllerStop) onControllerStop(i);
 
-			ImGui::SameLine();
+				ImGui::SameLine();
 
-			if (ImGui::Button("Mute"))
-				if (onControllerMute) onControllerMute(i);
+				if (ImGui::Button("Mute"))
+					if (onControllerMute) onControllerMute(i);
 
-			//Falta boton loop y solo
+				// Sliders para rotación
+				float yaw = 0.0f;
+				float pitch = 0.0f;
+				float roll = 0.0f;
 
-			float yaw = 0.0f;
-			float pitch = 0.0f;
-			float roll = 0.0f;
+				bool changed = false;
+				changed |= ImGui::SliderAngle("Yaw", &yaw, -180, 180);
+				changed |= ImGui::SliderAngle("Pitch", &pitch, -180, 180);
+				changed |= ImGui::SliderAngle("Roll", &roll, -180, 180);
 
-			bool changed = false;
-			changed |= ImGui::SliderAngle("Yaw##i", &yaw, -180, 180);
-			changed |= ImGui::SliderAngle("Pitch##i", &pitch, -180, 180);
-			changed |= ImGui::SliderAngle("Roll##i", &roll, -180, 180);
-
-			if (changed && onIRotationChanged)
-				onIRotationChanged(i, yaw, pitch, roll);
-
+				if (changed && onIRotationChanged)
+					onIRotationChanged(i, yaw, pitch, roll);
+			}
 
 			ImGui::PopID();
 		}
+
 
 		ImGui::End();
 		// ---- POPUP FOR SOURCE ----
@@ -172,8 +190,9 @@ public:
 		ImGui::PopStyleColor(5);
 	}
 
-	void addController(std::shared_ptr<CAmbisonicSoundFieldController> c) {
+	void addController(std::shared_ptr<CAmbisonicSoundFieldController> c, std::string filePathName_) {
 		controllers.push_back(c);
+		controllers[controllers.size()-1]->GetFilePathName() = filePathName_;
 	}
 
 	// --- Callbacks ---
@@ -185,6 +204,7 @@ public:
 	std::function<void(float, float, float)> onLSRotationChanged;
 	std::function<void(int,float, float, float)> onIRotationChanged;
 	std::function<void(int)> onLayoutChanged;
+	std::function<void(int)> onOrderChanged;
 
 	// ---Controller specific callbacks ---
 	std::function<void(int)> onControllerPlay;

@@ -32,6 +32,9 @@ public:
 		menuPanel.onLayoutChanged = [this](int layoutIndex) {
 			if (onLayoutChanged) onLayoutChanged(layoutIndex);
 		};
+		menuPanel.onOrderChanged = [this](int orderIndex) {
+			if (onOrderChanged) onOrderChanged(orderIndex);
+		};
 		menuPanel.onControllerPlay = [this](int idx) {
 			if (onControllerPlay) onControllerPlay(idx);
 		};
@@ -85,8 +88,8 @@ public:
 		gui.end();
 	}
 
-	void addController(std::shared_ptr<CAmbisonicSoundFieldController> c) {
-		menuPanel.addController(c);
+	void addController(std::shared_ptr<CAmbisonicSoundFieldController> c, string filePathName) {
+		menuPanel.addController(c,filePathName);
 	}
 
 	// --- Callbacks ---
@@ -98,6 +101,7 @@ public:
 	std::function<void(float, float, float)> onLSRotationChanged;
 	std::function<void(int, float, float, float)> onIRotationChanged;
 	std::function<void(int)> onLayoutChanged;
+	std::function<void(int)> onOrderChanged;
 
 	std::function<void(std::shared_ptr<CAmbisonicSoundFieldController>)> onAddControllerButton;
 	std::function<void(int)> onControllerPlay;

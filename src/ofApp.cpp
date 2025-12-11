@@ -87,15 +87,16 @@ void ofApp::setup() {
 		ofFileDialogResult result = ofSystemLoadDialog("Select a WAV file", false);
 
 		if (result.bSuccess) {
-			auto controller = std::make_shared<CAmbisonicSoundFieldController>();
-			controller->SetUp(1, 48000, 512, "ACN");
-
 			std::string filePath = result.getPath();
-			controller->LoadWav(filePath.c_str(), "ACN", order);
+			auto controller = std::make_shared<CAmbisonicSoundFieldController>();
+			controller->SetUp(order, 48000, 512, "ACN");
 
-			ambisonicSoundFieldControllers.push_back(controller);
-
-			guiManager.addController(controller);
+			if (controller->LoadWav(filePath.c_str(), "ACN", order)) {
+				ambisonicSoundFieldControllers.push_back(controller);
+				guiManager.addController(controller, controller->GetFilePathName());
+			} else {
+				ofLog() << "Failed to load WAV, controller not created";
+			}
 		} else {
 			ofLog() << "No file selected";
 		}
@@ -108,11 +109,13 @@ void ofApp::setup() {
 		controller->GeneratePuntualSourceField(order, numFrames, pos);
 
 		ambisonicSoundFieldControllers.push_back(controller);
-		guiManager.addController(controller);
+		std::string sourceName = "Puntual Source";
+		guiManager.addController(controller, sourceName);
 	};
 
 	guiManager.onControllerPlay = [&](int idx) {
 		if (idx < 0 || idx >= ambisonicSoundFieldControllers.size()) return;
+		
 		auto & c = ambisonicSoundFieldControllers[idx];
 		if (c) {
 			c->Play();
@@ -171,6 +174,12 @@ void ofApp::setup() {
 			configurationA.ConnectSoundSource(&brtManager, "Speaker" + std::to_string(i));
 			originalPositions.push_back(speakerArrayController.GetSpeaker(i)->GetSourceTransform().GetPosition());
 		}
+	};
+
+	guiManager.onOrderChanged = [this](int orderIndex) {
+		order = orderIndex + 1;
+		OutBuffer->SetOrder(order);
+		SFbuffer->SetOrder(order);
 	};
 
 	guiManager.setSpeakerController(&speakerArrayController);

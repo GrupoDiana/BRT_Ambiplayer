@@ -38,6 +38,7 @@
 #include "ofxAudioFile.h"
 #include "ofxBRTLibrary.h"
 
+#include <filesystem>
 #include <Common/Buffer.hpp>
 #include <cmath>
 #include <string>
@@ -81,14 +82,18 @@ public:
 		return positionEndFrameSource;
 	}
 
+	std::string & GetFilePathName() {
+		return filePathName;
+	}
+
 	CQuaternion & GetQ() {
 		return q;
 	}
 
 	// Load WAV file and fill soundFieldArray with samples mapped by ambisonic order and channel
 	//Prototype
-	void LoadWav(const char * filePath, const std::string & ordering_, int order) {
-		if (!setupDone) return;
+	bool LoadWav(const char * filePath, const std::string & ordering_, int order) {
+		if (!setupDone) return false;
 
 		ofxAudioFile audioFile;
 		audioFile.load(filePath);
@@ -99,8 +104,10 @@ public:
 
 		if (!audioFile.loaded() or numChannels != pow(order + 1, 2)) {
 			std::cerr << "Error loading WAV: " << filePath << std::endl;
-			return;
+			return false;
 		}
+
+		filePathName = std::filesystem::path(filePath).filename().string();
 
 		soundFieldController.GetSoundFieldArray().resize(numChannels);
 		soundFieldController.SetOrder(static_cast<int>(sqrt(numChannels)) - 1);
@@ -130,6 +137,7 @@ public:
 				  << " | Frames: " << numFrames
 				  << " | SampleRate: " << fileSampleRate
 				  << " | Ordering: " << ordering << std::endl;
+		return true;
 	}
 
 	
@@ -337,6 +345,7 @@ private:
 	CAmbisonicSoundField soundFieldController;
 	CQuaternion q;
 	unsigned int wavSamplePositionSource, positionEndFrameSource;
+	std::string filePathName;
 
 	bool isPlaying;
 	bool isMuted=false;
