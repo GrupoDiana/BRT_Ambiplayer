@@ -26,6 +26,9 @@ public:
 		menuPanel.onLSRotationChanged = [this](float yaw, float pitch, float roll) {
 			if (onLSRotationChanged) onLSRotationChanged(yaw, pitch, roll);
 		};
+		menuPanel.onIRotationChanged = [this](int c, float yaw, float pitch, float roll) {
+			if (onIRotationChanged) onIRotationChanged(c,yaw, pitch, roll);
+		};
 		menuPanel.onLayoutChanged = [this](int layoutIndex) {
 			if (onLayoutChanged) onLayoutChanged(layoutIndex);
 		};
@@ -93,6 +96,7 @@ public:
 	std::function<void(int numFrames, Common::CVector3 pos)> onCreateSource;
 	std::function<void(float, float, float)> onSFRotationChanged;
 	std::function<void(float, float, float)> onLSRotationChanged;
+	std::function<void(int, float, float, float)> onIRotationChanged;
 	std::function<void(int)> onLayoutChanged;
 
 	std::function<void(std::shared_ptr<CAmbisonicSoundFieldController>)> onAddControllerButton;

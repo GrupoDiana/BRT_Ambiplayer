@@ -99,6 +99,22 @@ public:
 		return soundFieldArray;
 	}
 
+	std::vector<CMonoBuffer<float>> & CAmbisonicSoundField::GetSoundFieldArrayRotate() {
+		if (!setupDone)
+			return soundFieldArray; 
+
+		size_t numChannels = soundFieldArray.size();
+		std::vector<CMonoBuffer<float>> buffer(numChannels, CMonoBuffer<float>(bufferSize, 0.0f));
+		buffer[0] = soundFieldArray[0];
+		RotateFieldRecursive(1, soundFieldArray, buffer, 1);
+
+		soundFieldArray = buffer;
+
+		// ambisonicRotationMatrices.clear();
+
+		return soundFieldArray;
+	}
+
 	const std::vector<CMonoBuffer<float>> & GetSoundFieldArray() const {
 		if (!setupDone) return std::vector<CMonoBuffer<float>>();
 		return soundFieldArray;

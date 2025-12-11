@@ -111,7 +111,18 @@ public:
 
 			//Falta boton loop y solo
 
-			//Faltan sliders rotacion
+			float yaw = 0.0f;
+			float pitch = 0.0f;
+			float roll = 0.0f;
+
+			bool changed = false;
+			changed |= ImGui::SliderAngle("Yaw##i", &yaw, -180, 180);
+			changed |= ImGui::SliderAngle("Pitch##i", &pitch, -180, 180);
+			changed |= ImGui::SliderAngle("Roll##i", &roll, -180, 180);
+
+			if (changed && onIRotationChanged)
+				onIRotationChanged(i, yaw, pitch, roll);
+
 
 			ImGui::PopID();
 		}
@@ -172,6 +183,7 @@ public:
 	std::function<void(size_t numFrames, Common::CVector3 pos)> onCreateSource;
 	std::function<void(float, float, float)> onSFRotationChanged;
 	std::function<void(float, float, float)> onLSRotationChanged;
+	std::function<void(int,float, float, float)> onIRotationChanged;
 	std::function<void(int)> onLayoutChanged;
 
 	// ---Controller specific callbacks ---

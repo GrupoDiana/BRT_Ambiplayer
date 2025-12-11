@@ -69,7 +69,7 @@ private:
 	CLoudSpeakerArrayController speakerArrayController;
 	CAmbisonicProcessor ambisonicProcessor;
 
-	int order=2;
+	int order=1;
 
 	std::mutex energiesMutex;
 	std::vector<Common::CVector3> originalPositions;

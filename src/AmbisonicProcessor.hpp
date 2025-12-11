@@ -67,7 +67,7 @@ public:
 	CAmbisonicProcessor(){}
 
 	// Rotate the field depending on listener rotation
-	void RotateField(Common::CQuaternion q,CAmbisonicSoundField & OutBuffer) {
+	void CalculateRotationMatrices(Common::CQuaternion q, CAmbisonicSoundField & OutBuffer) {
 		OutBuffer.CalculateRotationMatrices(q);	
 	}
 

@@ -137,20 +137,19 @@ void ofApp::setup() {
 		}
 	};
 
-	/* guiManager.oniRotationChanged = [this](int idx, float yaw, float pitch, float roll) {
+	guiManager.onIRotationChanged = [this](int idx, float yaw, float pitch, float roll) {
 		if (idx < 0 || idx >= ambisonicSoundFieldControllers.size()) return;
 		auto & c = ambisonicSoundFieldControllers[idx];
 	
-		if (c) {
-			c->Mute(!c->IsMuted());
-		}
-		qLoudSpeakers[i] = Common::CQuaternion::FromYawPitchRoll(yaw, pitch, roll);
-	};*/
+		c->GetQ() = Common::CQuaternion::FromYawPitchRoll(yaw, pitch, roll);
+	};
 
 	guiManager.onSFRotationChanged = [this](float yaw, float pitch, float roll) {
 		SFyawRad = yaw;
 		SFpitchRad = pitch;
 		SFrollRad = roll;
+
+		qRotation = Common::CQuaternion::FromYawPitchRoll(SFyawRad, SFpitchRad, SFrollRad);
 	};
 
 	guiManager.onLSRotationChanged = [this](float yaw, float pitch, float roll) {
@@ -302,8 +301,6 @@ void ofApp::audioOut(ofSoundBuffer & buffer) {
 
 // Function to process audio
 void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, int bufferSize) {
-	qRotation = Common::CQuaternion::FromYawPitchRoll(SFyawRad, SFpitchRad, SFrollRad);
-	ambisonicProcessor.RotateField(qRotation, *OutBuffer);
 
 	for (auto & ch : SFbuffer->GetSoundFieldArray())
 		std::fill(ch.begin(), ch.end(), 0.0f);
@@ -318,11 +315,16 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 		for (auto & ch : OutBuffer->GetSoundFieldArray())
 			std::fill(ch.begin(), ch.end(), 0.0f);
 
+		ambisonicProcessor.CalculateRotationMatrices(controller->GetQ(), *OutBuffer);
+
 		OutBuffer->GetSegment(controller->GetWavSamplePositionSource(), controller->GetPositionEndFrameSource(), controller->GetSoundFieldController(), bufferSize);
 		
 		if (!controller->IsMuted())
 			*SFbuffer += *OutBuffer;
 	}
+
+	ambisonicProcessor.CalculateRotationMatrices(qRotation, *SFbuffer);
+	SFbuffer->GetSoundFieldArrayRotate();
 
 	ambisonicProcessor.DecodeToSpeakerArray(speakerArrayController, *SFbuffer, "basic");
 	speakerEnergies.clear();
