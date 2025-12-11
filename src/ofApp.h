@@ -30,8 +30,6 @@ std::vector<float> speakerEnergies;
 CConfigurationA configurationA;
 
 Common::CEarPair<CMonoBuffer<float>> outputBufferStereo; 
-vector<unsigned int> wavSamplePositionSource; 
-vector<unsigned int> positionEndFrameSource;
 
 float SFyawRad = 0.0f, SFpitchRad = 0.0f, SFrollRad = 0.0f, LSyawRad = 0.0f, LSpitchRad = 0.0f, LSrollRad = 0.0f;
 
@@ -67,11 +65,11 @@ private:
 	CGuiManager guiManager;
 	std::shared_ptr<CAmbisonicSoundFieldController> ambisonicSoundFieldController;
 	vector<std::shared_ptr<CAmbisonicSoundFieldController>> ambisonicSoundFieldControllers;
-	std::shared_ptr<CAmbisonicSoundField> SFbuffer, OutBuffer;
+	std::shared_ptr<CAmbisonicSoundField> SFbuffer, OutBuffer, audioBufferCopy;
 	CLoudSpeakerArrayController speakerArrayController;
 	CAmbisonicProcessor ambisonicProcessor;
 
-	int order=3;
+	int order=2;
 
 	std::mutex energiesMutex;
 	std::vector<Common::CVector3> originalPositions;

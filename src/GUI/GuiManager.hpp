@@ -17,6 +17,9 @@ public:
 		menuPanel.onPlay = [this]() { if (onPlay) onPlay(); };
 		menuPanel.onStop = [this]() { if (onStop) onStop(); };
 		menuPanel.onWAV = [this]() { if (onWAV) onWAV(); };
+		menuPanel.onCreateSource = [this](int frames, Common::CVector3 pos) {
+			if (onCreateSource) onCreateSource(frames, pos);
+		};
 		menuPanel.onSFRotationChanged = [this](float yaw, float pitch, float roll) {
 			if (onSFRotationChanged) onSFRotationChanged(yaw, pitch, roll);
 		};
@@ -26,6 +29,16 @@ public:
 		menuPanel.onLayoutChanged = [this](int layoutIndex) {
 			if (onLayoutChanged) onLayoutChanged(layoutIndex);
 		};
+		menuPanel.onControllerPlay = [this](int idx) {
+			if (onControllerPlay) onControllerPlay(idx);
+		};
+		menuPanel.onControllerStop = [this](int idx) {
+			if (onControllerStop) onControllerStop(idx);
+		};
+		menuPanel.onControllerMute = [this](int idx) {
+			if (onControllerMute) onControllerMute(idx);
+		};
+
 	}
 
 	void setSpeakerController(const CLoudSpeakerArrayController * controller) {
@@ -69,13 +82,23 @@ public:
 		gui.end();
 	}
 
+	void addController(std::shared_ptr<CAmbisonicSoundFieldController> c) {
+		menuPanel.addController(c);
+	}
+
 	// --- Callbacks ---
 	std::function<void()> onPlay;
 	std::function<void()> onStop;
 	std::function<void()> onWAV;
+	std::function<void(int numFrames, Common::CVector3 pos)> onCreateSource;
 	std::function<void(float, float, float)> onSFRotationChanged;
 	std::function<void(float, float, float)> onLSRotationChanged;
 	std::function<void(int)> onLayoutChanged;
+
+	std::function<void(std::shared_ptr<CAmbisonicSoundFieldController>)> onAddControllerButton;
+	std::function<void(int)> onControllerPlay;
+	std::function<void(int)> onControllerStop;
+	std::function<void(int)> onControllerMute;
 
 private:
 	ofxImGui::Gui gui;

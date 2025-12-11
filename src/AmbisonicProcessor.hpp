@@ -68,7 +68,7 @@ public:
 
 	// Rotate the field depending on listener rotation
 	void RotateField(Common::CQuaternion q,CAmbisonicSoundField & OutBuffer) {
-		OutBuffer.RotateField(q);
+		OutBuffer.CalculateRotationMatrices(q);	
 	}
 
 	void DecodeToSpeakerArray(CLoudSpeakerArrayController & speakerArray,const CAmbisonicSoundField & OutBuffer, std::string decoding) {

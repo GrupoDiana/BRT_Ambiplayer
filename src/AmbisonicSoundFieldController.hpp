@@ -73,6 +73,18 @@ public:
 		return soundFieldController;
 	}
 
+	unsigned int & GetWavSamplePositionSource(){
+		return wavSamplePositionSource;
+	}
+
+	unsigned int & GetPositionEndFrameSource(){
+		return positionEndFrameSource;
+	}
+
+	CQuaternion & GetQ() {
+		return q;
+	}
+
 	// Load WAV file and fill soundFieldArray with samples mapped by ambisonic order and channel
 	//Prototype
 	void LoadWav(const char * filePath, const std::string & ordering_, int order) {
@@ -255,13 +267,12 @@ public:
 	}
 
 	//el orden tiene que ir global
-	void GeneratePuntualSourceField(size_t numFrames = 1024) {
+	void GeneratePuntualSourceField(int order, size_t numFrames, Common::CVector3 pos) {
 		if (!setupDone) {
 			std::cerr << "Error: setup not done before generating puntual source." << std::endl;
 			return;
 		}
 
-		int order = 1;
 		float norm = 1.0f / std::sqrt(3.0f);
 		int numChannels = (order + 1) * (order + 1);
 		soundFieldController.SetOrder(order);
@@ -289,7 +300,7 @@ public:
 
 		source->SetBuffer(noiseBuffer);
 
-		Common::CVector3 sourcePos(0.0f, 1.0f, 0.0f);
+		Common::CVector3 sourcePos=pos;
 		Common::CVector3 sourcePosNorm = Normalize(sourcePos);
 
 		EncodePuntualSourceToAmbisonic(*source, soundFieldController, sourcePosNorm);
@@ -297,8 +308,12 @@ public:
 		std::cout << "Generated white noise in Ambisonic field" << std::endl;
 	}
 
+	void Play() { isPlaying = true; }
+	void Stop() { isPlaying = false; }
+	void Mute(bool m) { isMuted = m; }
 
-
+	bool IsPlaying() const { return isPlaying; }
+	bool IsMuted() const { return isMuted; }
 
 	CAmbisonicSoundFieldController & operator+=(const CAmbisonicSoundFieldController & other) {
 		const auto & otherArray = other.soundFieldController.GetSoundFieldArray();
@@ -320,6 +335,11 @@ private:
 
 	bool setupDone;
 	CAmbisonicSoundField soundFieldController;
+	CQuaternion q;
+	unsigned int wavSamplePositionSource, positionEndFrameSource;
+
+	bool isPlaying;
+	bool isMuted=false;
 
 	Common::CVector3 Normalize(const Common::CVector3 & v) {
 		float mag = std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);

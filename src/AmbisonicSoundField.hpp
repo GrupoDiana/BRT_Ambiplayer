@@ -136,22 +136,28 @@ public:
 		for (size_t ch = 0; ch < numChannels; ++ch) {
 			const auto & src = sourceBuffers[ch];
 			auto & dest = soundFieldArray[ch];
-
 			for (size_t i = 0; i < bufferSize; ++i) {
 				size_t idx = (position + i) % sourceSize;
 				dest[i] = src[idx];
 			}
 		}
 
-		RotateFieldRecursive(1, soundFieldArray, soundFieldArray, 1);
+		std::vector<CMonoBuffer<float>> buffer(numChannels, CMonoBuffer<float>(bufferSize, 0.0f));
+		buffer[0] = soundFieldArray[0]; 
+		RotateFieldRecursive(1, soundFieldArray, buffer, 1);
+
+		soundFieldArray = buffer;
+
 
 		endFrame = (position + bufferSize - 1) % sourceSize;
 		position = (position + bufferSize) % sourceSize;
 	}
 
+
+
 	// Rotate the field depending on how coordinates have changed
-	//Cambiar a Rotate()
-	void RotateField(Common::CQuaternion q) {
+	//Cambiar a CalculateRotationMatrices()
+	void CalculateRotationMatrices(Common::CQuaternion q) {
 		if (!setupDone) return;
 
 		ambisonicRotationMatrices.clear();
@@ -161,6 +167,9 @@ public:
 		CalculateRMatrix(ambisonicOrder, R1);
 
 	}
+
+	//Falta metodo que sea returnSoundFieldArrayRotated o algo asi, que te devuelva el campo rotado y las matrices vacias
+	//que lo usara la mezcla para rotarse
 
 
 	void DownMixing(int order) {
@@ -216,6 +225,7 @@ private:
 	std::vector<CMonoBuffer<float>> soundFieldArray;
 
 	std::vector<CMatrix<float>> ambisonicRotationMatrices;
+	//metodo que aplique la rotacion pero borre las matriz
 
 	//Añadir comentarios
 	void RotateFieldRecursive(int l, const std::vector<CMonoBuffer<float>> & source, std::vector<CMonoBuffer<float>> & dest, int offset) {
