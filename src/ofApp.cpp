@@ -8,7 +8,7 @@ void ofApp::setup() {
 
 	/// BRT Global Parametert setup
 	globalParameters.SetSampleRate(SAMPLERATE); // Setting sample rate
-	globalParameters.SetBufferSize(512); // Setting buffer size
+	globalParameters.SetBufferSize(BUFFERSIZE); // Setting buffer size
 
 	// //////////////////////////
 	// // Listener Setup
@@ -55,18 +55,18 @@ void ofApp::setup() {
 	//ambisonicSoundFieldController->GeneratePuntualSourceField(48000 * 10); // 10 seconds
 
 	SFbuffer = std::make_shared<CAmbisonicSoundField>();
-	SFbuffer->SetUp(order, 48000, 512);
+	SFbuffer->SetUp(order, 48000, BUFFERSIZE);
 	OutBuffer = std::make_shared<CAmbisonicSoundField>();
-	OutBuffer->SetUp(order, 48000, 512);
+	OutBuffer->SetUp(order, 48000, BUFFERSIZE);
 	audioBufferCopy = std::make_shared<CAmbisonicSoundField>();
-	audioBufferCopy->SetUp(order, 48000, 512);
+	audioBufferCopy->SetUp(order, 48000, BUFFERSIZE);
 
 	/////////////////////
 	// Start AUDIO Render
 	/////////////////////
 	// Declaration and initialization of stereo buffer
-	outputBufferStereo.left.resize(512);
-	outputBufferStereo.right.resize(512);
+	outputBufferStereo.left.resize(BUFFERSIZE);
+	outputBufferStereo.right.resize(BUFFERSIZE);
 
 	// Setup GUI callbacks
 	guiManager.onPlay = [this]() {
@@ -89,10 +89,11 @@ void ofApp::setup() {
 		if (result.bSuccess) {
 			std::string filePath = result.getPath();
 			auto controller = std::make_shared<CAmbisonicSoundFieldController>();
-			controller->SetUp(order, 48000, 512, "ACN");
+			controller->SetUp(order, 48000, BUFFERSIZE, "ACN");
 
 			if (controller->LoadWav(filePath.c_str(), "ACN", order)) {
 				ambisonicSoundFieldControllers.push_back(controller);
+				ambisonicSoundFieldControllers[ambisonicSoundFieldControllers.size() - 1]->GetWavSamplePositionSource()=0;
 				guiManager.addController(controller, controller->GetFilePathName());
 			} else {
 				ofLog() << "Failed to load WAV, controller not created";
@@ -103,14 +104,23 @@ void ofApp::setup() {
 	};
 
 	guiManager.onCreateSource = [this](int numFrames, Common::CVector3 pos) {
-		auto controller = std::make_shared<CAmbisonicSoundFieldController>();
-		controller->SetUp(order, 48000, 512, "ACN");
+		ofFileDialogResult result = ofSystemLoadDialog("Select a WAV file", false);
 
-		controller->GeneratePuntualSourceField(order, numFrames, pos);
+		if (result.bSuccess) {
+			std::string filePath = result.getPath();
+			auto controller = std::make_shared<CAmbisonicSoundFieldController>();
+			controller->SetUp(order, 48000, BUFFERSIZE, "ACN");
 
-		ambisonicSoundFieldControllers.push_back(controller);
-		std::string sourceName = "Puntual Source";
-		guiManager.addController(controller, sourceName);
+			if (controller->GeneratePuntualSourceField(order, filePath.c_str(), pos)) {
+				ambisonicSoundFieldControllers.push_back(controller);
+				ambisonicSoundFieldControllers[ambisonicSoundFieldControllers.size() - 1]->GetWavSamplePositionSource() = 0;
+				guiManager.addController(controller, controller->GetFilePathName());
+			} else {
+				ofLog() << "Failed to load WAV, controller not created";
+			}
+		} else {
+			ofLog() << "No file selected";
+		}
 	};
 
 	guiManager.onControllerPlay = [&](int idx) {
@@ -264,7 +274,7 @@ void ofApp::AudioSetup() {
 	outputParameters.numBuffers = 4;
 
 	outputParameters.sampleRate = SAMPLERATE;
-	outputParameters.bufferSize = 512;
+	outputParameters.bufferSize = BUFFERSIZE;
 
 	outputParameters.setOutListener(this);
 
@@ -279,7 +289,7 @@ void ofApp::AudioSetup() {
 
 // audioOut
 void ofApp::audioOut(ofSoundBuffer & buffer) {
-	unsigned int uiBufferSize = 512;
+	unsigned int uiBufferSize = BUFFERSIZE;
 	// Setting the output buffer as float
 	std::vector<float> & bufferData = buffer.getBuffer();
 

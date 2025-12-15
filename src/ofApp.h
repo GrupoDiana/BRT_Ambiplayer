@@ -2,6 +2,7 @@
 
 
 #define SAMPLERATE 48000
+#define BUFFERSIZE 512
 #define LISTENER_ID "listener1"
 
 #define SOURCE_FILEPATH "../resources/ambi_3OA_test.wav"

@@ -51,6 +51,12 @@ std::vector<int> ACN_to_FuMa_order_0_3 = {
 	12, 13, 11, 14, 10, 15, 9 // Q,O,M,K,L,N,P
 };
 
+struct Rotation {
+	float yaw = 0.0f;
+	float pitch = 0.0f;
+	float roll = 0.0f;
+};
+
 class CAmbisonicSoundFieldController {
 public:
 	CAmbisonicSoundFieldController(): soundFieldController(), setupDone { false }, ordering { "" } { }
@@ -88,6 +94,10 @@ public:
 
 	CQuaternion & GetQ() {
 		return q;
+	}
+
+	Rotation & GetRotation() {
+		return rotation;
 	}
 
 	// Load WAV file and fill soundFieldArray with samples mapped by ambisonic order and channel
@@ -272,20 +282,34 @@ public:
 		}
 
 		std::cout << "Generated white noise in Ambisonic field" << std::endl;
+
 	}
 
 	//el orden tiene que ir global
-	void GeneratePuntualSourceField(int order, size_t numFrames, Common::CVector3 pos) {
+	bool GeneratePuntualSourceField(int order, const char * filePath, Common::CVector3 pos) {
 		if (!setupDone) {
-			std::cerr << "Error: setup not done before generating puntual source." << std::endl;
-			return;
+			std::cerr << "Error: setup not done before generating synthetic field." << std::endl;
+			return false;
+		}
+
+		ofxAudioFile audioFile;
+		audioFile.load(filePath);
+
+		if (!audioFile.loaded()) {
+			std::cerr << "Error loading WAV: " << filePath << std::endl;
+			return false;
 		}
 
 		float norm = 1.0f / std::sqrt(3.0f);
 		int numChannels = (order + 1) * (order + 1);
-		soundFieldController.SetOrder(order);
+		size_t numFrames = audioFile.length();
+		int fileSampleRate = audioFile.samplerate();
+
+		filePathName = std::filesystem::path(filePath).filename().string();
 
 		soundFieldController.GetSoundFieldArray().resize(numChannels);
+		soundFieldController.SetOrder(order);
+
 		for (int ch = 0; ch < numChannels; ++ch) {
 			soundFieldController.GetSoundFieldArray()[ch].resize(numFrames, 0.0f);
 		}
@@ -294,19 +318,15 @@ public:
 		auto source = std::make_shared<BRTSourceModel::CSourceOmnidirectionalModel>("GNoise");
 		if (!source) {
 			std::cerr << "Error: could not create BRT source." << std::endl;
-			return;
+			return false;
 		}
 
-		// Generar ruido blanco
-		std::mt19937 rng(std::random_device {}());
-		std::normal_distribution<float> gaussian(0.0f, 1.0f);
-
-		CMonoBuffer<float> noiseBuffer(numFrames);
+		CMonoBuffer<float> buffer(numFrames);
 		for (size_t i = 0; i < numFrames; ++i) {
-			noiseBuffer[i] = gaussian(rng);
+			buffer[i] = audioFile.sample(i,0);
 		}
 
-		source->SetBuffer(noiseBuffer);
+		source->SetBuffer(buffer);
 
 		Common::CVector3 sourcePos=pos;
 		Common::CVector3 sourcePosNorm = Normalize(sourcePos);
@@ -314,6 +334,8 @@ public:
 		EncodePuntualSourceToAmbisonic(*source, soundFieldController, sourcePosNorm);
 
 		std::cout << "Generated white noise in Ambisonic field" << std::endl;
+
+		return true;
 	}
 
 	void Play() { isPlaying = true; }
@@ -349,6 +371,8 @@ private:
 
 	bool isPlaying;
 	bool isMuted=false;
+
+	Rotation rotation;
 
 	Common::CVector3 Normalize(const Common::CVector3 & v) {
 		float mag = std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);

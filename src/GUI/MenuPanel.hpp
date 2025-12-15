@@ -128,17 +128,15 @@ public:
 					if (onControllerMute) onControllerMute(i);
 
 				// Sliders para rotación
-				float yaw = 0.0f;
-				float pitch = 0.0f;
-				float roll = 0.0f;
+				auto & rot = controllers[i]->GetRotation();
 
 				bool changed = false;
-				changed |= ImGui::SliderAngle("Yaw", &yaw, -180, 180);
-				changed |= ImGui::SliderAngle("Pitch", &pitch, -180, 180);
-				changed |= ImGui::SliderAngle("Roll", &roll, -180, 180);
+				changed |= ImGui::SliderAngle("Yaw", &rot.yaw, -180, 180);
+				changed |= ImGui::SliderAngle("Pitch", &rot.pitch, -180, 180);
+				changed |= ImGui::SliderAngle("Roll", &rot.roll, -180, 180);
 
 				if (changed && onIRotationChanged)
-					onIRotationChanged(i, yaw, pitch, roll);
+					onIRotationChanged(i, rot.yaw, rot.pitch, rot.roll);
 			}
 
 			ImGui::PopID();
@@ -159,9 +157,6 @@ public:
 			static int Elevation = 0;
 
 			ImGui::Text("Parameters of the source:");
-
-			ImGui::InputInt("Frame Count", &numFrames);
-			numFrames = std::max(numFrames, 1); // no permitir 0
 
 			ImGui::InputInt("Azimuth", &Azimuth);
 			ImGui::InputInt("Elevation", &Elevation);
