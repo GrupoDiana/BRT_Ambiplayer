@@ -6,8 +6,8 @@
 #include <vector>
 
 enum Plane { XY,
-	YZ,
-	XZ };
+	ZY,
+	ZX };
 
 class CProjection {
 public:
@@ -75,7 +75,7 @@ private:
 
 				float px, py;
 
-				if (plane == YZ) {
+				if (plane == ZY) {
 					px = -y3D * maxRadius;
 					py = -z3D * maxRadius;
 				} else if (plane == XY) {
@@ -99,25 +99,37 @@ private:
 
 		switch (plane) {
 		case XY:
+			ofSetColor(255, 255, 255);
+			ofDrawBitmapString("X",x0-4,y0-size-4);
 			ofSetColor(255, 0, 0);
 			ofDrawLine(x0, y0, x0, y0 - size);
 			ofDrawTriangle(x0, y0 - size, x0 - 3, y0 - size + 5, x0 + 3, y0 - size + 5);
+			ofSetColor(255, 255, 255);
+			ofDrawBitmapString("Y", x0 - size - 8, y0 + 4);
 			ofSetColor(0, 255, 0);
 			ofDrawLine(x0, y0, x0 - size, y0);
 			ofDrawTriangle(x0 - size, y0, x0 - size + 5, y0 - 3, x0 - size + 5, y0 + 3);
 			break;
-		case YZ:
+		case ZY:
+			ofSetColor(255, 255, 255);
+			ofDrawBitmapString("Z", x0 - 4, y0 - size - 4);
 			ofSetColor(0, 255, 0);
 			ofDrawLine(x0, y0, x0 - size, y0);
 			ofDrawTriangle(x0 - size, y0, x0 - size + 5, y0 - 3, x0 - size + 5, y0 + 3);
+			ofSetColor(255, 255, 255);
+			ofDrawBitmapString("Y", x0 - size - 8, y0 + 4);
 			ofSetColor(0, 0, 255);
 			ofDrawLine(x0, y0, x0, y0 - size);
 			ofDrawTriangle(x0, y0 - size, x0 - 3, y0 - size + 5, x0 + 3, y0 - size + 5);
 			break;
-		case XZ:
+		case ZX:
+			ofSetColor(255, 255, 255);
+			ofDrawBitmapString("Z", x0 - 4, y0 - size - 4);
 			ofSetColor(255, 0, 0);
 			ofDrawLine(x0, y0, x0 - size, y0);
 			ofDrawTriangle(x0 - size, y0, x0 - size + 5, y0 - 3, x0 - size + 5, y0 + 3);
+			ofSetColor(255, 255, 255);
+			ofDrawBitmapString("X", x0 - size - 8, y0 + 4);
 			ofSetColor(0, 0, 255);
 			ofDrawLine(x0, y0, x0, y0 - size);
 			ofDrawTriangle(x0, y0 - size, x0 - 3, y0 - size + 5, x0 + 3, y0 - size + 5);

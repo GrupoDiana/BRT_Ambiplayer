@@ -106,9 +106,13 @@ private:
 	void DrawAxes(float x0, float y0, float size) {
 		ofPushStyle();
 		ofSetLineWidth(1.0);
+		ofSetColor(255, 255, 255);
+		ofDrawBitmapString("X", x0 - 4, y0 - size - 4);
 		ofSetColor(255, 0, 0);
 		ofDrawLine(x0, y0, x0, y0 - size);
 		ofDrawTriangle(x0, y0 - size, x0 - 3, y0 - size + 5, x0 + 3, y0 - size + 5);
+		ofSetColor(255, 255, 255);
+		ofDrawBitmapString("Y", x0 - size - 8, y0 + 4);
 		ofSetColor(0, 255, 0);
 		ofDrawLine(x0, y0, x0 - size, y0);
 		ofDrawTriangle(x0 - size, y0, x0 - size + 5, y0 - 3, x0 - size + 5, y0 + 3);
