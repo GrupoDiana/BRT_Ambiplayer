@@ -21,6 +21,13 @@ void draw(float cx, float cy, float width, float height, const std::vector<float
 		float fov = 300.0f;
 		float sceneScale = 100.0f;
 		float baseRadius = 5.0f;
+		ImVec4 defaultColor = ImGui::GetStyleColorVec4(ImGuiCol_ScrollbarGrabActive);
+		ofColor haloColor;
+		haloColor.r = static_cast<unsigned char>(defaultColor.x * 255.0f);
+		haloColor.g = static_cast<unsigned char>(defaultColor.y * 255.0f);
+		haloColor.b = static_cast<unsigned char>(defaultColor.z * 255.0f);
+		haloColor.a = static_cast<unsigned char>(defaultColor.w * 255.0f);
+
 
 		ofPushMatrix();
 		ofPushStyle();
@@ -71,8 +78,6 @@ void draw(float cx, float cy, float width, float height, const std::vector<float
 
 				float haloBaseRadius = baseRadius + 5.0f;
 				int numSteps = 40;
-
-				ofColor haloColor = ofColor(179, 102, 127);
 
 				for (int s = 0; s < numSteps; ++s) {
 					float t = float(s) / float(numSteps - 1);

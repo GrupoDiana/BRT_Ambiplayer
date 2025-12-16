@@ -156,6 +156,11 @@ void ofApp::setup() {
 			}
 		};
 
+	guiManager.onControllerLoop =
+		[this](CMenuPanel::ControllerPtr c) {
+			if (!c) return;
+			c->Loop(!c->IsLoop());
+		};
 
 	guiManager.onControllerRemove =
 		[this](CMenuPanel::ControllerPtr c) {
@@ -367,7 +372,7 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 
 		ambisonicProcessor.CalculateRotationMatrices(controller->GetQ(), *OutBuffer);
 
-		OutBuffer->GetSegment(controller->GetWavSamplePositionSource(), controller->GetPositionEndFrameSource(), controller->GetSoundFieldController(), bufferSize);
+		OutBuffer->GetSegment(controller->GetWavSamplePositionSource(), controller->GetPositionEndFrameSource(), controller->GetSoundFieldController(), bufferSize, controller->IsLoop(), controller->GetPlaying());
 		
 		if (!controller->IsMuted())
 			*SFbuffer += *OutBuffer;

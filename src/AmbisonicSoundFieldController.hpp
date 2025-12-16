@@ -68,7 +68,7 @@ public:
 		// Inicializa el controlador interno de campo ambisónico
 		soundFieldController.SetUp(ambisonicOrder_, sampleRate_, blockSize_);
 		ordering = ordering_;
-
+		sampleRate = sampleRate_;
 		setupDone = true;
 	}
 
@@ -337,14 +337,60 @@ public:
 		return true;
 	}
 
-	void Play(bool m) { isPlaying = m; }
+	void Play(bool m) {
+		if (m && !isPlaying) {
+			wavSamplePositionSource = 0;
+		}
+		isPlaying = m;
+	}
+
 	void Stop() { isPlaying = false; }
 	void Mute(bool m) { isMuted = m; }
-	void Solo(bool s) { isSolo = s; }
+	void Solo(bool m) { isSolo = m; }
+	void Loop(bool m) {
+		isLoop = m;
+	}
 
 	bool IsPlaying() const { return isPlaying; }
+	bool & GetPlaying() { return isPlaying; }
 	bool IsMuted() const { return isMuted; }
 	bool IsSolo() const { return isSolo; }
+	bool IsLoop() const { return isLoop; }
+
+	float GetPlaybackProgress() const {
+		const auto & arr = soundFieldController.GetSoundFieldArray();
+		if (arr.empty() || arr[0].empty())
+			return 0.0f;
+
+		return static_cast<float>(wavSamplePositionSource) / static_cast<float>(arr[0].size());
+	}
+
+	void SetPlaybackProgress(float norm) {
+		const auto & arr = soundFieldController.GetSoundFieldArray();
+		if (arr.empty() || arr[0].empty())
+			return;
+
+		norm = std::clamp(norm, 0.0f, 1.0f);
+		wavSamplePositionSource = static_cast<unsigned int>(norm * arr[0].size());
+
+		if (!isPlaying)
+			isPlaying = true;
+	}
+
+	float GetTotalTimeSeconds() const {
+		const auto & arr = soundFieldController.GetSoundFieldArray();
+		if (arr.empty() || arr[0].empty() || sampleRate == 0)
+			return 0.0f;
+
+		return static_cast<float>(arr[0].size()) / static_cast<float>(sampleRate);
+	}
+
+	float GetCurrentTimeSeconds() const {
+		if (sampleRate == 0)
+			return 0.0f;
+
+		return static_cast<float>(wavSamplePositionSource) / static_cast<float>(sampleRate);
+	}
 
 	CAmbisonicSoundFieldController & operator+=(const CAmbisonicSoundFieldController & other) {
 		const auto & otherArray = other.soundFieldController.GetSoundFieldArray();
@@ -363,6 +409,7 @@ public:
 
 private:
 	std::string ordering;
+	int sampleRate;
 
 	bool setupDone;
 	CAmbisonicSoundField soundFieldController;
@@ -373,6 +420,7 @@ private:
 	bool isPlaying=false;
 	bool isMuted=false;
 	bool isSolo = false;
+	bool isLoop = false;
 
 	Rotation rotation;
 

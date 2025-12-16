@@ -147,12 +147,15 @@ public:
 	}
 
 	/// Fill multi-channel soundFieldArray from multi-channel samples
-	void GetSegment(unsigned int & position, unsigned int & endFrame, CAmbisonicSoundField & source, size_t bufferSize) {
+	void GetSegment(unsigned int & position, unsigned int & endFrame, CAmbisonicSoundField & source, size_t bufferSize, bool loop, bool & play) {
 		if (!setupDone) return;
 
 		const auto & sourceBuffers = source.GetSoundFieldArray();
 		size_t numChannels = sourceBuffers.size();
+		if (numChannels == 0) return;
+
 		size_t sourceSize = sourceBuffers[0].size();
+		if (sourceSize == 0) return;
 
 		for (size_t i = 0; i < numChannels; i++) {
 			if (soundFieldArray[i].size() != bufferSize)
@@ -163,26 +166,39 @@ public:
 			const auto & src = sourceBuffers[ch];
 			auto & dest = soundFieldArray[ch];
 			for (size_t i = 0; i < bufferSize; ++i) {
-				size_t idx = (position + i) % sourceSize;
+				size_t idx = position + i;
+
+				if (idx >= sourceSize) {
+					if (loop) {
+						idx = idx % sourceSize;
+					} else {
+						dest[i] = 0.0f;
+						play = false;
+						
+						continue;
+					}
+				}
 				dest[i] = src[idx];
 			}
 		}
 
 		std::vector<CMonoBuffer<float>> buffer(numChannels, CMonoBuffer<float>(bufferSize, 0.0f));
-		buffer[0] = soundFieldArray[0]; 
-		RotateFieldRecursive(1, soundFieldArray, buffer, 1);
+		buffer[0] = soundFieldArray[0];
+		if (numChannels > 1)
+			RotateFieldRecursive(1, soundFieldArray, buffer, 1);
 
 		soundFieldArray = buffer;
 
-
-		endFrame = (position + bufferSize - 1) % sourceSize;
-		position = (position + bufferSize) % sourceSize;
+		if (loop) {
+			endFrame = (position + bufferSize - 1) % sourceSize;
+			position = (position + bufferSize) % sourceSize;
+		} else {
+			endFrame = std::min(position + bufferSize - 1, sourceSize - 1);
+			position = std::min(position + bufferSize, sourceSize);
+		}
 	}
 
-
-
 	// Rotate the field depending on how coordinates have changed
-	//Cambiar a CalculateRotationMatrices()
 	void CalculateRotationMatrices(Common::CQuaternion q) {
 		if (!setupDone) return;
 
@@ -193,10 +209,6 @@ public:
 		CalculateRMatrix(ambisonicOrder, R1);
 
 	}
-
-	//Falta metodo que sea returnSoundFieldArrayRotated o algo asi, que te devuelva el campo rotado y las matrices vacias
-	//que lo usara la mezcla para rotarse
-
 
 	void DownMixing(int order) {
 		if (!setupDone) return;

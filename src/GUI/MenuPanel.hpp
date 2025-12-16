@@ -19,6 +19,7 @@ public:
 	void draw(float x, float y, float screenWidth, float screenHeight) {
 		ImGui::SetNextWindowPos(ImVec2(x + margen, y));
 		ImGui::SetNextWindowSize(ImVec2(screenWidth - 2 * margen, screenHeight - margen));
+		ImVec4 defaultColor = ImGui::GetStyleColorVec4(ImGuiCol_ScrollbarGrabActive);
 
 		ImGui::Begin("Ambisonic Controls", nullptr,
 			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysVerticalScrollbar);
@@ -101,7 +102,7 @@ public:
 			if (ImGui::CollapsingHeader(headerTitle.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
 
 				if (controller->IsPlaying()) {
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(224.0f / 255.0f, 25.0f / 255.0f, 111.0f / 255.0f, 0.7f)); 
+					ImGui::PushStyleColor(ImGuiCol_Button, defaultColor); 
 				}
 				if (ImGui::Button("Play")) {
 					if (onControllerPlay) onControllerPlay(controller);
@@ -113,7 +114,7 @@ public:
 				ImGui::SameLine();
 
 				if (controller->IsMuted()) {
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(224.0f / 255.0f, 25.0f / 255.0f, 111.0f / 255.0f, 0.7f)); 
+					ImGui::PushStyleColor(ImGuiCol_Button, defaultColor); 
 				}
 				if (ImGui::Button("Mute")) {
 					if (onControllerMute) onControllerMute(controller);
@@ -122,7 +123,7 @@ public:
 				ImGui::SameLine();
 
 				if (controller->IsSolo()) {
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(224.0f / 255.0f, 25.0f / 255.0f, 111.0f / 255.0f, 0.7f));
+					ImGui::PushStyleColor(ImGuiCol_Button, defaultColor);
 				}
 				if (ImGui::Button("Solo")) {
 					if (onControllerSolo) onControllerSolo(controller);
@@ -130,7 +131,13 @@ public:
 				if (controller->IsSolo()) ImGui::PopStyleColor();
 				ImGui::SameLine();
 
-				if (ImGui::Button("Loop") && onControllerLoop) onControllerLoop(controller);
+				if (controller->IsLoop()) {
+					ImGui::PushStyleColor(ImGuiCol_Button, defaultColor);
+				}
+				if (ImGui::Button("Loop")) {
+					if (onControllerLoop) onControllerLoop(controller);
+				}
+				if (controller->IsLoop()) ImGui::PopStyleColor();
 				ImGui::SameLine();
 
 				if (ImGui::Button("x") && onControllerRemove) {
@@ -147,6 +154,37 @@ public:
 				changed |= ImGui::SliderAngle("Roll", &rot.roll, -180, 180);
 				if (changed && onIRotationChanged)
 					onIRotationChanged(controller, rot.yaw, rot.pitch, rot.roll);
+
+				float currentSec = controller->GetCurrentTimeSeconds();
+				float totalSec = controller->GetTotalTimeSeconds();
+
+				std::string timeText = FormatTime(currentSec) + " / " + FormatTime(totalSec);
+
+				// Playback progress bar + time
+				float progress = controller->GetPlaybackProgress();
+
+				float timeWidth = ImGui::CalcTextSize(timeText.c_str()).x + 8.0f;
+				ImVec2 barSize(ImGui::GetContentRegionAvail().x - timeWidth, 8.0f);
+
+				ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, defaultColor);
+
+				ImGui::ProgressBar(progress, barSize, "");
+
+				if (ImGui::IsItemHovered() && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+					ImVec2 min = ImGui::GetItemRectMin();
+					ImVec2 max = ImGui::GetItemRectMax();
+
+					float norm = (ImGui::GetMousePos().x - min.x) / (max.x - min.x);
+					norm = std::clamp(norm, 0.0f, 1.0f);
+
+					controller->SetPlaybackProgress(norm);
+				}
+
+				ImGui::SameLine();
+				ImGui::TextUnformatted(timeText.c_str());
+
+				ImGui::PopStyleColor(2);
 			}
 
 			ImGui::PopID();
@@ -234,6 +272,16 @@ private:
 		float z = radius * sin(elev);
 		return Common::CVector3(x, y, z);
 	}
+
+	std::string FormatTime(float seconds) {
+	int min = static_cast<int>(seconds) / 60;
+	int sec = static_cast<int>(seconds) % 60;
+
+	char buf[16];
+	snprintf(buf, sizeof(buf), "%02d:%02d", min, sec);
+	return std::string(buf);
+	}
+
 };
 
 #endif // _MENU_PANEL_HPP_
