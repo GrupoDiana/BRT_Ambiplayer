@@ -26,8 +26,8 @@ public:
 		menuPanel.onLSRotationChanged = [this](float yaw, float pitch, float roll) {
 			if (onLSRotationChanged) onLSRotationChanged(yaw, pitch, roll);
 		};
-		menuPanel.onIRotationChanged = [this](int c, float yaw, float pitch, float roll) {
-			if (onIRotationChanged) onIRotationChanged(c,yaw, pitch, roll);
+		menuPanel.onIRotationChanged = [this](CMenuPanel::ControllerPtr c,float yaw, float pitch, float roll) {
+			if (onIRotationChanged) onIRotationChanged(c, yaw, pitch, roll);
 		};
 		menuPanel.onLayoutChanged = [this](int layoutIndex) {
 			if (onLayoutChanged) onLayoutChanged(layoutIndex);
@@ -35,16 +35,30 @@ public:
 		menuPanel.onOrderChanged = [this](int orderIndex) {
 			if (onOrderChanged) onOrderChanged(orderIndex);
 		};
-		menuPanel.onControllerPlay = [this](int idx) {
-			if (onControllerPlay) onControllerPlay(idx);
-		};
-		menuPanel.onControllerStop = [this](int idx) {
-			if (onControllerStop) onControllerStop(idx);
-		};
-		menuPanel.onControllerMute = [this](int idx) {
-			if (onControllerMute) onControllerMute(idx);
+		// --- Controller specific ---
+		menuPanel.onControllerPlay = [this](CMenuPanel::ControllerPtr c) {
+			if (onControllerPlay) onControllerPlay(c);
 		};
 
+		menuPanel.onControllerStop = [this](CMenuPanel::ControllerPtr c) {
+			if (onControllerStop) onControllerStop(c);
+		};
+
+		menuPanel.onControllerMute = [this](CMenuPanel::ControllerPtr c) {
+			if (onControllerMute) onControllerMute(c);
+		};
+
+		menuPanel.onControllerSolo = [this](CMenuPanel::ControllerPtr c) {
+			if (onControllerSolo) onControllerSolo(c);
+		};
+
+		menuPanel.onControllerLoop = [this](CMenuPanel::ControllerPtr c) {
+			if (onControllerLoop) onControllerLoop(c);
+		};
+
+		menuPanel.onControllerRemove = [this](CMenuPanel::ControllerPtr c) {
+			if (onControllerRemove) onControllerRemove(c);
+		};
 	}
 
 	void setSpeakerController(const CLoudSpeakerArrayController * controller) {
@@ -92,6 +106,15 @@ public:
 		menuPanel.addController(c,filePathName);
 	}
 
+	void removeController(std::shared_ptr<CAmbisonicSoundFieldController> c) {
+		menuPanel.removeController(c);
+	}
+
+	void clearControllers() {
+		menuPanel.clearControllers();
+	}
+
+
 	// --- Callbacks ---
 	std::function<void()> onPlay;
 	std::function<void()> onStop;
@@ -99,14 +122,18 @@ public:
 	std::function<void(int numFrames, Common::CVector3 pos)> onCreateSource;
 	std::function<void(float, float, float)> onSFRotationChanged;
 	std::function<void(float, float, float)> onLSRotationChanged;
-	std::function<void(int, float, float, float)> onIRotationChanged;
 	std::function<void(int)> onLayoutChanged;
 	std::function<void(int)> onOrderChanged;
 
+	using ControllerPtr = std::shared_ptr<CAmbisonicSoundFieldController>;
 	std::function<void(std::shared_ptr<CAmbisonicSoundFieldController>)> onAddControllerButton;
-	std::function<void(int)> onControllerPlay;
-	std::function<void(int)> onControllerStop;
-	std::function<void(int)> onControllerMute;
+	std::function<void(ControllerPtr)> onControllerPlay;
+	std::function<void(ControllerPtr)> onControllerStop;
+	std::function<void(ControllerPtr)> onControllerMute;
+	std::function<void(ControllerPtr)> onControllerRemove;
+	std::function<void(ControllerPtr)> onControllerSolo;
+	std::function<void(ControllerPtr)> onControllerLoop;
+	std::function<void(ControllerPtr, float, float, float)> onIRotationChanged;
 
 private:
 	ofxImGui::Gui gui;

@@ -59,16 +59,18 @@ struct Rotation {
 
 class CAmbisonicSoundFieldController {
 public:
-	CAmbisonicSoundFieldController(): soundFieldController(), setupDone { false }, ordering { "" } { }
+	CAmbisonicSoundFieldController()
+		: soundFieldController()
+		, setupDone { false }
+		, ordering { "" } { }
 
-	void SetUp(size_t ambisonicOrder_, unsigned int sampleRate_, size_t blockSize_, std::string ordering_){
+	void SetUp(size_t ambisonicOrder_, unsigned int sampleRate_, size_t blockSize_, std::string ordering_) {
 		// Inicializa el controlador interno de campo ambisónico
 		soundFieldController.SetUp(ambisonicOrder_, sampleRate_, blockSize_);
 		ordering = ordering_;
 
 		setupDone = true;
 	}
-
 
 	// Returns a reference to the internal sound field controller
 	CAmbisonicSoundField & GetSoundFieldController() {
@@ -80,11 +82,11 @@ public:
 		return soundFieldController;
 	}
 
-	unsigned int & GetWavSamplePositionSource(){
+	unsigned int & GetWavSamplePositionSource() {
 		return wavSamplePositionSource;
 	}
 
-	unsigned int & GetPositionEndFrameSource(){
+	unsigned int & GetPositionEndFrameSource() {
 		return positionEndFrameSource;
 	}
 
@@ -134,7 +136,6 @@ public:
 			}
 
 			soundFieldController.FillChannel(ch, channelData);
-
 		}
 
 		if (ordering_ == "FuMa") {
@@ -150,10 +151,9 @@ public:
 		return true;
 	}
 
-	
 	// Save a sound field to a WAV file
 	//Prototype
-	 bool SaveToWav(const std::string & filePath) {
+	bool SaveToWav(const std::string & filePath) {
 		auto & in = soundFieldController.GetSoundFieldArray();
 		size_t numChannels = in.size();
 
@@ -282,7 +282,6 @@ public:
 		}
 
 		std::cout << "Generated white noise in Ambisonic field" << std::endl;
-
 	}
 
 	//el orden tiene que ir global
@@ -323,12 +322,12 @@ public:
 
 		CMonoBuffer<float> buffer(numFrames);
 		for (size_t i = 0; i < numFrames; ++i) {
-			buffer[i] = audioFile.sample(i,0);
+			buffer[i] = audioFile.sample(i, 0);
 		}
 
 		source->SetBuffer(buffer);
 
-		Common::CVector3 sourcePos=pos;
+		Common::CVector3 sourcePos = pos;
 		Common::CVector3 sourcePosNorm = Normalize(sourcePos);
 
 		EncodePuntualSourceToAmbisonic(*source, soundFieldController, sourcePosNorm);
@@ -338,12 +337,14 @@ public:
 		return true;
 	}
 
-	void Play() { isPlaying = true; }
+	void Play(bool m) { isPlaying = m; }
 	void Stop() { isPlaying = false; }
 	void Mute(bool m) { isMuted = m; }
+	void Solo(bool s) { isSolo = s; }
 
 	bool IsPlaying() const { return isPlaying; }
 	bool IsMuted() const { return isMuted; }
+	bool IsSolo() const { return isSolo; }
 
 	CAmbisonicSoundFieldController & operator+=(const CAmbisonicSoundFieldController & other) {
 		const auto & otherArray = other.soundFieldController.GetSoundFieldArray();
@@ -369,8 +370,9 @@ private:
 	unsigned int wavSamplePositionSource, positionEndFrameSource;
 	std::string filePathName;
 
-	bool isPlaying;
+	bool isPlaying=false;
 	bool isMuted=false;
+	bool isSolo = false;
 
 	Rotation rotation;
 

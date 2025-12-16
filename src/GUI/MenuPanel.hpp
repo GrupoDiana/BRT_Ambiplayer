@@ -1,11 +1,13 @@
 #ifndef _MENU_PANEL_HPP_
 #define _MENU_PANEL_HPP_
 
+#include "AmbisonicSoundFieldController.hpp"
 #include "imgui.h"
 #include "ofMain.h"
-#include "AmbisonicSoundFieldController.hpp"
-
+#include <algorithm>
 #include <functional>
+#include <memory>
+#include <vector>
 
 class CMenuPanel {
 public:
@@ -17,35 +19,23 @@ public:
 	void draw(float x, float y, float screenWidth, float screenHeight) {
 		ImGui::SetNextWindowPos(ImVec2(x + margen, y));
 		ImGui::SetNextWindowSize(ImVec2(screenWidth - 2 * margen, screenHeight - margen));
-		ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.15f, 0.15f, 0.15f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.05f, 0.05f, 0.05f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.20f, 0.20f, 0.20f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImVec4(0.22f, 0.22f, 0.22f, 1.0f));
 
 		ImGui::Begin("Ambisonic Controls", nullptr,
 			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysVerticalScrollbar);
 
-		// --- Play/Stop Buttons ---
-		if (ImGui::Button("PLAY")) {
-			if (onPlay) onPlay();
-		}
+		// --- Play/Stop/WAV/Source Buttons ---
+		if (ImGui::Button("PLAY") && onPlay) onPlay();
 		ImGui::SameLine();
-		if (ImGui::Button("STOP")) {
-			if (onStop) onStop();
-		}
+		if (ImGui::Button("STOP") && onStop) onStop();
 		ImGui::SameLine();
-		if (ImGui::Button("WAV")) {
-			if (onWAV) onWAV();
-		}
+		if (ImGui::Button("WAV") && onWAV) onWAV();
 		ImGui::SameLine();
-		if (ImGui::Button("Source")) {
-			showSourcePopup = true;
-		}
+		if (ImGui::Button("Source")) showSourcePopup = true;
 
 		ImGui::Separator();
 
 		// --- Order Combo ---
-		const char * order_items[] = { "1", "2", "3"};
+		const char * order_items[] = { "1", "2", "3" };
 		static int order_selected_idx = 0;
 
 		ImGui::Text("Order:");
@@ -63,16 +53,16 @@ public:
 
 		ImGui::Separator();
 
-		// --- Combo ---
-		const char * items[] = { "Octahedron", "Cube", "Icosahedron", "Dodecahedron" };
-		static int item_selected_idx = 0;
+		// --- Loudspeaker Layout Combo ---
+		const char * layout_items[] = { "Octahedron", "Cube", "Icosahedron", "Dodecahedron" };
+		static int layout_selected_idx = 0;
 
 		ImGui::Text("Loudspeaker Layout:");
-		if (ImGui::BeginCombo("##Layout", items[item_selected_idx])) {
-			for (int n = 0; n < IM_ARRAYSIZE(items); ++n) {
-				bool selected = (item_selected_idx == n);
-				if (ImGui::Selectable(items[n], selected)) {
-					item_selected_idx = n;
+		if (ImGui::BeginCombo("##Layout", layout_items[layout_selected_idx])) {
+			for (int n = 0; n < IM_ARRAYSIZE(layout_items); ++n) {
+				bool selected = (layout_selected_idx == n);
+				if (ImGui::Selectable(layout_items[n], selected)) {
+					layout_selected_idx = n;
 					if (onLayoutChanged) onLayoutChanged(n);
 				}
 				if (selected) ImGui::SetItemDefaultFocus();
@@ -80,99 +70,108 @@ public:
 			ImGui::EndCombo();
 		}
 
-		// --- Sliders Field Rotation ---
+		// --- Field Rotation Sliders ---
 		ImGui::Separator();
 		ImGui::Text("Field Rotation:");
-
 		bool SFchanged = false;
 		SFchanged |= ImGui::SliderAngle("Yaw##SF", &SFyawRad, -180, 180);
 		SFchanged |= ImGui::SliderAngle("Pitch##SF", &SFpitchRad, -180, 180);
 		SFchanged |= ImGui::SliderAngle("Roll##SF", &SFrollRad, -180, 180);
-
 		if (SFchanged && onSFRotationChanged)
 			onSFRotationChanged(SFyawRad, SFpitchRad, SFrollRad);
 
-		// --- Sliders Loudspeakers Rotation ---
+		// --- Loudspeaker Rotation Sliders ---
 		ImGui::Separator();
 		ImGui::Text("Loudspeakers Rotation:");
-
 		bool LSchanged = false;
 		LSchanged |= ImGui::SliderAngle("Yaw##LS", &LSyawRad, -180, 180);
 		LSchanged |= ImGui::SliderAngle("Pitch##LS", &LSpitchRad, -180, 180);
 		LSchanged |= ImGui::SliderAngle("Roll##LS", &LSrollRad, -180, 180);
-
 		if (LSchanged && onLSRotationChanged)
 			onLSRotationChanged(LSyawRad, LSpitchRad, LSrollRad);
 
-		// ----------------------------------------
+		// --- Loaded Controllers ---
 		ImGui::Separator();
 		ImGui::Text("Loaded Controllers:");
+		for (size_t i = 0; i < controllers.size(); ++i) {
+			ImGui::PushID(static_cast<int>(i));
+			ControllerPtr controller = controllers[i];
+			std::string headerTitle = controller->GetFilePathName();
 
-		for (int i = 0; i < controllers.size(); ++i) {
-			ImGui::PushID(i);
-
-			std::string headerTitle = controllers[i]->GetFilePathName();
 			if (ImGui::CollapsingHeader(headerTitle.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
 
-				if (ImGui::Button("Play"))
-					if (onControllerPlay) onControllerPlay(i);
-
+				if (controller->IsPlaying()) {
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(224.0f / 255.0f, 25.0f / 255.0f, 111.0f / 255.0f, 0.7f)); 
+				}
+				if (ImGui::Button("Play")) {
+					if (onControllerPlay) onControllerPlay(controller);
+				}
+				if (controller->IsPlaying()) ImGui::PopStyleColor();
 				ImGui::SameLine();
 
-				if (ImGui::Button("Stop"))
-					if (onControllerStop) onControllerStop(i);
-
+				if (ImGui::Button("Stop") && onControllerStop) onControllerStop(controller);
 				ImGui::SameLine();
 
-				if (ImGui::Button("Mute"))
-					if (onControllerMute) onControllerMute(i);
+				if (controller->IsMuted()) {
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(224.0f / 255.0f, 25.0f / 255.0f, 111.0f / 255.0f, 0.7f)); 
+				}
+				if (ImGui::Button("Mute")) {
+					if (onControllerMute) onControllerMute(controller);
+				}
+				if (controller->IsMuted()) ImGui::PopStyleColor();
+				ImGui::SameLine();
 
-				// Sliders para rotación
-				auto & rot = controllers[i]->GetRotation();
+				if (controller->IsSolo()) {
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(224.0f / 255.0f, 25.0f / 255.0f, 111.0f / 255.0f, 0.7f));
+				}
+				if (ImGui::Button("Solo")) {
+					if (onControllerSolo) onControllerSolo(controller);
+				}
+				if (controller->IsSolo()) ImGui::PopStyleColor();
+				ImGui::SameLine();
 
+				if (ImGui::Button("Loop") && onControllerLoop) onControllerLoop(controller);
+				ImGui::SameLine();
+
+				if (ImGui::Button("x") && onControllerRemove) {
+					onControllerRemove(controller);
+					ImGui::PopID();
+					break;
+				}
+
+				// Rotation sliders for controller
+				auto & rot = controller->GetRotation();
 				bool changed = false;
 				changed |= ImGui::SliderAngle("Yaw", &rot.yaw, -180, 180);
 				changed |= ImGui::SliderAngle("Pitch", &rot.pitch, -180, 180);
 				changed |= ImGui::SliderAngle("Roll", &rot.roll, -180, 180);
-
 				if (changed && onIRotationChanged)
-					onIRotationChanged(i, rot.yaw, rot.pitch, rot.roll);
+					onIRotationChanged(controller, rot.yaw, rot.pitch, rot.roll);
 			}
 
 			ImGui::PopID();
 		}
 
-
 		ImGui::End();
-		// ---- POPUP FOR SOURCE ----
-		
-		if (showSourcePopup) {
-			ImGui::OpenPopup("Create Puntual Source");
-		}
 
+		// --- Source Popup ---
+		if (showSourcePopup) ImGui::OpenPopup("Create Puntual Source");
 		if (ImGui::BeginPopupModal("Create Puntual Source", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-
-			static int numFrames = 48000; // valor por defecto
+			static int numFrames = 48000;
 			static int Azimuth = 0;
 			static int Elevation = 0;
 
 			ImGui::Text("Parameters of the source:");
-
 			ImGui::InputInt("Azimuth", &Azimuth);
 			ImGui::InputInt("Elevation", &Elevation);
-
 			ImGui::Separator();
 
-			if (ImGui::Button("Create")) {
-				if (onCreateSource)
-					onCreateSource(numFrames, SphericalToCartesian(Azimuth,Elevation));
-
+			if (ImGui::Button("Create") && onCreateSource) {
+				onCreateSource(numFrames, SphericalToCartesian(Azimuth, Elevation));
 				showSourcePopup = false;
 				ImGui::CloseCurrentPopup();
 			}
-
 			ImGui::SameLine();
-
 			if (ImGui::Button("Cancel")) {
 				showSourcePopup = false;
 				ImGui::CloseCurrentPopup();
@@ -181,52 +180,60 @@ public:
 			ImGui::EndPopup();
 		}
 
-
 		ImGui::PopStyleColor(5);
 	}
 
-	void addController(std::shared_ptr<CAmbisonicSoundFieldController> c, std::string filePathName_) {
+	void addController(std::shared_ptr<CAmbisonicSoundFieldController> c, const std::string & filePathName) {
 		controllers.push_back(c);
-		controllers[controllers.size()-1]->GetFilePathName() = filePathName_;
+		controllers.back()->GetFilePathName() = filePathName;
 	}
+
+	void removeController(std::shared_ptr<CAmbisonicSoundFieldController> c) {
+		controllers.erase(std::remove(controllers.begin(), controllers.end(), c), controllers.end());
+	}
+
+	void clearControllers() {
+		controllers.clear();
+	}
+
 
 	// --- Callbacks ---
 	std::function<void()> onPlay;
 	std::function<void()> onStop;
 	std::function<void()> onWAV;
-	std::function<void(size_t numFrames, Common::CVector3 pos)> onCreateSource;
+	std::function<void(size_t, Common::CVector3)> onCreateSource;
 	std::function<void(float, float, float)> onSFRotationChanged;
 	std::function<void(float, float, float)> onLSRotationChanged;
-	std::function<void(int,float, float, float)> onIRotationChanged;
 	std::function<void(int)> onLayoutChanged;
 	std::function<void(int)> onOrderChanged;
 
-	// ---Controller specific callbacks ---
-	std::function<void(int)> onControllerPlay;
-	std::function<void(int)> onControllerStop;
-	std::function<void(int)> onControllerMute;
+	// --- Controller-specific callbacks ---
+	using ControllerPtr = std::shared_ptr<CAmbisonicSoundFieldController>;
+	std::function<void(ControllerPtr)> onControllerPlay;
+	std::function<void(ControllerPtr)> onControllerStop;
+	std::function<void(ControllerPtr)> onControllerMute;
+	std::function<void(ControllerPtr)> onControllerRemove;
+	std::function<void(ControllerPtr)> onControllerSolo;
+	std::function<void(ControllerPtr)> onControllerLoop;
+	std::function<void(ControllerPtr, float, float, float)> onIRotationChanged;
 
 private:
 	float SFyawRad, SFpitchRad, SFrollRad;
 	float LSyawRad, LSpitchRad, LSrollRad;
-
 	int layoutIndex;
 	int margen = 10;
 
 	std::vector<std::shared_ptr<CAmbisonicSoundFieldController>> controllers;
-
 	bool showSourcePopup = false;
 
 	Common::CVector3 SphericalToCartesian(float azimuthDeg, float elevationDeg, float radius = 1.0f) {
-		float azim = ofDegToRad(azimuthDeg); 
-		float elev = ofDegToRad(elevationDeg); 
-
+		float azim = ofDegToRad(azimuthDeg);
+		float elev = ofDegToRad(elevationDeg);
 		float x = radius * cos(elev) * cos(azim);
 		float y = radius * cos(elev) * sin(azim);
 		float z = radius * sin(elev);
-
 		return Common::CVector3(x, y, z);
 	}
 };
 
-#endif
+#endif // _MENU_PANEL_HPP_

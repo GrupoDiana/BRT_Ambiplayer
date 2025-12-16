@@ -2,203 +2,233 @@
 
 //--------------------------------------------------------------
 void ofApp::setup() {
-
 	/// AUDIO setup
 	AudioSetup();
 
-	/// BRT Global Parametert setup
-	globalParameters.SetSampleRate(SAMPLERATE); // Setting sample rate
-	globalParameters.SetBufferSize(BUFFERSIZE); // Setting buffer size
+	/// BRT Global Parameters setup
+	globalParameters.SetSampleRate(SAMPLERATE);
+	globalParameters.SetBufferSize(BUFFERSIZE);
 
-	// //////////////////////////
-	// // Listener Setup
-	// //////////////////////////
+	////////////////////////////
+	// Listener Setup
+	////////////////////////////
 	brtManager.BeginSetup();
 	listener = brtManager.CreateListener<BRTBase::CListener>(LISTENER_ID);
 	brtManager.EndSetup();
-	Common::CTransform listenerPosition = Common::CTransform(); // Setting listener in (0,0,0)
+
+	Common::CTransform listenerPosition;
 	listenerPosition.SetPosition(Common::CVector3(0.0f, 0.0f, 0.0f));
 	listener->SetListenerTransform(listenerPosition);
 
-	/////////////////////////////////////
-	// Create and connnect BRT modules
-	/////////////////////////////////////
+	////////////////////////////
+	// Create and connect BRT modules
+	////////////////////////////
 	configurationA.Setup(&brtManager, LISTENER_ID);
 	configurationA.LoadResources(&brtManager, LISTENER_ID);
 
-	/////////////////////
-	// Create Sources
-	/////////////////////
-	/* int solid;
-	std::cout << "Please choose the platonic solid: "<<endl;
-	std::cout << "0: Octahedron" << endl;
-	std::cout << "1: Cube" << endl;
-	std::cout << "2: Icosahedron" << endl;
-	std::cout << "3: Dodecahedron" << endl;
-	std::cin >> solid;*/
+	////////////////////////////
+	// Speaker Array Setup
+	////////////////////////////
 	speakerArrayController = CLoudSpeakerArrayController();
 	speakerArrayController.SetUp(brtManager, static_cast<PlatonicSolid>(0));
 
 	for (int i = 0; i < speakerArrayController.GetNumSpeakers(); i++) {
-		configurationA.ConnectSoundSource(&brtManager, "Speaker" + std::to_string(i));
+		configurationA.ConnectSoundSource(
+			&brtManager,
+			"Speaker" + std::to_string(i));
 	}
+
 	for (auto & sp : speakerArrayController.GetSpeakers()) {
-		originalPositions.push_back(sp->GetSourceTransform().GetPosition());
+		originalPositions.push_back(
+			sp->GetSourceTransform().GetPosition());
 	}
 
-	
-	// /////////////////////
-	// Load Wav Files
-	/////////////////////
-	//ambisonicSoundFieldController->LoadWav(SOURCE_FILEPATH, "ACN");
-	//ambisonicSoundFieldController->GenerateSyntheticYField(48000 * 10); // 10 seconds
-	//ambisonicSoundFieldController->GeneratePuntualSourceField(48000 * 10); // 10 seconds
-
+	////////////////////////////
+	// Create Ambisonic Buffers
+	////////////////////////////
 	SFbuffer = std::make_shared<CAmbisonicSoundField>();
 	SFbuffer->SetUp(order, 48000, BUFFERSIZE);
+
 	OutBuffer = std::make_shared<CAmbisonicSoundField>();
 	OutBuffer->SetUp(order, 48000, BUFFERSIZE);
+
 	audioBufferCopy = std::make_shared<CAmbisonicSoundField>();
 	audioBufferCopy->SetUp(order, 48000, BUFFERSIZE);
 
-	/////////////////////
-	// Start AUDIO Render
-	/////////////////////
-	// Declaration and initialization of stereo buffer
+	////////////////////////////
+	// Stereo output buffer
+	////////////////////////////
 	outputBufferStereo.left.resize(BUFFERSIZE);
 	outputBufferStereo.right.resize(BUFFERSIZE);
 
-	// Setup GUI callbacks
+	////////////////////////////
+	// GUI Callbacks
+	////////////////////////////
 	guiManager.onPlay = [this]() {
 		ofLog() << "Play button pressed!";
-		// Starting the stream
 		soundStream.start();
 	};
-	
+
 	guiManager.onStop = [this]() {
-		// Stopping and closing the stream
 		soundStream.stop();
-		//soundStream.close();
 	};
 
 	guiManager.onWAV = [this]() {
-		soundStream.stop();
-
 		ofFileDialogResult result = ofSystemLoadDialog("Select a WAV file", false);
 
-		if (result.bSuccess) {
-			std::string filePath = result.getPath();
-			auto controller = std::make_shared<CAmbisonicSoundFieldController>();
-			controller->SetUp(order, 48000, BUFFERSIZE, "ACN");
-
-			if (controller->LoadWav(filePath.c_str(), "ACN", order)) {
-				ambisonicSoundFieldControllers.push_back(controller);
-				ambisonicSoundFieldControllers[ambisonicSoundFieldControllers.size() - 1]->GetWavSamplePositionSource()=0;
-				guiManager.addController(controller, controller->GetFilePathName());
-			} else {
-				ofLog() << "Failed to load WAV, controller not created";
-			}
-		} else {
+		if (!result.bSuccess) {
 			ofLog() << "No file selected";
+			return;
+		}
+
+		auto controller = std::make_shared<CAmbisonicSoundFieldController>();
+
+		controller->SetUp(order, 48000, BUFFERSIZE, "ACN");
+
+		if (controller->LoadWav(result.getPath().c_str(), "FuMa", order)) {
+			controller->GetWavSamplePositionSource() = 0;
+			ambisonicSoundFieldControllers.push_back(controller);
+			guiManager.addController(controller,
+				controller->GetFilePathName());
+		} else {
+			ofLog() << "Failed to load WAV";
 		}
 	};
 
-	guiManager.onCreateSource = [this](int numFrames, Common::CVector3 pos) {
-		ofFileDialogResult result = ofSystemLoadDialog("Select a WAV file", false);
+	guiManager.onCreateSource =
+		[this](int numFrames, Common::CVector3 pos) {
+			ofFileDialogResult result = ofSystemLoadDialog("Select a WAV file", false);
 
-		if (result.bSuccess) {
-			std::string filePath = result.getPath();
+			if (!result.bSuccess) {
+				ofLog() << "No file selected";
+				return;
+			}
+
 			auto controller = std::make_shared<CAmbisonicSoundFieldController>();
+
 			controller->SetUp(order, 48000, BUFFERSIZE, "ACN");
 
-			if (controller->GeneratePuntualSourceField(order, filePath.c_str(), pos)) {
+			if (controller->GeneratePuntualSourceField(
+					order, result.getPath().c_str(), pos)) {
+				controller->GetWavSamplePositionSource() = 0;
 				ambisonicSoundFieldControllers.push_back(controller);
-				ambisonicSoundFieldControllers[ambisonicSoundFieldControllers.size() - 1]->GetWavSamplePositionSource() = 0;
-				guiManager.addController(controller, controller->GetFilePathName());
-			} else {
-				ofLog() << "Failed to load WAV, controller not created";
+				guiManager.addController(controller,
+					controller->GetFilePathName());
 			}
-		} else {
-			ofLog() << "No file selected";
-		}
-	};
+		};
 
-	guiManager.onControllerPlay = [&](int idx) {
-		if (idx < 0 || idx >= ambisonicSoundFieldControllers.size()) return;
-		
-		auto & c = ambisonicSoundFieldControllers[idx];
-		if (c) {
-			c->Play();
+	guiManager.onControllerPlay =
+		[this](CMenuPanel::ControllerPtr c) {
+			if (!c) return;
+			c->Play(!c->IsPlaying());
+		};
+
+	guiManager.onControllerStop =
+		[this](CMenuPanel::ControllerPtr c) {
+			if (!c) return;
+			c->Play(false);
+			c->GetWavSamplePositionSource() = 0;
+		};
+
+	guiManager.onControllerMute =
+		[this](CMenuPanel::ControllerPtr c) {
+			if (c) c->Mute(!c->IsMuted());
+		};
+
+	guiManager.onControllerSolo =
+		[this](CMenuPanel::ControllerPtr c) {
+			if (!c) return;
+
+			bool enableSolo = !c->IsSolo();
+
+			for (auto & ctrl : ambisonicSoundFieldControllers) {
+				ctrl->Solo(false);
+				ctrl->Mute(false); 
+			}
+
+			if (enableSolo) {
+				c->Solo(true);
+
+				for (auto & ctrl : ambisonicSoundFieldControllers) {
+					if (ctrl != c)
+						ctrl->Mute(true);
+				}
+			}
+		};
+
+
+	guiManager.onControllerRemove =
+		[this](CMenuPanel::ControllerPtr c) {
+			if (!c) return;
+			guiManager.removeController(c);
+			ambisonicSoundFieldControllers.erase(
+				std::remove(ambisonicSoundFieldControllers.begin(),
+					ambisonicSoundFieldControllers.end(), c),
+				ambisonicSoundFieldControllers.end());
+		};
+
+	guiManager.onIRotationChanged =
+		[this](CMenuPanel::ControllerPtr c,
+			float yaw, float pitch, float roll) {
+			if (!c) return;
+			c->GetQ() = Common::CQuaternion::FromYawPitchRoll(yaw, pitch, roll);
+		};
+
+	guiManager.onSFRotationChanged =
+		[this](float yaw, float pitch, float roll) {
+			qRotation = Common::CQuaternion::FromYawPitchRoll(yaw, pitch, roll);
+		};
+
+	guiManager.onLSRotationChanged =
+		[this](float yaw, float pitch, float roll) {
+			qLoudSpeakers = Common::CQuaternion::FromYawPitchRoll(yaw, pitch, roll);
+
+			for (size_t i = 0;
+				i < speakerArrayController.GetNumSpeakers(); ++i) {
+				Common::CVector3 rotatedPos = qLoudSpeakers.RotationMatrix() * originalPositions[i];
+
+				speakerArrayController.GetSpeaker(i)
+					->SetSourceTransform(Common::CTransform(rotatedPos));
+			}
+		};
+
+	guiManager.onLayoutChanged =
+		[this](int layoutIndex) {
+			speakerArrayController.UpdateSpeakerLayout(brtManager,static_cast<PlatonicSolid>(layoutIndex));
+
+			originalPositions.clear();
+
+			for (int i = 0;i < speakerArrayController.GetNumSpeakers(); i++) {
+				configurationA.ConnectSoundSource(&brtManager,"Speaker" + std::to_string(i));
+
+				originalPositions.push_back(speakerArrayController.GetSpeaker(i)->GetSourceTransform().GetPosition());
+			}
+		};
+
+	guiManager.onOrderChanged =
+		[this](int orderIndex) {
+			soundStream.stop();
+
+			order = orderIndex + 1;
+
+			SFbuffer->SetOrder(order);
+			OutBuffer->SetOrder(order);
+
+			guiManager.clearControllers();
+			ambisonicSoundFieldControllers.clear();
+
 			soundStream.start();
-		}
-	};
+		};
 
-	guiManager.onControllerStop = [&](int idx) {
-		if (idx < 0 || idx >= ambisonicSoundFieldControllers.size()) return;
-		auto & c = ambisonicSoundFieldControllers[idx];
-		if (c) {
-			c->Stop();
-		}
-	};
 
-	guiManager.onControllerMute = [&](int idx) {
-		if (idx < 0 || idx >= ambisonicSoundFieldControllers.size()) return;
-		auto & c = ambisonicSoundFieldControllers[idx];
-		cout << "Mute" << endl;
-		if (c) {
-			c->Mute(!c->IsMuted());
-		}
-	};
-
-	guiManager.onIRotationChanged = [this](int idx, float yaw, float pitch, float roll) {
-		if (idx < 0 || idx >= ambisonicSoundFieldControllers.size()) return;
-		auto & c = ambisonicSoundFieldControllers[idx];
-	
-		c->GetQ() = Common::CQuaternion::FromYawPitchRoll(yaw, pitch, roll);
-	};
-
-	guiManager.onSFRotationChanged = [this](float yaw, float pitch, float roll) {
-		SFyawRad = yaw;
-		SFpitchRad = pitch;
-		SFrollRad = roll;
-
-		qRotation = Common::CQuaternion::FromYawPitchRoll(SFyawRad, SFpitchRad, SFrollRad);
-	};
-
-	guiManager.onLSRotationChanged = [this](float yaw, float pitch, float roll) {
-		LSyawRad = yaw;
-		LSpitchRad = pitch;
-		LSrollRad = roll;
-
-		qLoudSpeakers = Common::CQuaternion::FromYawPitchRoll(LSyawRad, LSpitchRad, LSrollRad);
-		for (size_t i = 0; i < speakerArrayController.GetNumSpeakers(); ++i) {
-			Common::CVector3 rotatedPos = qLoudSpeakers.RotationMatrix() * originalPositions[i];
-			speakerArrayController.GetSpeaker(i)->SetSourceTransform(Common::CTransform(rotatedPos));
-		}
-	};
-
-	guiManager.onLayoutChanged = [this](int layoutIndex) {
-		speakerArrayController.UpdateSpeakerLayout(brtManager, static_cast<PlatonicSolid>(layoutIndex));
-		originalPositions.clear();
-		for (int i = 0; i < speakerArrayController.GetNumSpeakers(); i++) {
-			configurationA.ConnectSoundSource(&brtManager, "Speaker" + std::to_string(i));
-			originalPositions.push_back(speakerArrayController.GetSpeaker(i)->GetSourceTransform().GetPosition());
-		}
-	};
-
-	guiManager.onOrderChanged = [this](int orderIndex) {
-		order = orderIndex + 1;
-		OutBuffer->SetOrder(order);
-		SFbuffer->SetOrder(order);
-	};
 
 	guiManager.setSpeakerController(&speakerArrayController);
-	
+
+	soundStream.start();
 }
 
 //--------------------------------------------------------------
-void ofApp::update() {
-}
+void ofApp::update() { }
 
 //--------------------------------------------------------------
 void ofApp::draw() {
@@ -209,6 +239,7 @@ void ofApp::draw() {
 	}
 	guiManager.draw(energiesCopy, speakerEnergies);
 }
+
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {

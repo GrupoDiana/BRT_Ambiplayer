@@ -86,8 +86,11 @@ public:
 
 	void SetOrder(int order) {
 		if (!setupDone) return;
-		ambisonicOrder=order;
+		ambisonicOrder = order;
+		int calculatedChannels = pow(ambisonicOrder + 1, 2);
+		soundFieldArray.resize(calculatedChannels, CMonoBuffer<float>(bufferSize, 0.0f));
 	}
+
 
 	int GetBufferSize() const {
 		if (!setupDone) return -1;
@@ -100,20 +103,27 @@ public:
 	}
 
 	std::vector<CMonoBuffer<float>> & CAmbisonicSoundField::GetSoundFieldArrayRotate() {
-		if (!setupDone)
-			return soundFieldArray; 
+		if (!setupDone || soundFieldArray.empty())
+			return soundFieldArray;
 
 		size_t numChannels = soundFieldArray.size();
+
 		std::vector<CMonoBuffer<float>> buffer(numChannels, CMonoBuffer<float>(bufferSize, 0.0f));
-		buffer[0] = soundFieldArray[0];
-		RotateFieldRecursive(1, soundFieldArray, buffer, 1);
+
+		if (!soundFieldArray.empty()) {
+			buffer[0] = soundFieldArray[0]; 
+		}
+
+		if (numChannels > 1) {
+			RotateFieldRecursive(1, soundFieldArray, buffer, 1);
+		}
 
 		soundFieldArray = buffer;
-
 		ambisonicRotationMatrices.clear();
 
 		return soundFieldArray;
 	}
+
 
 	const std::vector<CMonoBuffer<float>> & GetSoundFieldArray() const {
 		if (!setupDone) return std::vector<CMonoBuffer<float>>();
