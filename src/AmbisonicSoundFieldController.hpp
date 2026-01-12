@@ -337,13 +337,7 @@ public:
 		return true;
 	}
 
-	void Play(bool m) {
-		if (m && !isPlaying) {
-			wavSamplePositionSource = 0;
-		}
-		isPlaying = m;
-	}
-
+	void Play(bool m) { isPlaying = m; }
 	void Stop() { isPlaying = false; }
 	void Mute(bool m) { isMuted = m; }
 	void Solo(bool m) { isSolo = m; }

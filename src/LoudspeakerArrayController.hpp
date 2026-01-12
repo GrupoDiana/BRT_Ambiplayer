@@ -72,7 +72,7 @@ enum PlatonicSolid {
 
 class CLoudSpeakerArrayController {
 public:
-	CLoudSpeakerArrayController() { }
+	CLoudSpeakerArrayController(): setupDone(false) { }
 
 	void SetUp(BRTBase::CBRTManager & brtManager, PlatonicSolid solid) {
 		std::vector<Common::CVector3> vertices;
@@ -169,21 +169,26 @@ public:
 		size_t newNum = vertices.size();
 		size_t currentNum = speakers.size();
 
+		brtManager.BeginSetup();
+		
+		
 		for (size_t i = currentNum; i < newNum; ++i) {
-			auto sp = CreateOmnidirectionalSoundSource(brtManager, "Speaker" + std::to_string(i));
-			speakers.push_back(sp);
+			auto _brtSoundSource = brtManager.CreateSoundSource<BRTSourceModel::CSourceOmnidirectionalModel>("Speaker" + std::to_string(i));
+			speakers.push_back(_brtSoundSource);
 		}
+		
 
 		for (size_t i = currentNum; i > newNum; --i) {
 			brtManager.RemoveSoundSource("Speaker" + std::to_string(i - 1));
 			speakers.pop_back();
 		}
 
+		brtManager.EndSetup();
+
 		for (size_t i = 0; i < newNum; ++i) {
 			speakers[i]->SetSourceTransform(Common::CTransform(vertices[i]));
 		}
 
-		setupDone = true;
 	}
 
 

@@ -74,7 +74,7 @@ public:
 
 		logo.draw(0, 0, screenWidth, screenHeight/5);
 
-		if (screenWidth > 1024) {
+		if (screenWidth > 1023) {
 			menuPanel.draw(0, screenHeight / 5, width_menu, screenHeight - screenHeight / 5);
 
 			lobeYZ.draw(energies, width_menu, screenHeight / 5, (screenWidth - width_menu) / 2, (screenHeight - screenHeight / 5) / 2, ZY);
@@ -143,7 +143,7 @@ private:
 	CProjection lobeXY, lobeYZ, lobeZX;
 	CLoudspeakers loudspeakers;
 
-	int width_menu = 256;
+	int width_menu = 300;
 
 };
 

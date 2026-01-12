@@ -31,17 +31,14 @@ void ofApp::setup() {
 	////////////////////////////
 	speakerArrayController = CLoudSpeakerArrayController();
 	speakerArrayController.SetUp(brtManager, static_cast<PlatonicSolid>(0));
+	//speakerArrayController.UpdateSpeakerLayout(brtManager, static_cast<PlatonicSolid>(0));
+	originalPositions.clear();
 
 	for (int i = 0; i < speakerArrayController.GetNumSpeakers(); i++) {
-		configurationA.ConnectSoundSource(
-			&brtManager,
-			"Speaker" + std::to_string(i));
+		configurationA.ConnectSoundSource(&brtManager,"Speaker" + std::to_string(i));
+		originalPositions.push_back(speakerArrayController.GetSpeaker(i)->GetSourceTransform().GetPosition());
 	}
 
-	for (auto & sp : speakerArrayController.GetSpeakers()) {
-		originalPositions.push_back(
-			sp->GetSourceTransform().GetPosition());
-	}
 
 	////////////////////////////
 	// Create Ambisonic Buffers
@@ -85,7 +82,7 @@ void ofApp::setup() {
 
 		controller->SetUp(order, 48000, BUFFERSIZE, "ACN");
 
-		if (controller->LoadWav(result.getPath().c_str(), "FuMa", order)) {
+		if (controller->LoadWav(result.getPath().c_str(), "ACN", order)) {
 			controller->GetWavSamplePositionSource() = 0;
 			ambisonicSoundFieldControllers.push_back(controller);
 			guiManager.addController(controller,
@@ -192,8 +189,7 @@ void ofApp::setup() {
 				i < speakerArrayController.GetNumSpeakers(); ++i) {
 				Common::CVector3 rotatedPos = qLoudSpeakers.RotationMatrix() * originalPositions[i];
 
-				speakerArrayController.GetSpeaker(i)
-					->SetSourceTransform(Common::CTransform(rotatedPos));
+				speakerArrayController.GetSpeaker(i)->SetSourceTransform(Common::CTransform(rotatedPos));
 			}
 		};
 
@@ -393,8 +389,8 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 	}
 
 
-	std::lock_guard<std::mutex> lock(energiesMutex);
-	directionalEnergies = speakerArrayController.ComputeDirectionalEnergyMap(*SFbuffer, numAz, numEl);
+	//std::lock_guard<std::mutex> lock(energiesMutex);
+	//directionalEnergies = speakerArrayController.ComputeDirectionalEnergyMap(*SFbuffer, numAz, numEl);
 
 
 	Common::CEarPair<CMonoBuffer<float>> bufferProcessed;
