@@ -69,7 +69,6 @@ public:
 		std::shared_ptr<BRTListenerModel::CListenerModelBase> listenerModel = brtManager->GetListenerModel<BRTListenerModel::CListenerModelBase>(LISTENER_HRTF_MODEL_ID);
 		if (listenerModel != nullptr) {
 			bool control = listenerModel->DisconnectSoundSource(_soundSourceID);
-			cout << "Fuente desconectada" << endl;
 		}
 	}
 

@@ -16,7 +16,9 @@ public:
 
 		menuPanel.onPlay = [this]() { if (onPlay) onPlay(); };
 		menuPanel.onStop = [this]() { if (onStop) onStop(); };
-		menuPanel.onWAV = [this]() { if (onWAV) onWAV(); };
+		menuPanel.onWAV = [this](string ordering) {
+			if (onWAV) onWAV(ordering);
+		};
 		menuPanel.onCreateSource = [this](int frames, Common::CVector3 pos) {
 			if (onCreateSource) onCreateSource(frames, pos);
 		};
@@ -118,7 +120,7 @@ public:
 	// --- Callbacks ---
 	std::function<void()> onPlay;
 	std::function<void()> onStop;
-	std::function<void()> onWAV;
+	std::function<void(string ordering)> onWAV;
 	std::function<void(int numFrames, Common::CVector3 pos)> onCreateSource;
 	std::function<void(float, float, float)> onSFRotationChanged;
 	std::function<void(float, float, float)> onLSRotationChanged;

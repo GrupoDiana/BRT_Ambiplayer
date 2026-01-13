@@ -71,7 +71,7 @@ void ofApp::setup() {
 		soundStream.stop();
 	};
 
-	guiManager.onWAV = [this]() {
+	guiManager.onWAV = [this](string ordering) {
 		ofFileDialogResult result = ofSystemLoadDialog("Select a WAV file", false);
 
 		if (!result.bSuccess) {
@@ -81,9 +81,9 @@ void ofApp::setup() {
 
 		auto controller = std::make_shared<CAmbisonicSoundFieldController>();
 
-		controller->SetUp(order, 48000, BUFFERSIZE, "ACN");
+		controller->SetUp(order, 48000, BUFFERSIZE, ordering);
 
-		if (controller->LoadWav(result.getPath().c_str(), "ACN", order)) {
+		if (controller->LoadWav(result.getPath().c_str(), ordering, order)) {
 			controller->GetWavSamplePositionSource() = 0;
 			ambisonicSoundFieldControllers.push_back(controller);
 			guiManager.addController(controller,

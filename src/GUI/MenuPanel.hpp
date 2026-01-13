@@ -29,7 +29,7 @@ public:
 		ImGui::SameLine();
 		if (ImGui::Button("STOP") && onStop) onStop();
 		ImGui::SameLine();
-		if (ImGui::Button("WAV") && onWAV) onWAV();
+		if (ImGui::Button("WAV")) showWAVPopup = true;
 		ImGui::SameLine();
 		if (ImGui::Button("Source")) showSourcePopup = true;
 
@@ -192,6 +192,54 @@ public:
 
 		ImGui::End();
 
+		// --- WAV Popup ---
+		const char * ordering_items[] = { "ACN", "FuMa" };
+		static int ordering_selected_idx = 0;
+
+		if (showWAVPopup) ImGui::OpenPopup("Create Ambisonic Soundfield");
+		if (ImGui::BeginPopupModal("Create Ambisonic Soundfield", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+			static int numFrames = 48000;
+			static string ordering = "";
+
+			ImGui::Text("Parameters of the soundfield:");
+			ImGui::Text("Ordering:");
+			if (ImGui::BeginCombo("##Ordering", ordering_items[ordering_selected_idx])) {
+				for (int n = 0; n < IM_ARRAYSIZE(ordering_items); ++n) {
+					bool selected = (ordering_selected_idx == n);
+					if (ImGui::Selectable(ordering_items[n], selected)) {
+						ordering_selected_idx = n; // actualizar índice
+					}
+					if (selected) ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+
+			// Determinar la cadena según el índice
+			switch (ordering_selected_idx) {
+			case 0:
+				ordering = "ACN";
+				break;
+			case 1:
+				ordering = "FuMa";
+				break;
+			}
+
+			// Llamar onWAV solo al presionar "Create"
+			if (ImGui::Button("Create") && onWAV) {
+				onWAV(ordering);
+				showWAVPopup = false;
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel")) {
+				showWAVPopup = false;
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
+		}
+
 		// --- Source Popup ---
 		if (showSourcePopup) ImGui::OpenPopup("Create Puntual Source");
 		if (ImGui::BeginPopupModal("Create Puntual Source", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -238,7 +286,7 @@ public:
 	// --- Callbacks ---
 	std::function<void()> onPlay;
 	std::function<void()> onStop;
-	std::function<void()> onWAV;
+	std::function<void(string)> onWAV;
 	std::function<void(size_t, Common::CVector3)> onCreateSource;
 	std::function<void(float, float, float)> onSFRotationChanged;
 	std::function<void(float, float, float)> onLSRotationChanged;
@@ -262,7 +310,7 @@ private:
 	int margen = 10;
 
 	std::vector<std::shared_ptr<CAmbisonicSoundFieldController>> controllers;
-	bool showSourcePopup = false;
+	bool showSourcePopup = false, showWAVPopup = false;
 
 	Common::CVector3 SphericalToCartesian(float azimuthDeg, float elevationDeg, float radius = 1.0f) {
 		float azim = ofDegToRad(azimuthDeg);

@@ -119,7 +119,7 @@ public:
 			return false;
 		}
 
-		filePathName = std::filesystem::path(filePath).filename().string();
+		filePathName = std::filesystem::path(filePath).filename().string() + "-" + ordering_;
 
 		soundFieldController.GetSoundFieldArray().resize(numChannels);
 		soundFieldController.SetOrder(static_cast<int>(sqrt(numChannels)) - 1);
@@ -147,7 +147,7 @@ public:
 				  << " | Channels: " << numChannels
 				  << " | Frames: " << numFrames
 				  << " | SampleRate: " << fileSampleRate
-				  << " | Ordering: " << ordering << std::endl;
+				  << " | Ordering: " << ordering_ << std::endl;
 		return true;
 	}
 
