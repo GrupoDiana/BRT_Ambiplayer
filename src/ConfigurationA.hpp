@@ -61,11 +61,17 @@ public:
     void ConnectSoundSource(BRTBase::CBRTManager* brtManager, const std::string& _soundSourceID) {
         std::shared_ptr<BRTListenerModel::CListenerModelBase> listenerModel = brtManager->GetListenerModel<BRTListenerModel::CListenerModelBase>(LISTENER_HRTF_MODEL_ID);
         if (listenerModel != nullptr) {
-            brtManager->BeginSetup();
             bool control = listenerModel->ConnectSoundSource(_soundSourceID);
-            brtManager->EndSetup();
         }
     }
+
+	void DisconnectSoundSource(BRTBase::CBRTManager * brtManager, const std::string & _soundSourceID) {
+		std::shared_ptr<BRTListenerModel::CListenerModelBase> listenerModel = brtManager->GetListenerModel<BRTListenerModel::CListenerModelBase>(LISTENER_HRTF_MODEL_ID);
+		if (listenerModel != nullptr) {
+			bool control = listenerModel->DisconnectSoundSource(_soundSourceID);
+			cout << "Fuente desconectada" << endl;
+		}
+	}
 
 private:
 

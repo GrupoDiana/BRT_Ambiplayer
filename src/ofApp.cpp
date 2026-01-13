@@ -31,11 +31,12 @@ void ofApp::setup() {
 	////////////////////////////
 	speakerArrayController = CLoudSpeakerArrayController();
 	speakerArrayController.SetUp(brtManager, static_cast<PlatonicSolid>(0));
-	//speakerArrayController.UpdateSpeakerLayout(brtManager, static_cast<PlatonicSolid>(0));
 	originalPositions.clear();
 
 	for (int i = 0; i < speakerArrayController.GetNumSpeakers(); i++) {
+		brtManager.BeginSetup();
 		configurationA.ConnectSoundSource(&brtManager,"Speaker" + std::to_string(i));
+		brtManager.EndSetup();
 		originalPositions.push_back(speakerArrayController.GetSpeaker(i)->GetSourceTransform().GetPosition());
 	}
 
@@ -195,13 +196,11 @@ void ofApp::setup() {
 
 	guiManager.onLayoutChanged =
 		[this](int layoutIndex) {
-			speakerArrayController.UpdateSpeakerLayout(brtManager,static_cast<PlatonicSolid>(layoutIndex));
+			speakerArrayController.UpdateSpeakerLayout(brtManager,static_cast<PlatonicSolid>(layoutIndex),  configurationA);
 
 			originalPositions.clear();
 
 			for (int i = 0;i < speakerArrayController.GetNumSpeakers(); i++) {
-				configurationA.ConnectSoundSource(&brtManager,"Speaker" + std::to_string(i));
-
 				originalPositions.push_back(speakerArrayController.GetSpeaker(i)->GetSourceTransform().GetPosition());
 			}
 		};

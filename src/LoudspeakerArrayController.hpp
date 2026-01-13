@@ -54,6 +54,7 @@
 #include "AmbisonicSoundField.hpp"
 #include "ofxAudioFile.h"
 #include "ofxBRTLibrary.h"
+#include "ConfigurationA.hpp"
 
 #include <cmath>
 #include <iostream>
@@ -134,7 +135,7 @@ public:
 		setupDone = true;
 	}
 
-	void UpdateSpeakerLayout(BRTBase::CBRTManager & brtManager, PlatonicSolid solid) {
+	void UpdateSpeakerLayout(BRTBase::CBRTManager & brtManager, PlatonicSolid solid, CConfigurationA & ConfigurationA) {
 		// --- Generar los vértices del nuevo sólido ---
 		std::vector<Common::CVector3> vertices;
 		switch (solid) {
@@ -174,11 +175,13 @@ public:
 		
 		for (size_t i = currentNum; i < newNum; ++i) {
 			auto _brtSoundSource = brtManager.CreateSoundSource<BRTSourceModel::CSourceOmnidirectionalModel>("Speaker" + std::to_string(i));
+			ConfigurationA.ConnectSoundSource(&brtManager, "Speaker" + std::to_string(i));
 			speakers.push_back(_brtSoundSource);
 		}
 		
 
 		for (size_t i = currentNum; i > newNum; --i) {
+			ConfigurationA.DisconnectSoundSource(&brtManager, "Speaker" + std::to_string(i - 1));
 			brtManager.RemoveSoundSource("Speaker" + std::to_string(i - 1));
 			speakers.pop_back();
 		}

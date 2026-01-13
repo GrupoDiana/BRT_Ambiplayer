@@ -114,7 +114,7 @@ public:
 		size_t numFrames = audioFile.length();
 		int fileSampleRate = audioFile.samplerate();
 
-		if (!audioFile.loaded() or numChannels != pow(order + 1, 2)) {
+		if (!audioFile.loaded() || numChannels != pow(order + 1, 2)) {
 			std::cerr << "Error loading WAV: " << filePath << std::endl;
 			return false;
 		}
