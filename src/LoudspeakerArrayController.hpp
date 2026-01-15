@@ -301,6 +301,12 @@ std::vector<float> ComputeDirectionalEnergyMap(
 		return energies;
 	}
 
+//Quitar las copias
+//No dibujar todas las muestras
+//Hacer menos puntos, voronoi de n puntos en matlab o c++
+//Que se pueda rotar con el raton losaltavoces
+//Que las rotaciones sean desplegables
+//Cambiar create por load
 
 private:
 	bool setupDone;

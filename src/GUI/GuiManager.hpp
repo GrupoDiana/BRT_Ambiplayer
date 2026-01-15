@@ -22,6 +22,7 @@ public:
 		menuPanel.onCreateSource = [this](int frames, Common::CVector3 pos) {
 			if (onCreateSource) onCreateSource(frames, pos);
 		};
+		menuPanel.onSettings = [this]() { if (onSettings) onSettings(); };
 		menuPanel.onSFRotationChanged = [this](float yaw, float pitch, float roll) {
 			if (onSFRotationChanged) onSFRotationChanged(yaw, pitch, roll);
 		};
@@ -122,6 +123,7 @@ public:
 	std::function<void()> onStop;
 	std::function<void(string ordering)> onWAV;
 	std::function<void(int numFrames, Common::CVector3 pos)> onCreateSource;
+	std::function<void()> onSettings;
 	std::function<void(float, float, float)> onSFRotationChanged;
 	std::function<void(float, float, float)> onLSRotationChanged;
 	std::function<void(int)> onLayoutChanged;
@@ -145,7 +147,7 @@ private:
 	CProjection lobeXY, lobeYZ, lobeZX;
 	CLoudspeakers loudspeakers;
 
-	int width_menu = 300;
+	int width_menu = 320;
 
 };
 

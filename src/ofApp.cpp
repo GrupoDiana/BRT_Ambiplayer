@@ -355,7 +355,6 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 	for (auto & ch : SFbuffer->GetSoundFieldArray())
 		std::fill(ch.begin(), ch.end(), 0.0f);
 
-
 	for (size_t i = 0; i < ambisonicSoundFieldControllers.size(); i++) {
 		auto & controller = ambisonicSoundFieldControllers[i];
 
@@ -387,10 +386,8 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 		speakerEnergies.push_back(energy);
 	}
 
-
-	//std::lock_guard<std::mutex> lock(energiesMutex);
-	//directionalEnergies = speakerArrayController.ComputeDirectionalEnergyMap(*SFbuffer, numAz, numEl);
-
+	std::lock_guard<std::mutex> lock(energiesMutex);
+	directionalEnergies = speakerArrayController.ComputeDirectionalEnergyMap(*SFbuffer, numAz, numEl);
 
 	Common::CEarPair<CMonoBuffer<float>> bufferProcessed;
 
