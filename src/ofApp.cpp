@@ -237,9 +237,16 @@ void ofApp::draw() {
 		std::lock_guard<std::mutex> lock(energiesMutex);
 		energiesCopy = directionalEnergies;
 	}
+
+	// --- Apply loudspeaker rotation before drawing ---
+	for (size_t i = 0; i < speakerArrayController.GetNumSpeakers(); ++i) {
+		Common::CVector3 rotatedPos = qLoudSpeakers.RotationMatrix() * originalPositions[i];
+		speakerArrayController.GetSpeaker(i)->SetSourceTransform(Common::CTransform(rotatedPos));
+	}
+
+	// --- Draw GUI and speakers ---
 	guiManager.draw(energiesCopy, speakerEnergies);
 }
-
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {

@@ -1,26 +1,30 @@
 #ifndef _LOUDSPEAKERS_HPP_
 #define _LOUDSPEAKERS_HPP_
 
-#include "ofMain.h"
-
-#include "ofApp.h"
 #include "LoudspeakerArrayController.hpp"
+#include "ofMain.h"
+#include "imgui.h"
+
 #include <string>
 
 class CLoudspeakers {
 public:
-	CLoudspeakers() { }
+	CLoudspeakers()
+		: isDragging(false) { }
 
 	void setController(const CLoudSpeakerArrayController * ctrl) {
 		controller = ctrl;
 	}
 
-void draw(float cx, float cy, float width, float height, const std::vector<float> & speakerEnergies) {
+	// --- Draw speakers and halo ---
+	void draw(float cx, float cy, float width, float height, const std::vector<float> & speakerEnergies) {
 		if (!controller) return;
 
 		float fov = 300.0f;
 		float sceneScale = 100.0f;
 		float baseRadius = 5.0f;
+
+		// --- ORIGINAL COLOR SETUP ---
 		ImVec4 defaultColor = ImGui::GetStyleColorVec4(ImGuiCol_ScrollbarGrabActive);
 		ofColor haloColor;
 		haloColor.r = static_cast<unsigned char>(defaultColor.x * 255.0f);
@@ -28,13 +32,12 @@ void draw(float cx, float cy, float width, float height, const std::vector<float
 		haloColor.b = static_cast<unsigned char>(defaultColor.z * 255.0f);
 		haloColor.a = static_cast<unsigned char>(defaultColor.w * 255.0f);
 
-
 		ofPushMatrix();
 		ofPushStyle();
 
 		ofNoFill();
 		ofSetColor(255);
-		ofSetLineWidth(1.0);
+		ofSetLineWidth(1.0f);
 		ofDrawRectangle(cx, cy, width - margen, height - margen);
 
 		const auto & speakers = controller->GetSpeakers();
@@ -61,7 +64,6 @@ void draw(float cx, float cy, float width, float height, const std::vector<float
 			float y = pos.y * sceneScale;
 			float z = pos.z * sceneScale;
 
-			// Proyección simple en perspectiva
 			float px = -y * fov / (fov - z);
 			float py = -x * fov / (fov - z);
 
@@ -69,12 +71,11 @@ void draw(float cx, float cy, float width, float height, const std::vector<float
 			ofSetColor(128);
 			ofDrawCircle(px, py, baseRadius);
 
-			// Halo de energía
+			// Halo of energy
 			if (i < speakerEnergies.size()) {
 				float energy = speakerEnergies[i] / maxEnergy;
 				energy = ofClamp(energy, 0.0f, 1.0f);
-
-				energy = pow(energy, 0.6f); 
+				energy = pow(energy, 0.6f);
 
 				float haloBaseRadius = baseRadius + 5.0f;
 				int numSteps = 40;
@@ -91,17 +92,54 @@ void draw(float cx, float cy, float width, float height, const std::vector<float
 					ofDrawCircle(px, py, r);
 				}
 			}
-
-
 		}
 
 		ofPopStyle();
 		ofPopMatrix();
 	}
 
+	// --- Mouse interaction ---
+	void mousePressed(int mx, int my, float cx, float cy, float width, float height) {
+		// Check if inside loudspeaker window
+		if (mx >= cx && mx <= cx + width && my >= cy && my <= cy + height) {
+			isDragging = true;
+			lastMouseX = mx;
+			lastMouseY = my;
+		}
+	}
+
+	void mouseDragged(int mx, int my) {
+		if (!isDragging) return;
+
+		float dx = mx - lastMouseX;
+		float dy = my - lastMouseY;
+
+		// Apply simple rotation sensitivity
+		float sensitivity = 0.005f;
+		rotation.y += dx * sensitivity; // yaw
+		rotation.x += dy * sensitivity; // pitch
+
+		lastMouseX = mx;
+		lastMouseY = my;
+	}
+
+	void mouseReleased() {
+		isDragging = false;
+	}
+
+	// --- Getter for current rotation ---
+	ofVec3f getRotation() const {
+		return rotation;
+	}
+
 private:
 	const CLoudSpeakerArrayController * controller = nullptr;
 	int margen = 10;
+
+	// --- Rotation state ---
+	ofVec3f rotation = { 0.0f, 0.0f, 0.0f };
+	bool isDragging = false;
+	int lastMouseX = 0, lastMouseY = 0;
 
 	void DrawAxes(float x0, float y0, float size) {
 		ofPushStyle();
