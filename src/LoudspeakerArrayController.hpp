@@ -64,6 +64,33 @@ using namespace Common;
 
 const float phi = (1.0f + std::sqrt(5.0f)) / 2.0f;
 
+float normI = 1.0f / std::sqrt(1 + phi * phi);
+std::vector<Common::CVector3> IVertices = {
+	{ 0, 1 * normI, phi * normI }, { 0, 1 * normI, -phi * normI }, { 0, -1 * normI, phi * normI }, { 0, -1 * normI, -phi * normI },
+	{ 1 * normI, phi * normI, 0 }, { 1 * normI, -phi * normI, 0 }, { -1 * normI, phi * normI, 0 }, { -1 * normI, -phi * normI, 0 },
+	{ phi * normI, 0, 1 * normI }, { phi * normI, 0, -1 * normI }, { -phi * normI, 0, 1 * normI }, { -phi * normI, 0, -1 * normI }
+};
+
+std::vector<std::vector<int>> IFaces = {
+	{ 0, 4, 6 }, { 0, 6, 10 }, { 0, 10, 8 }, { 0, 8, 4 },
+	{ 1, 6, 4 }, { 1, 11, 6 }, { 1, 9, 11 }, { 1, 4, 9 },
+	{ 2, 7, 5 }, { 2, 10, 7 }, { 2, 8, 10 }, { 2, 5, 8 },
+	{ 3, 5, 7 }, { 3, 7, 11 }, { 3, 11, 9 }, { 3, 9, 5 },
+	{ 4, 8, 9 }, { 5, 9, 8 }, { 6, 11, 10 }, { 7, 10, 11 }
+};
+
+struct Edge {
+    int vertex1, vertex2;
+	std::vector<int> points;
+};
+
+struct Face {
+	int v0, v1, v2; 
+};
+
+float increment = 0.1;
+float decrement = 0.01;
+
 enum PlatonicSolid {
 	octahedron,
 	cube,
@@ -301,6 +328,132 @@ std::vector<float> ComputeDirectionalEnergyMap(
 		return energies;
 	}
 
+	std::vector<float> ComputeDirectionalEnergyMapGeodesic(const CAmbisonicSoundField & field) {
+		std::vector<float> energies(verticesSubdivided.size(), 0.0f);
+
+		const auto & soundField = field.GetSoundFieldArray();
+		if (soundField.empty()) return energies;
+
+		size_t order = field.GetOrder();
+		size_t numChannels = soundField.size();
+		size_t numSamples = field.GetBufferSize();
+		if (numSamples == 0) return energies;
+
+		std::vector<const float *> channels;
+		channels.reserve(numChannels);
+		for (const auto & ch : soundField)
+			channels.push_back(ch.data());
+
+		float sample = 0.0f;
+		float alpha = increment;
+
+		for (int i = 0; i < verticesSubdivided.size(); i++) {
+			Common::CVector3 pos = verticesSubdivided[i];
+			double sampleEnergy = 0.0;
+
+			for (size_t n = 0; n < numSamples; ++n) {
+				
+
+				if (order >= 1 && numChannels >= 4) {
+					const float W = channels[0][n];
+					const float Y = channels[1][n];
+					const float Z = channels[2][n];
+					const float X = channels[3][n];
+					
+					sample += W + pos.x * X + pos.y * Y + pos.z * Z;
+				}
+
+				if (order >= 2 && numChannels > 8) {
+					const float V = channels[4][n];
+					const float T = channels[5][n];
+					const float R = channels[6][n];
+					const float S = channels[7][n];
+					const float U = channels[8][n];
+
+					sample += sqrtf(3.f) * pos.x * pos.y * V + sqrtf(3.f) * pos.y * pos.z * T + 0.5f * ((3.f * pos.z * pos.z) - 1.f) * R + sqrtf(3.f) * pos.x * pos.z * S + sqrtf(3.f / 4.f) * (pos.x * pos.x - pos.y * pos.y) * U;
+				}
+
+				if (order >= 3 && numChannels > 15) {
+					const float Q = channels[9][n];
+					const float O = channels[10][n];
+					const float M = channels[11][n];
+					const float K = channels[12][n];
+					const float L = channels[13][n];
+					const float N = channels[14][n];
+					const float P = channels[15][n];
+
+					sample += sqrtf(5.f / 8.f) * pos.y * (3.f * pos.x * pos.x - pos.y * pos.y) * Q + sqrtf(15.f) * pos.x * pos.y * pos.z * O + sqrtf(3.f / 8.f) * pos.y * (5.f * pos.z * pos.z - 1.f) * M + 0.5f * pos.z * (5.f * pos.z * pos.z - 3.f) * K + sqrtf(3.f / 8.f) * pos.x * (5.f * pos.z * pos.z - 1.f) * L + sqrtf(15.f / 4.f) * pos.z * (pos.x * pos.x - pos.y * pos.y) * N + sqrtf(5.f / 8.f) * pos.x * (pos.x * pos.x - 3.f * pos.y * pos.y) * P;
+				}
+			}
+
+			if (abs(sample) > sampleEnergy) {
+				alpha = increment;
+			} else {
+				alpha = decrement;
+			}
+			 energies[i] = (1 - alpha) * sampleEnergy + alpha * abs(sample);
+		}
+		return energies;
+	}
+
+	std::vector<Edge> GenerateFaces(int k, std::vector<Common::CVector3> & vertices) {
+		
+	}
+
+	std::vector<Common::CVector3> kDivision(int k) {
+		std::vector<Edge> edges = Edges();
+
+		// Vertices originales
+		for (const auto & v : IVertices) {
+			verticesSubdivided.push_back(v);
+		}
+
+		// Vertices de las aristas usando SLERP
+		for (auto & e : edges) {
+			Common::CVector3 V1 = IVertices[e.vertex1];
+			Common::CVector3 V2 = IVertices[e.vertex2];
+
+			e.points.clear();
+
+			for (int i = 1; i <= k; i++) {
+				float t = float(i) / (k + 1);
+				Common::CVector3 P = Slerp(V1, V2, t); 
+				verticesSubdivided.push_back(P);
+				e.points.push_back(verticesSubdivided.size() - 1);
+			}
+		}
+
+		// Vertices internos de cada cara usando SLERP
+		for (int f = 0; f < IFaces.size(); f++) {
+			int i0 = IFaces[f][0];
+			int i1 = IFaces[f][1];
+			int i2 = IFaces[f][2];
+
+			Common::CVector3 V0 = IVertices[i0];
+			Common::CVector3 V1 = IVertices[i1];
+			Common::CVector3 V2 = IVertices[i2];
+
+			for (int i = 1; i <= k - 1; i++) { 
+				float u0 = float(i) / (k + 1); 
+				float v0 = float(i) / (k + 1); 
+
+				for (int j = 1; j <= i; j++) { 
+					float t = float(j) / float(i + 1); 
+
+					Common::CVector3 edge1 = Slerp(V0, V1, u0);
+					Common::CVector3 edge2 = Slerp(V0, V2, v0);
+					Common::CVector3 P = Slerp(edge1, edge2, t); 
+					verticesSubdivided.push_back(P);
+				}
+			}
+		}
+
+		std::cout << "Num vertices subdivided: " << verticesSubdivided.size() << std::endl;
+		return verticesSubdivided;
+	}
+
+
+
 //Quitar las copias
 //No dibujar todas las muestras
 //Hacer menos puntos, voronoi de n puntos en matlab o c++
@@ -314,6 +467,8 @@ private:
 	using SourceModelPtr = std::shared_ptr<BRTSourceModel::CSourceOmnidirectionalModel>;
 	std::vector<SourceModelPtr> speakers;
 
+	std::vector<Common::CVector3> verticesSubdivided;
+
 	std::shared_ptr<BRTSourceModel::CSourceOmnidirectionalModel> CreateOmnidirectionalSoundSource(
 		BRTBase::CBRTManager & brtManager, const std::string & _soundSourceID) {
 		brtManager.BeginSetup();
@@ -321,6 +476,54 @@ private:
 		brtManager.EndSetup();
 		if (!_brtSoundSource) std::cout << "Error creating sound source" << std::endl;
 		return _brtSoundSource;
+	}
+
+	Common::CVector3 Slerp(const Common::CVector3 & u, const Common::CVector3 & v, float t) {
+		float dot = u.x * v.x + u.y * v.y + u.z * v.z;
+		dot = std::clamp(dot, -1.0f, 1.0f); 
+		float theta = acos(dot);
+
+		if (theta < 1e-6f) {
+			return u * (1.0f - t) + v * t;
+		}
+
+		float sinTheta = sin(theta);
+		float w1 = sin((1.0f - t) * theta) / sinTheta;
+		float w2 = sin(t * theta) / sinTheta;
+
+		Common::CVector3 P = u * w1 + v * w2;
+		return P;
+	}
+
+
+
+	std::vector<Edge> Edges() {
+		std::vector<Edge> edges;
+		//Para cada arista, se divide entre k partes iguales
+		for (int i = 0; i < IFaces.size(); i++) {
+			for (int j = 0; j < 3; j++) {
+				Edge e;
+				e.vertex1 = IFaces[i][j];
+				e.vertex2 = IFaces[i][(j + 1) % 3];
+				//Comprobar si la arista ya existe
+				bool exists = false;
+				for (const auto & existingEdge : edges) {
+					if (edgesEqual(e, existingEdge)) {
+						exists = true;
+						break;
+					}
+				}
+				if (!exists) {
+					edges.push_back(e);
+				}
+			}
+		}
+		return edges;
+	}
+
+	// Returns true if the two edges have the same vertices, regardless of order
+	bool edgesEqual(const Edge & e1, const Edge & e2) {
+		return (e1.vertex1 == e2.vertex1 && e1.vertex2 == e2.vertex2) || (e1.vertex1 == e2.vertex2 && e1.vertex2 == e2.vertex1);
 	}
 };
 

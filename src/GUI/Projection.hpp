@@ -17,7 +17,7 @@ public:
 
 	void draw(const std::vector<float> & energies,
 		float cx, float cy, float width, float height,
-		Plane plane) {
+		Plane plane, const std::vector<Common::CVector3> & vertices) {
 		float maxRadius = std::min(width, height) / 2.5f;
 
 		ofPushMatrix();
@@ -36,7 +36,9 @@ public:
 
 		ofTranslate(cx + width / 2.0f, cy + height / 2.0f);
 
-		DrawDirectionalLobeProjectedPoints(energies, maxRadius, plane);
+		//DrawDirectionalLobeProjectedPoints(energies, maxRadius, plane);
+		DrawGeodesicVertices(vertices, maxRadius);
+		//DrawDirectionalLobeProjectedPointsGeodesic(energies, maxRadius, plane, vertices);
 
 		ofPopMatrix();
 	}
@@ -93,6 +95,61 @@ private:
 		ofPopStyle();
 	}
 
+	void DrawDirectionalLobeProjectedPointsGeodesic(
+		const std::vector<float> & energies,
+		float maxRadius,
+		Plane plane, const std::vector<Common::CVector3> & vertices) {
+		if (energies.empty()) return;
+
+		float maxVal = 0.0f;
+		for (float e : energies)
+			if (e > maxVal) maxVal = e;
+		if (maxVal == 0.0f) maxVal = 1.0f;
+
+		ofPushStyle();
+		ofNoFill();
+		ofSetLineWidth(1.0);
+
+		for (int i = 0; i < vertices.size(); ++i) {
+				float val = energies[i];
+				float r = std::sqrt(val / maxVal);
+
+				float az = ofDegToRad(CartesianToSpherical(vertices[i]).x);
+				float el = ofDegToRad(CartesianToSpherical(vertices[i]).y);
+
+				float x3D = r * cos(el) * cos(az);
+				float y3D = r * cos(el) * sin(az);
+				float z3D = r * sin(el);
+
+				float px, py;
+
+				if (plane == ZY) {
+					px = -y3D * maxRadius;
+					py = -z3D * maxRadius;
+				} else if (plane == XY) {
+					px = -y3D * maxRadius;
+					py = -x3D * maxRadius;
+				} else { // XZ
+					px = -x3D * maxRadius;
+					py = -z3D * maxRadius;
+				}
+
+				ofDrawCircle(px, py, 1.5f);
+			}
+
+		ofPopStyle();
+	}
+
+	void DrawGeodesicVertices(const std::vector<Common::CVector3> & vertices, float scale = 200.0f) {
+		glPointSize(5.0f);
+		glBegin(GL_POINTS);
+		glColor3f(1.0f, 0.2f, 0.2f);
+		for (const auto & v : vertices) {
+			glVertex3f(v.x * scale, v.y * scale, v.z * scale);
+		}
+		glEnd();
+	}
+
 	void DrawAxes(float x0, float y0, float size, Plane plane) {
 		ofPushStyle();
 		ofSetLineWidth(1.0);
@@ -137,6 +194,22 @@ private:
 		}
 
 		ofPopStyle();
+	}
+
+	Common::CVector3 CartesianToSpherical(const Common::CVector3 & cartesian) {
+		float x = cartesian.x;
+		float y = cartesian.y;
+		float z = cartesian.z;
+
+		float radius = sqrt(x * x + y * y + z * z);
+
+		float azim = atan2(y, x);
+		float elev = atan2(z, sqrt(x * x + y * y));
+
+		float azimDeg = ofRadToDeg(azim);
+		float elevDeg = ofRadToDeg(elev);
+
+		return Common::CVector3(azimDeg, elevDeg, radius);
 	}
 };
 

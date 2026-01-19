@@ -19,6 +19,7 @@ public:
 		menuPanel.onStop = [this]() { if (onStop) onStop(); };
 		menuPanel.onWAV = [this](string ordering) { if (onWAV) onWAV(ordering); };
 		menuPanel.onCreateSource = [this](int frames, Common::CVector3 pos) { if (onCreateSource) onCreateSource(frames, pos); };
+		menuPanel.onChangeK = [this](int k) { if (onChangeK) onChangeK(k); };
 		menuPanel.onSettings = [this]() { if (onSettings) onSettings(); };
 		menuPanel.onSFRotationChanged = [this](float yaw, float pitch, float roll) { if (onSFRotationChanged) onSFRotationChanged(yaw, pitch, roll); };
 		menuPanel.onLSRotationChanged = [this](float yaw, float pitch, float roll) { if (onLSRotationChanged) onLSRotationChanged(yaw, pitch, roll); };
@@ -45,7 +46,7 @@ public:
 	}
 
 	// ---- Draw GUI and speaker windows ----
-	void draw(const std::vector<float> & energies, const std::vector<float> & speakersEnergies) {
+	void draw(const std::vector<float> & energies, const std::vector<float> & speakersEnergies, const std::vector<Common::CVector3> & vertices) {
 		gui.begin();
 
 		ImGuiViewport * viewport = ImGui::GetMainViewport();
@@ -57,9 +58,9 @@ public:
 		if (screenWidth > 1023) {
 			menuPanel.draw(0, screenHeight / 5, width_menu, screenHeight - screenHeight / 5);
 
-			lobeYZ.draw(energies, width_menu, screenHeight / 5, (screenWidth - width_menu) / 2, (screenHeight - screenHeight / 5) / 2, ZY);
-			lobeZX.draw(energies, width_menu + (screenWidth - width_menu) / 2, screenHeight / 5, (screenWidth - width_menu) / 2, (screenHeight - screenHeight / 5) / 2, ZX);
-			lobeXY.draw(energies, width_menu, screenHeight / 5 + (screenHeight - screenHeight / 5) / 2, (screenWidth - width_menu) / 2, (screenHeight - screenHeight / 5) / 2, XY);
+			lobeYZ.draw(energies, width_menu, screenHeight / 5, (screenWidth - width_menu) / 2, (screenHeight - screenHeight / 5) / 2, ZY, vertices);
+			//lobeZX.draw(energies, width_menu + (screenWidth - width_menu) / 2, screenHeight / 5, (screenWidth - width_menu) / 2, (screenHeight - screenHeight / 5) / 2, ZX);
+			//lobeXY.draw(energies, width_menu, screenHeight / 5 + (screenHeight - screenHeight / 5) / 2, (screenWidth - width_menu) / 2, (screenHeight - screenHeight / 5) / 2, XY);
 
 			loudspeakers.draw(width_menu + (screenWidth - width_menu) / 2,
 				screenHeight / 5 + (screenHeight - screenHeight / 5) / 2,
@@ -69,9 +70,9 @@ public:
 		} else {
 			menuPanel.draw(0, screenHeight / 5, screenWidth / 4, screenHeight - screenHeight / 5);
 
-			lobeYZ.draw(energies, screenWidth / 4, screenHeight / 5, screenWidth * 1.5 / 4, (screenHeight - screenHeight / 5) / 2, ZY);
-			lobeZX.draw(energies, screenWidth / 4 + screenWidth * 1.5 / 4, screenHeight / 5, screenWidth * 1.5 / 4, (screenHeight - screenHeight / 5) / 2, ZX);
-			lobeXY.draw(energies, screenWidth / 4, screenHeight / 5 + (screenHeight - screenHeight / 5) / 2, screenWidth * 1.5 / 4, (screenHeight - screenHeight / 5) / 2, XY);
+			//lobeYZ.draw(energies, screenWidth / 4, screenHeight / 5, screenWidth * 1.5 / 4, (screenHeight - screenHeight / 5) / 2, ZY);
+			//lobeZX.draw(energies, screenWidth / 4 + screenWidth * 1.5 / 4, screenHeight / 5, screenWidth * 1.5 / 4, (screenHeight - screenHeight / 5) / 2, ZX);
+			//lobeXY.draw(energies, screenWidth / 4, screenHeight / 5 + (screenHeight - screenHeight / 5) / 2, screenWidth * 1.5 / 4, (screenHeight - screenHeight / 5) / 2, XY);
 
 			loudspeakers.draw(screenWidth / 4 + screenWidth * 1.5 / 4,
 				screenHeight / 5 + (screenHeight - screenHeight / 5) / 2,
@@ -151,6 +152,7 @@ public:
 	std::function<void()> onStop;
 	std::function<void(string ordering)> onWAV;
 	std::function<void(int numFrames, Common::CVector3 pos)> onCreateSource;
+	std::function<void(int k)> onChangeK;
 	std::function<void()> onSettings;
 	std::function<void(float, float, float)> onSFRotationChanged;
 	std::function<void(float, float, float)> onLSRotationChanged;

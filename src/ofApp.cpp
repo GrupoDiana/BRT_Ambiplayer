@@ -40,6 +40,7 @@ void ofApp::setup() {
 		originalPositions.push_back(speakerArrayController.GetSpeaker(i)->GetSourceTransform().GetPosition());
 	}
 
+	vertices = speakerArrayController.kDivision(0);
 
 	////////////////////////////
 	// Create Ambisonic Buffers
@@ -114,6 +115,10 @@ void ofApp::setup() {
 					controller->GetFilePathName());
 			}
 		};
+
+	guiManager.onChangeK = [this](int k) {
+		vertices = speakerArrayController.kDivision(k);
+	};
 
 	guiManager.onControllerPlay =
 		[this](CMenuPanel::ControllerPtr c) {
@@ -245,7 +250,7 @@ void ofApp::draw() {
 	}
 
 	// --- Draw GUI and speakers ---
-	guiManager.draw(energiesCopy, speakerEnergies);
+	guiManager.draw(energiesCopy, speakerEnergies, vertices);
 }
 
 //--------------------------------------------------------------
@@ -394,7 +399,7 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 	}
 
 	std::lock_guard<std::mutex> lock(energiesMutex);
-	directionalEnergies = speakerArrayController.ComputeDirectionalEnergyMap(*SFbuffer, numAz, numEl);
+	directionalEnergies = speakerArrayController.ComputeDirectionalEnergyMapGeodesic(*SFbuffer);
 
 	Common::CEarPair<CMonoBuffer<float>> bufferProcessed;
 

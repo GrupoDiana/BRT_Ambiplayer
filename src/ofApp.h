@@ -37,6 +37,8 @@ float SFyawRad = 0.0f, SFpitchRad = 0.0f, SFrollRad = 0.0f, LSyawRad = 0.0f, LSp
 int numAz = 72;
 int numEl = 36;
 
+std::vector<Common::CVector3> vertices;
+std::vector<Edge> edges;
 
 class ofApp : public ofBaseApp {
 

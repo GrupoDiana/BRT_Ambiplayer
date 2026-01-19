@@ -405,12 +405,19 @@ public:
 		//Settings Popup
 		if (showSettingsPopUp) ImGui::OpenPopup("Settings");
 		if (ImGui::BeginPopupModal("Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-
+			static int k = 0;
 			//To implement settings options here
 			ImGui::Text("SampleRate: 48000");
 			ImGui::Text("BufferSize: 512");
+			ImGui::InputInt("k", &k);
 			ImGui::Separator();
 
+			if (ImGui::Button("Update")) {
+				onChangeK(k);
+				showSettingsPopUp = false;
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
 			if (ImGui::Button("Close")) {
 				showSettingsPopUp = false;
 				ImGui::CloseCurrentPopup();
@@ -441,6 +448,7 @@ public:
 	std::function<void()> onStop;
 	std::function<void(string)> onWAV;
 	std::function<void(size_t, Common::CVector3)> onCreateSource;
+	std::function<void(int)> onChangeK;
 	std::function<void()> onSettings;
 	std::function<void(float, float, float)> onSFRotationChanged;
 	std::function<void(float, float, float)> onLSRotationChanged;
