@@ -37,8 +37,8 @@ public:
 		ofTranslate(cx + width / 2.0f, cy + height / 2.0f);
 
 		//DrawDirectionalLobeProjectedPoints(energies, maxRadius, plane);
-		DrawGeodesicVertices(vertices, maxRadius);
-		//DrawDirectionalLobeProjectedPointsGeodesic(energies, maxRadius, plane, vertices);
+		//DrawGeodesicVertices(vertices, maxRadius);
+		DrawDirectionalLobeProjectedPointsGeodesic(energies, maxRadius, plane, vertices);
 
 		ofPopMatrix();
 	}

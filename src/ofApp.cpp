@@ -400,6 +400,7 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 
 	std::lock_guard<std::mutex> lock(energiesMutex);
 	directionalEnergies = speakerArrayController.ComputeDirectionalEnergyMapGeodesic(*SFbuffer);
+	//directionalEnergies = speakerArrayController.ComputeDirectionalEnergyMap(*SFbuffer,numAz, numEl);
 
 	Common::CEarPair<CMonoBuffer<float>> bufferProcessed;
 

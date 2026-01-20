@@ -328,7 +328,8 @@ std::vector<float> ComputeDirectionalEnergyMap(
 		return energies;
 	}
 
-	std::vector<float> ComputeDirectionalEnergyMapGeodesic(const CAmbisonicSoundField & field) {
+	std::vector<float> ComputeDirectionalEnergyMapGeodesic(
+		const CAmbisonicSoundField & field) {
 		std::vector<float> energies(verticesSubdivided.size(), 0.0f);
 
 		const auto & soundField = field.GetSoundFieldArray();
@@ -337,6 +338,7 @@ std::vector<float> ComputeDirectionalEnergyMap(
 		size_t order = field.GetOrder();
 		size_t numChannels = soundField.size();
 		size_t numSamples = field.GetBufferSize();
+		float alpha;
 		if (numSamples == 0) return energies;
 
 		std::vector<const float *> channels;
@@ -344,57 +346,59 @@ std::vector<float> ComputeDirectionalEnergyMap(
 		for (const auto & ch : soundField)
 			channels.push_back(ch.data());
 
-		float sample = 0.0f;
-		float alpha = increment;
-
-		for (int i = 0; i < verticesSubdivided.size(); i++) {
-			Common::CVector3 pos = verticesSubdivided[i];
-			double sampleEnergy = 0.0;
+		for (size_t i = 0; i < verticesSubdivided.size(); ++i) {
+			const Common::CVector3 & pos = verticesSubdivided[i];
+			float sampleEnergy = 0.0f; 
 
 			for (size_t n = 0; n < numSamples; ++n) {
-				
+				float sample = 0.0f;
 
 				if (order >= 1 && numChannels >= 4) {
-					const float W = channels[0][n];
-					const float Y = channels[1][n];
-					const float Z = channels[2][n];
-					const float X = channels[3][n];
-					
-					sample += W + pos.x * X + pos.y * Y + pos.z * Z;
+					//const float W = channels[0][n];
+					//const float Y = channels[1][n];
+					//const float Z = channels[2][n];
+					//const float X = channels[3][n];
+
+					sample += channels[0][n] + pos.x * channels[3][n] + pos.y * channels[1][n] + pos.z * channels[2][n];
 				}
 
 				if (order >= 2 && numChannels > 8) {
-					const float V = channels[4][n];
-					const float T = channels[5][n];
-					const float R = channels[6][n];
-					const float S = channels[7][n];
-					const float U = channels[8][n];
+					//const float V = channels[4][n];
+					//const float T = channels[5][n];
+					//const float R = channels[6][n];
+					//const float S = channels[7][n];
+					//const float U = channels[8][n];
 
-					sample += sqrtf(3.f) * pos.x * pos.y * V + sqrtf(3.f) * pos.y * pos.z * T + 0.5f * ((3.f * pos.z * pos.z) - 1.f) * R + sqrtf(3.f) * pos.x * pos.z * S + sqrtf(3.f / 4.f) * (pos.x * pos.x - pos.y * pos.y) * U;
+					sample += sqrtf(3.f) * pos.x * pos.y * channels[4][n] + sqrtf(3.f) * pos.y * pos.z * channels[5][n] + 0.5f * ((3.f * pos.z * pos.z) - 1.f) * channels[6][n] + sqrtf(3.f) * pos.x * pos.z * channels[7][n] + sqrtf(3.f / 4.f) * (pos.x * pos.x - pos.y * pos.y) * channels[8][n];
 				}
 
 				if (order >= 3 && numChannels > 15) {
-					const float Q = channels[9][n];
-					const float O = channels[10][n];
-					const float M = channels[11][n];
-					const float K = channels[12][n];
-					const float L = channels[13][n];
-					const float N = channels[14][n];
-					const float P = channels[15][n];
+					//const float Q = channels[9][n];
+					//const float O = channels[10][n];
+					//const float M = channels[11][n];
+					//const float K = channels[12][n];
+					//const float L = channels[13][n];
+					//const float N = channels[14][n];
+					//const float P = channels[15][n];
 
-					sample += sqrtf(5.f / 8.f) * pos.y * (3.f * pos.x * pos.x - pos.y * pos.y) * Q + sqrtf(15.f) * pos.x * pos.y * pos.z * O + sqrtf(3.f / 8.f) * pos.y * (5.f * pos.z * pos.z - 1.f) * M + 0.5f * pos.z * (5.f * pos.z * pos.z - 3.f) * K + sqrtf(3.f / 8.f) * pos.x * (5.f * pos.z * pos.z - 1.f) * L + sqrtf(15.f / 4.f) * pos.z * (pos.x * pos.x - pos.y * pos.y) * N + sqrtf(5.f / 8.f) * pos.x * (pos.x * pos.x - 3.f * pos.y * pos.y) * P;
+					sample += sqrtf(5.f / 8.f) * pos.y * (3.f * pos.x * pos.x - pos.y * pos.y) * channels[9][n] + sqrtf(15.f) * pos.x * pos.y * pos.z * channels[10][n] + sqrtf(3.f / 8.f) * pos.y * (5.f * pos.z * pos.z - 1.f) * channels[11][n] + 0.5f * pos.z * (5.f * pos.z * pos.z - 3.f) * channels[12][n] + sqrtf(3.f / 8.f) * pos.x * (5.f * pos.z * pos.z - 1.f) * channels[13][n] + sqrtf(15.f / 4.f) * pos.z * (pos.x * pos.x - pos.y * pos.y) * channels[14][n] + sqrtf(5.f / 8.f) * pos.x * (pos.x * pos.x - 3.f * pos.y * pos.y) * channels[15][n];
 				}
-			}
 
-			if (abs(sample) > sampleEnergy) {
-				alpha = increment;
-			} else {
-				alpha = decrement;
+				float absSample = std::abs(sample);
+				
+				if (absSample > sampleEnergy) {
+					alpha = increment;
+				} else {
+					alpha = decrement;
+				}
+				sampleEnergy = (1.0f - alpha) * sampleEnergy + alpha * absSample;
 			}
-			 energies[i] = (1 - alpha) * sampleEnergy + alpha * abs(sample);
+			energies[i] = sampleEnergy;
 		}
+
 		return energies;
 	}
+
 
 	std::vector<Edge> GenerateFaces(int k, std::vector<Common::CVector3> & vertices) {
 		
@@ -402,6 +406,7 @@ std::vector<float> ComputeDirectionalEnergyMap(
 
 	std::vector<Common::CVector3> kDivision(int k) {
 		std::vector<Edge> edges = Edges();
+		verticesSubdivided.clear();
 
 		// Vertices originales
 		for (const auto & v : IVertices) {
