@@ -237,10 +237,11 @@ void ofApp::update() { }
 
 //--------------------------------------------------------------
 void ofApp::draw() {
-	std::vector<float> energiesCopy;
+	std::vector<float> energiesCopy, energiesCopyAux;
 	{
 		std::lock_guard<std::mutex> lock(energiesMutex);
 		energiesCopy = directionalEnergies;
+		energiesCopyAux = directionalEnergiesAux;
 	}
 
 	// --- Apply loudspeaker rotation before drawing ---
@@ -250,7 +251,7 @@ void ofApp::draw() {
 	}
 
 	// --- Draw GUI and speakers ---
-	guiManager.draw(energiesCopy, speakerEnergies, vertices);
+	guiManager.draw(energiesCopy,energiesCopyAux, speakerEnergies, vertices);
 }
 
 //--------------------------------------------------------------
@@ -400,7 +401,7 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 
 	std::lock_guard<std::mutex> lock(energiesMutex);
 	directionalEnergies = speakerArrayController.ComputeDirectionalEnergyMapGeodesic(*SFbuffer);
-	//directionalEnergies = speakerArrayController.ComputeDirectionalEnergyMap(*SFbuffer,numAz, numEl);
+	//directionalEnergiesAux = speakerArrayController.ComputeDirectionalEnergyMap(*SFbuffer,numAz, numEl);
 
 	Common::CEarPair<CMonoBuffer<float>> bufferProcessed;
 

@@ -38,6 +38,11 @@ public:
 
 		//DrawDirectionalLobeProjectedPoints(energies, maxRadius, plane);
 		//DrawGeodesicVertices(vertices, maxRadius);
+		/* if (plane == XY) {
+			DrawDirectionalLobeProjectedPoints(energies, maxRadius, plane);
+		} else {
+			DrawDirectionalLobeProjectedPointsGeodesic(energies, maxRadius, plane, vertices);
+		}*/
 		DrawDirectionalLobeProjectedPointsGeodesic(energies, maxRadius, plane, vertices);
 
 		ofPopMatrix();

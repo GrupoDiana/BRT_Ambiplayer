@@ -408,12 +408,12 @@ std::vector<float> ComputeDirectionalEnergyMap(
 		std::vector<Edge> edges = Edges();
 		verticesSubdivided.clear();
 
-		// Vertices originales
+		// Copiar los vértices originales
 		for (const auto & v : IVertices) {
 			verticesSubdivided.push_back(v);
 		}
 
-		// Vertices de las aristas usando SLERP
+		// Subdividir todas las aristas
 		for (auto & e : edges) {
 			Common::CVector3 V1 = IVertices[e.vertex1];
 			Common::CVector3 V2 = IVertices[e.vertex2];
@@ -422,13 +422,13 @@ std::vector<float> ComputeDirectionalEnergyMap(
 
 			for (int i = 1; i <= k; i++) {
 				float t = float(i) / (k + 1);
-				Common::CVector3 P = Slerp(V1, V2, t); 
+				Common::CVector3 P = Slerp(V1, V2, t);
 				verticesSubdivided.push_back(P);
 				e.points.push_back(verticesSubdivided.size() - 1);
 			}
 		}
 
-		// Vertices internos de cada cara usando SLERP
+		// Subdividir el interior de cada cara usando los puntos de las aristas
 		for (int f = 0; f < IFaces.size(); f++) {
 			int i0 = IFaces[f][0];
 			int i1 = IFaces[f][1];
@@ -438,16 +438,17 @@ std::vector<float> ComputeDirectionalEnergyMap(
 			Common::CVector3 V1 = IVertices[i1];
 			Common::CVector3 V2 = IVertices[i2];
 
-			for (int i = 1; i <= k - 1; i++) { 
-				float u0 = float(i) / (k + 1); 
-				float v0 = float(i) / (k + 1); 
+			// Crear filas internas (fila 1..k-1)
+			for (int i = 2; i <= k; i++) {
+				float t_corrected = 0.5f - 0.5f * cosf(M_PI * (float(i) / (k + 1)));
+				//float t_corrected = M_PI * (float(i) / (k + 1));
+				Common::CVector3 rowStart = Slerp(V0, V2, t_corrected);
+				Common::CVector3 rowEnd = Slerp(V0, V1, t_corrected);
 
-				for (int j = 1; j <= i; j++) { 
-					float t = float(j) / float(i + 1); 
-
-					Common::CVector3 edge1 = Slerp(V0, V1, u0);
-					Common::CVector3 edge2 = Slerp(V0, V2, v0);
-					Common::CVector3 P = Slerp(edge1, edge2, t); 
+				// Interpolación interna de la fila
+				for (int j = 1; j <= i - 1; j++) {
+					float t = float(j) / (i);
+					Common::CVector3 P = Slerp(rowStart, rowEnd, t);
 					verticesSubdivided.push_back(P);
 				}
 			}
@@ -456,15 +457,6 @@ std::vector<float> ComputeDirectionalEnergyMap(
 		std::cout << "Num vertices subdivided: " << verticesSubdivided.size() << std::endl;
 		return verticesSubdivided;
 	}
-
-
-
-//Quitar las copias
-//No dibujar todas las muestras
-//Hacer menos puntos, voronoi de n puntos en matlab o c++
-//Que se pueda rotar con el raton losaltavoces
-//Que las rotaciones sean desplegables
-//Cambiar create por load
 
 private:
 	bool setupDone;

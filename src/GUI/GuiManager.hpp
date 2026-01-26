@@ -46,7 +46,7 @@ public:
 	}
 
 	// ---- Draw GUI and speaker windows ----
-	void draw(const std::vector<float> & energies, const std::vector<float> & speakersEnergies, const std::vector<Common::CVector3> & vertices) {
+	void draw(const std::vector<float> & energies, const std::vector<float> & energiesAux, const std::vector<float> & speakersEnergies, const std::vector<Common::CVector3> & vertices) {
 		gui.begin();
 
 		ImGuiViewport * viewport = ImGui::GetMainViewport();

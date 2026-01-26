@@ -24,7 +24,7 @@ size_t currentSample = 0;
 std::string decoding;
 Common::CQuaternion qRotation, qLoudSpeakers;
 
-std::vector<float> directionalEnergies;
+std::vector<float> directionalEnergies, directionalEnergiesAux;
 std::vector<float> speakerEnergies;
 
 
