@@ -1,5 +1,5 @@
-#ifndef _PROJECTION_HPP_
-#define _PROJECTION_HPP_
+#ifndef _GEODESIC_PROJECTION_HPP_
+#define _GEODESIC_PROJECTION_HPP_
 
 #include "ofMain.h"
 #include <cmath>
@@ -9,9 +9,9 @@ enum Plane { XY,
 	ZY,
 	ZX };
 
-class CProjection {
+class CGeodesicProjection {
 public:
-	CProjection(int numAzimuth = 72, int numElevation = 36)
+	CGeodesicProjection(int numAzimuth = 72, int numElevation = 36)
 		: numAz(numAzimuth)
 		, numEl(numElevation) { }
 
@@ -36,13 +36,6 @@ public:
 
 		ofTranslate(cx + width / 2.0f, cy + height / 2.0f);
 
-		//DrawDirectionalLobeProjectedPoints(energies, maxRadius, plane);
-		//DrawGeodesicVertices(vertices, maxRadius);
-		/* if (plane == XY) {
-			DrawDirectionalLobeProjectedPoints(energies, maxRadius, plane);
-		} else {
-			DrawDirectionalLobeProjectedPointsGeodesic(energies, maxRadius, plane, vertices);
-		}*/
 		DrawDirectionalLobeProjectedPointsGeodesic(energies, maxRadius, plane, vertices);
 
 		ofPopMatrix();

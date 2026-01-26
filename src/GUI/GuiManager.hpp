@@ -4,7 +4,7 @@
 #include "Logo.hpp"
 #include "Loudspeakers.hpp"
 #include "MenuPanel.hpp"
-#include "Projection.hpp"
+#include "GeodesicProjection.hpp"
 #include "imgui.h"
 #include "ofMain.h"
 #include "ofxImGui.h"
@@ -122,11 +122,15 @@ public:
 		loudspeakers.mouseReleased();
 	}
 
+	void setLayout(int layoutIndex) {
+		menuPanel.setLayout(layoutIndex);
+	}
+
 private:
 	ofxImGui::Gui gui;
 	CLogo logo;
 	CMenuPanel menuPanel;
-	CProjection lobeXY, lobeYZ, lobeZX;
+	CGeodesicProjection lobeXY, lobeYZ, lobeZX;
 	CLoudspeakers loudspeakers;
 
 	int width_menu = 320;

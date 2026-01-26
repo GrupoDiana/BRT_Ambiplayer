@@ -230,6 +230,13 @@ void ofApp::setup() {
 			guiManager.clearControllers();
 			ambisonicSoundFieldControllers.clear();
 
+			if (order == 3) {
+				if (guiManager.onLayoutChanged) {
+					guiManager.onLayoutChanged(3);
+					guiManager.setLayout(3);
+				}
+			}
+
 			soundStream.start();
 		};
 

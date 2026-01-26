@@ -440,8 +440,8 @@ std::vector<float> ComputeDirectionalEnergyMap(
 
 			// Crear filas internas (fila 1..k-1)
 			for (int i = 2; i <= k; i++) {
-				float t_corrected = 0.5f - 0.5f * cosf(M_PI * (float(i) / (k + 1)));
-				//float t_corrected = M_PI * (float(i) / (k + 1));
+				//float t_corrected = 0.5f - 0.5f * cosf(M_PI * (float(i) / (k + 1)));
+				float t_corrected = M_PI * (float(i) / (k + 1));
 				Common::CVector3 rowStart = Slerp(V0, V2, t_corrected);
 				Common::CVector3 rowEnd = Slerp(V0, V1, t_corrected);
 

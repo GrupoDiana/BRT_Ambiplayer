@@ -3752,7 +3752,7 @@
     <ClInclude Include="src\GUI\Logo.hpp">
       <Filter>src\GUI</Filter>
     </ClInclude>
-    <ClInclude Include="src\GUI\Projection.hpp">
+    <ClInclude Include="src\GUI\GeodesicProjection.hpp">
       <Filter>src\GUI</Filter>
     </ClInclude>
     <ClInclude Include="src\GUI\MenuPanel.hpp">
@@ -3763,6 +3763,9 @@
     </ClInclude>
     <ClInclude Include="addons\ofxBRTLibrary\libs\brt\include\Common\Matrix.hpp">
       <Filter>local_addons\ofxBRTLibrary\libs\brt\include\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GUI\CicularProjection.hpp">
+      <Filter>src\GUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

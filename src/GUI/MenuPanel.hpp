@@ -78,7 +78,6 @@ public:
 
 			// --- Loudspeaker Layout Combo ---
 			const char * layout_items[] = { "Octahedron", "Cube", "Icosahedron", "Dodecahedron" };
-			static int layout_selected_idx = 0;
 
 			ImGui::Text("Loudspeaker Layout:");
 			if (ImGui::BeginCombo("##Layout", layout_items[layout_selected_idx])) {
@@ -460,6 +459,11 @@ public:
 		LSrollRad = roll;
 	}
 
+	void setLayout(int layoutIndex) {
+		layout_selected_idx = std::clamp(layoutIndex, 0, 3); // porque tienes 4 layouts
+	}
+
+
 	// --- Callbacks ---
 	std::function<void(bool)> onPlay;
 	std::function<void()> onStop;
@@ -487,6 +491,8 @@ private:
 	float LSyawRad, LSpitchRad, LSrollRad;
 	int layoutIndex;
 	int margen = 10;
+
+	int layout_selected_idx = 0;
 
 	bool isPlaying = false; 
 
