@@ -15,7 +15,7 @@ public:
 		gui.setup(ofGetCurrentWindow(), nullptr, true, 0, true);
 
 		// ---- Menu panel callbacks ----
-		menuPanel.onPlay = [this]() { if (onPlay) onPlay(); };
+		menuPanel.onPlay = [this](bool isPlaying) { if (onPlay) onPlay(isPlaying); };
 		menuPanel.onStop = [this]() { if (onStop) onStop(); };
 		menuPanel.onWAV = [this](string ordering) { if (onWAV) onWAV(ordering); };
 		menuPanel.onCreateSource = [this](int frames, Common::CVector3 pos) { if (onCreateSource) onCreateSource(frames, pos); };
@@ -148,7 +148,7 @@ private:
 
 public:
 	// ---- Callbacks to main application ----
-	std::function<void()> onPlay;
+	std::function<void(bool)> onPlay;
 	std::function<void()> onStop;
 	std::function<void(string ordering)> onWAV;
 	std::function<void(int numFrames, Common::CVector3 pos)> onCreateSource;

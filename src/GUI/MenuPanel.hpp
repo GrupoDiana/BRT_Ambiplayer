@@ -32,9 +32,22 @@ public:
 			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysVerticalScrollbar);
 
 		// --- Play/Stop/WAV/Source Buttons ---
-		if (ImGui::Button("PLAY") && onPlay) onPlay();
+		if (isPlaying) {
+			ImGui::PushStyleColor(ImGuiCol_Button, defaultColor);
+		}
+		if (ImGui::Button("PLAY")) {
+			isPlaying = !isPlaying;
+		if (onPlay) onPlay(isPlaying);
+		}
+		if (isPlaying) {
+			ImGui::PopStyleColor();
+		}
+		//if (ImGui::Button("PLAY") && onPlay) onPlay();
 		ImGui::SameLine();
-		if (ImGui::Button("STOP") && onStop) onStop();
+		if (ImGui::Button("STOP") && onStop) {
+			onStop();
+			isPlaying = false;
+		}
 		ImGui::SameLine();
 		if (ImGui::Button("LOAD SF")) showWAVPopup = true;
 		ImGui::SameLine();
@@ -444,7 +457,7 @@ public:
 
 
 	// --- Callbacks ---
-	std::function<void()> onPlay;
+	std::function<void(bool)> onPlay;
 	std::function<void()> onStop;
 	std::function<void(string)> onWAV;
 	std::function<void(size_t, Common::CVector3)> onCreateSource;
@@ -470,6 +483,8 @@ private:
 	float LSyawRad, LSpitchRad, LSrollRad;
 	int layoutIndex;
 	int margen = 10;
+
+	bool isPlaying = false; 
 
 	std::vector<std::shared_ptr<CAmbisonicSoundFieldController>> controllers;
 	bool showSourcePopup = false, showWAVPopup = false, showSettingsPopUp = false;

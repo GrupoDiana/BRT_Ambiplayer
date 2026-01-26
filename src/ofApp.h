@@ -27,7 +27,6 @@ Common::CQuaternion qRotation, qLoudSpeakers;
 std::vector<float> directionalEnergies, directionalEnergiesAux;
 std::vector<float> speakerEnergies;
 
-
 CConfigurationA configurationA;
 
 Common::CEarPair<CMonoBuffer<float>> outputBufferStereo; 

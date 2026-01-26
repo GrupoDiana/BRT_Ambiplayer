@@ -63,13 +63,23 @@ void ofApp::setup() {
 	////////////////////////////
 	// GUI Callbacks
 	////////////////////////////
-	guiManager.onPlay = [this]() {
+	guiManager.onPlay = [this](bool isPlaying) {
 		ofLog() << "Play button pressed!";
 		soundStream.start();
+
+		for (int i = 0; i < ambisonicSoundFieldControllers.size(); ++i) {
+			ambisonicSoundFieldControllers[i]->Play(isPlaying);
+		}
 	};
 
 	guiManager.onStop = [this]() {
 		soundStream.stop();
+
+		for (int i = 0; i < ambisonicSoundFieldControllers.size(); ++i) {
+			ambisonicSoundFieldControllers[i]->Play(false);
+			ambisonicSoundFieldControllers[i]->GetWavSamplePositionSource() = 0;
+			
+		}
 	};
 
 	guiManager.onWAV = [this](string ordering) {
