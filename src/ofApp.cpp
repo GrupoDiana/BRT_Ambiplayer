@@ -197,17 +197,15 @@ void ofApp::setup() {
 			qRotation = Common::CQuaternion::FromYawPitchRoll(yaw, pitch, roll);
 		};
 
-	guiManager.onLSRotationChanged =
-		[this](float yaw, float pitch, float roll) {
-			qLoudSpeakers = Common::CQuaternion::FromYawPitchRoll(yaw, pitch, roll);
+	guiManager.onLSRotationChanged = [this](float yaw, float pitch, float roll) {
+		qLoudSpeakers = Common::CQuaternion::FromYawPitchRoll(yaw, pitch, roll);
 
-			for (size_t i = 0;
-				i < speakerArrayController.GetNumSpeakers(); ++i) {
-				Common::CVector3 rotatedPos = qLoudSpeakers.RotationMatrix() * originalPositions[i];
+		for (size_t i = 0; i < speakerArrayController.GetNumSpeakers(); ++i) {
+			Common::CVector3 rotatedPos = qLoudSpeakers.RotationMatrix() * originalPositions[i];
+			speakerArrayController.GetSpeaker(i)->SetSourceTransform(Common::CTransform(rotatedPos));
+		}
 
-				speakerArrayController.GetSpeaker(i)->SetSourceTransform(Common::CTransform(rotatedPos));
-			}
-		};
+	};
 
 	guiManager.onLayoutChanged =
 		[this](int layoutIndex) {
@@ -247,11 +245,10 @@ void ofApp::update() { }
 
 //--------------------------------------------------------------
 void ofApp::draw() {
-	std::vector<float> energiesCopy, energiesCopyAux;
+	std::vector<float> energiesCopy;
 	{
 		std::lock_guard<std::mutex> lock(energiesMutex);
-		energiesCopy = directionalEnergies;
-		energiesCopyAux = directionalEnergiesAux;
+		energiesCopy= directionalEnergies;
 	}
 
 	// --- Apply loudspeaker rotation before drawing ---
@@ -261,7 +258,7 @@ void ofApp::draw() {
 	}
 
 	// --- Draw GUI and speakers ---
-	guiManager.draw(energiesCopy,energiesCopyAux, speakerEnergies, vertices);
+	guiManager.draw(energiesCopy, speakerEnergies, vertices);
 }
 
 //--------------------------------------------------------------

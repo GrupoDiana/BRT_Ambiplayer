@@ -42,7 +42,6 @@ public:
 		if (isPlaying) {
 			ImGui::PopStyleColor();
 		}
-		//if (ImGui::Button("PLAY") && onPlay) onPlay();
 		ImGui::SameLine();
 		if (ImGui::Button("STOP") && onStop) {
 			onStop();
@@ -455,6 +454,11 @@ public:
 		controllers.clear();
 	}
 
+	void setLSRotationSliders(float yaw, float pitch, float roll) {
+		LSyawRad = yaw;
+		LSpitchRad = pitch;
+		LSrollRad = roll;
+	}
 
 	// --- Callbacks ---
 	std::function<void(bool)> onPlay;

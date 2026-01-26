@@ -2,9 +2,11 @@
 #define _LOUDSPEAKERS_HPP_
 
 #include "LoudspeakerArrayController.hpp"
-#include "ofMain.h"
+#include "MenuPanel.hpp"
 #include "imgui.h"
+#include "ofMain.h"
 
+#include <functional>
 #include <string>
 
 class CLoudspeakers {
@@ -20,7 +22,6 @@ public:
 	void draw(float cx, float cy, float width, float height, const std::vector<float> & speakerEnergies) {
 		if (!controller) return;
 
-		float fov = 300.0f;
 		float sceneScale = 100.0f;
 		float baseRadius = 5.0f;
 
@@ -56,14 +57,18 @@ public:
 
 		ofTranslate(cx + width / 2.0f, cy + height / 2.0f);
 
+		// --- Dibujar altavoces usando posiciones actuales del controller ---
 		for (size_t i = 0; i < numSpeakers; ++i) {
 			if (!speakers[i]) continue;
+
 			Common::CVector3 pos = speakers[i]->GetSourceTransform().GetPosition();
 
 			float x = pos.x * sceneScale;
 			float y = pos.y * sceneScale;
 			float z = pos.z * sceneScale;
 
+			// Proyección simple 3D -> 2D (perspectiva)
+			float fov = 300.0f;
 			float px = -y * fov / (fov - z);
 			float py = -x * fov / (fov - z);
 
@@ -71,7 +76,7 @@ public:
 			ofSetColor(128);
 			ofDrawCircle(px, py, baseRadius);
 
-			// Halo of energy
+			// Halo de energía
 			if (i < speakerEnergies.size()) {
 				float energy = speakerEnergies[i] / maxEnergy;
 				energy = ofClamp(energy, 0.0f, 1.0f);
@@ -121,6 +126,10 @@ public:
 
 		lastMouseX = mx;
 		lastMouseY = my;
+
+		if (onRotationChangedByMouse) {
+			onRotationChangedByMouse(rotation.y, rotation.x, rotation.z);
+		}
 	}
 
 	void mouseReleased() {
@@ -131,6 +140,18 @@ public:
 	ofVec3f getRotation() const {
 		return rotation;
 	}
+
+	void setRotation(float yaw, float pitch, float roll) {
+		rotation.x = pitch;
+		rotation.y = yaw;
+		rotation.z = roll;
+	}
+
+	void setOnRotationChangedByMouse(std::function<void(float yaw, float pitch, float roll)> cb) {
+		onRotationChangedByMouse = cb;
+	}
+
+	std::function<void(float yaw, float pitch, float roll)> onRotationChangedByMouse;
 
 private:
 	const CLoudSpeakerArrayController * controller = nullptr;

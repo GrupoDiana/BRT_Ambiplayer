@@ -22,8 +22,23 @@ public:
 		menuPanel.onChangeK = [this](int k) { if (onChangeK) onChangeK(k); };
 		menuPanel.onSettings = [this]() { if (onSettings) onSettings(); };
 		menuPanel.onSFRotationChanged = [this](float yaw, float pitch, float roll) { if (onSFRotationChanged) onSFRotationChanged(yaw, pitch, roll); };
-		menuPanel.onLSRotationChanged = [this](float yaw, float pitch, float roll) { if (onLSRotationChanged) onLSRotationChanged(yaw, pitch, roll); };
-		menuPanel.onIRotationChanged = [this](CMenuPanel::ControllerPtr c, float yaw, float pitch, float roll) { if (onIRotationChanged) onIRotationChanged(c, yaw, pitch, roll); };
+
+		// ---- Loudspeaker rotation callback ----
+		menuPanel.onLSRotationChanged = [this](float yaw, float pitch, float roll) {
+			loudspeakers.setRotation(yaw, pitch, roll); // actualizar CLoudspeakers
+			if (onLSRotationChanged)
+				onLSRotationChanged(yaw, pitch, roll); // notificar a la app principal
+		};
+
+		loudspeakers.setOnRotationChangedByMouse([this](float yaw, float pitch, float roll) {
+			menuPanel.setLSRotationSliders(yaw, pitch, roll);
+			if (onLSRotationChanged)
+				onLSRotationChanged(yaw, pitch, roll);
+		});
+
+		menuPanel.onIRotationChanged = [this](CMenuPanel::ControllerPtr c, float yaw, float pitch, float roll) {
+			if (onIRotationChanged) onIRotationChanged(c, yaw, pitch, roll);
+		};
 		menuPanel.onLayoutChanged = [this](int layoutIndex) { if (onLayoutChanged) onLayoutChanged(layoutIndex); };
 		menuPanel.onOrderChanged = [this](int orderIndex) { if (onOrderChanged) onOrderChanged(orderIndex); };
 
@@ -46,7 +61,7 @@ public:
 	}
 
 	// ---- Draw GUI and speaker windows ----
-	void draw(const std::vector<float> & energies, const std::vector<float> & energiesAux, const std::vector<float> & speakersEnergies, const std::vector<Common::CVector3> & vertices) {
+	void draw(const std::vector<float> & energies, const std::vector<float> & speakersEnergies, const std::vector<Common::CVector3> & vertices) {
 		gui.begin();
 
 		ImGuiViewport * viewport = ImGui::GetMainViewport();
@@ -70,10 +85,6 @@ public:
 		} else {
 			menuPanel.draw(0, screenHeight / 5, screenWidth / 4, screenHeight - screenHeight / 5);
 
-			//lobeYZ.draw(energies, screenWidth / 4, screenHeight / 5, screenWidth * 1.5 / 4, (screenHeight - screenHeight / 5) / 2, ZY);
-			//lobeZX.draw(energies, screenWidth / 4 + screenWidth * 1.5 / 4, screenHeight / 5, screenWidth * 1.5 / 4, (screenHeight - screenHeight / 5) / 2, ZX);
-			//lobeXY.draw(energies, screenWidth / 4, screenHeight / 5 + (screenHeight - screenHeight / 5) / 2, screenWidth * 1.5 / 4, (screenHeight - screenHeight / 5) / 2, XY);
-
 			loudspeakers.draw(screenWidth / 4 + screenWidth * 1.5 / 4,
 				screenHeight / 5 + (screenHeight - screenHeight / 5) / 2,
 				screenWidth * 1.5 / 4,
@@ -82,12 +93,6 @@ public:
 		}
 
 		gui.end();
-
-		// ---- Send rotation to main via callback ----
-		if (onLSRotationChanged) {
-			ofVec3f rot = loudspeakers.getRotation();
-			onLSRotationChanged(rot.x, rot.y, rot.z);
-		}
 	}
 
 	void addController(std::shared_ptr<CAmbisonicSoundFieldController> c, string filePathName) {
@@ -104,7 +109,6 @@ public:
 
 	// ---- Mouse event handlers to forward to loudspeakers ----
 	void mousePressed(ofMouseEventArgs & args) {
-		// Compute the speaker window bounds
 		float cx, cy, w, h;
 		getSpeakerWindowBounds(cx, cy, w, h);
 		loudspeakers.mousePressed(args.x, args.y, cx, cy, w, h);
@@ -127,7 +131,6 @@ private:
 
 	int width_menu = 320;
 
-	// ---- Helper function to compute loudspeaker window bounds ----
 	void getSpeakerWindowBounds(float & cx, float & cy, float & w, float & h) {
 		ImGuiViewport * viewport = ImGui::GetMainViewport();
 		float screenWidth = viewport->Size.x;
@@ -156,6 +159,7 @@ public:
 	std::function<void()> onSettings;
 	std::function<void(float, float, float)> onSFRotationChanged;
 	std::function<void(float, float, float)> onLSRotationChanged;
+	std::function<void(float yaw, float pitch, float roll)> onRotationChangedByMouse;
 	std::function<void(int)> onLayoutChanged;
 	std::function<void(int)> onOrderChanged;
 
