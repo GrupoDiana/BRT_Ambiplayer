@@ -3764,7 +3764,7 @@
     <ClInclude Include="addons\ofxBRTLibrary\libs\brt\include\Common\Matrix.hpp">
       <Filter>local_addons\ofxBRTLibrary\libs\brt\include\Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\GUI\CicularProjection.hpp">
+    <ClInclude Include="src\GUI\CircularProjection.hpp">
       <Filter>src\GUI</Filter>
     </ClInclude>
   </ItemGroup>

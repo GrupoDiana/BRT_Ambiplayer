@@ -89,7 +89,7 @@ struct Face {
 };
 
 float increment = 0.1;
-float decrement = 0.01;
+float decrement = 0.001;
 
 enum PlatonicSolid {
 	octahedron,
@@ -97,6 +97,15 @@ enum PlatonicSolid {
 	icosahedron,
 	dodecahedron
 };
+
+namespace Audio {
+enum class ProjectionPlane {
+	XY,
+	ZX,
+	ZY
+};
+}
+
 
 class CLoudSpeakerArrayController {
 public:
@@ -328,9 +337,8 @@ std::vector<float> ComputeDirectionalEnergyMap(
 		return energies;
 	}
 
-	std::vector<float> ComputeDirectionalEnergyMapGeodesic(
-		const CAmbisonicSoundField & field) {
-		std::vector<float> energies(verticesSubdivided.size(), 0.0f);
+	std::vector<float> ComputeDirectionalEnergyMapGeodesic(const CAmbisonicSoundField & field, std::vector<Common::CVector3> points) {
+		std::vector<float> energies(points.size(), 0.0f);
 
 		const auto & soundField = field.GetSoundFieldArray();
 		if (soundField.empty()) return energies;
@@ -346,8 +354,8 @@ std::vector<float> ComputeDirectionalEnergyMap(
 		for (const auto & ch : soundField)
 			channels.push_back(ch.data());
 
-		for (size_t i = 0; i < verticesSubdivided.size(); ++i) {
-			const Common::CVector3 & pos = verticesSubdivided[i];
+		for (size_t i = 0; i < points.size(); ++i) {
+			const Common::CVector3 & pos = points[i];
 			float sampleEnergy = 0.0f; 
 
 			for (size_t n = 0; n < numSamples; ++n) {
@@ -399,6 +407,35 @@ std::vector<float> ComputeDirectionalEnergyMap(
 		return energies;
 	}
 
+	std::vector<Common::CVector3> GeneratePlanarDirections(Audio::ProjectionPlane plane, int numPoints) {
+		std::vector<Common::CVector3> dirs;
+		dirs.reserve(numPoints);
+
+		for (int i = 0; i < numPoints; ++i) {
+			float theta = 2.f * M_PI * i / numPoints;
+
+			Common::CVector3 d;
+
+			switch (plane) {
+			case Audio::ProjectionPlane::XY:
+				d = { cosf(theta), sinf(theta), 0.f };
+				break;
+
+			case Audio::ProjectionPlane::ZX :
+				d = { cosf(theta), 0.f, sinf(theta) };
+				break;
+
+			case Audio::ProjectionPlane::ZY :
+				d = { 0.f, cosf(theta), sinf(theta) };
+				break;
+			}
+
+			d.Normalize();
+			dirs.push_back(d);
+		}
+
+		return dirs;
+	}
 
 	std::vector<Edge> GenerateFaces(int k, std::vector<Common::CVector3> & vertices) {
 		
@@ -457,6 +494,11 @@ std::vector<float> ComputeDirectionalEnergyMap(
 		std::cout << "Num vertices subdivided: " << verticesSubdivided.size() << std::endl;
 		return verticesSubdivided;
 	}
+
+	const std::vector<Common::CVector3> & GetVerticesSubdivided() const {
+		return verticesSubdivided;
+	}
+
 
 private:
 	bool setupDone;

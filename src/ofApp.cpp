@@ -60,6 +60,8 @@ void ofApp::setup() {
 	outputBufferStereo.left.resize(BUFFERSIZE);
 	outputBufferStereo.right.resize(BUFFERSIZE);
 
+	planarEnergies.resize(3);
+
 	////////////////////////////
 	// GUI Callbacks
 	////////////////////////////
@@ -238,9 +240,14 @@ void ofApp::setup() {
 			}
 
 			soundStream.start();
-		};
+	};
 
+	guiManager.onVisualizationChanged =
+		[this](int visualizationIndex) {
 
+			visualization = visualizationIndex;
+			
+	};
 
 	guiManager.setSpeakerController(&speakerArrayController);
 
@@ -252,21 +259,29 @@ void ofApp::update() { }
 
 //--------------------------------------------------------------
 void ofApp::draw() {
+	// --- Copiar energías geodésicas ---
 	std::vector<float> energiesCopy;
 	{
 		std::lock_guard<std::mutex> lock(energiesMutex);
-		energiesCopy= directionalEnergies;
+		energiesCopy = directionalEnergies;
 	}
 
-	// --- Apply loudspeaker rotation before drawing ---
+	// --- Aplicar rotación a los altavoces ---
 	for (size_t i = 0; i < speakerArrayController.GetNumSpeakers(); ++i) {
 		Common::CVector3 rotatedPos = qLoudSpeakers.RotationMatrix() * originalPositions[i];
 		speakerArrayController.GetSpeaker(i)->SetSourceTransform(Common::CTransform(rotatedPos));
 	}
 
-	// --- Draw GUI and speakers ---
-	guiManager.draw(energiesCopy, speakerEnergies, vertices);
+	// --- Dibujar GUI y proyecciones ---
+	if (visualization == 0) {
+		// Geodésica: solo un conjunto de energías
+		guiManager.draw(visualization, energiesCopy, {}, speakerEnergies, vertices);
+	} else {
+		// Planar / Circular: pasamos las 3 energías por plano
+		guiManager.draw(visualization, {}, planarEnergies, speakerEnergies, vertices);
+	}
 }
+
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {
@@ -414,8 +429,15 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 	}
 
 	std::lock_guard<std::mutex> lock(energiesMutex);
-	directionalEnergies = speakerArrayController.ComputeDirectionalEnergyMapGeodesic(*SFbuffer);
-	//directionalEnergiesAux = speakerArrayController.ComputeDirectionalEnergyMap(*SFbuffer,numAz, numEl);
+
+	if (visualization == 0) {
+		directionalEnergies = speakerArrayController.ComputeDirectionalEnergyMapGeodesic(*SFbuffer, speakerArrayController.GetVerticesSubdivided());
+	} else {
+		planarEnergies[0] = speakerArrayController.ComputeDirectionalEnergyMapGeodesic(*SFbuffer, speakerArrayController.GeneratePlanarDirections(Audio::ProjectionPlane::ZY, 20));
+		planarEnergies[1] = speakerArrayController.ComputeDirectionalEnergyMapGeodesic(*SFbuffer, speakerArrayController.GeneratePlanarDirections(Audio::ProjectionPlane::ZX, 20));
+		planarEnergies[2] = speakerArrayController.ComputeDirectionalEnergyMapGeodesic(*SFbuffer, speakerArrayController.GeneratePlanarDirections(Audio::ProjectionPlane::XY, 20));
+	}
+
 
 	Common::CEarPair<CMonoBuffer<float>> bufferProcessed;
 

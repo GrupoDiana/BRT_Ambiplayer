@@ -256,7 +256,7 @@
     <ClInclude Include="src\AmbisonicSoundFieldController.hpp" />
     <ClInclude Include="src\AppUtils.hpp" />
     <ClInclude Include="src\ConfigurationA.hpp" />
-    <ClInclude Include="src\GUI\CicularProjection.hpp" />
+    <ClInclude Include="src\GUI\CircularProjection.hpp" />
     <ClInclude Include="src\GUI\GuiManager.hpp" />
     <ClInclude Include="src\GUI\Logo.hpp" />
     <ClInclude Include="src\GUI\Loudspeakers.hpp" />

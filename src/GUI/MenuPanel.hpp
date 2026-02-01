@@ -56,7 +56,27 @@ public:
 
 		ImGui::Separator();
 
+
 		if (ImGui::CollapsingHeader("Ambisonic Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+
+			const char * visualization_items[] = { "Esphere Proyected", "Radial" };
+			static int visualization_selected_idx = 0;
+
+			ImGui::Text("Visualization Mode:");
+			if (ImGui::BeginCombo("##Visualization Mode", visualization_items[visualization_selected_idx])) {
+				for (int n = 0; n < IM_ARRAYSIZE(visualization_items); ++n) {
+					bool selected = (visualization_selected_idx == n);
+					if (ImGui::Selectable(visualization_items[n], selected)) {
+						visualization_selected_idx = n;
+						if (onVisualizationChanged) onVisualizationChanged(n);
+					}
+					if (selected) ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+
+			ImGui::Separator();
+
 			// --- Order Combo ---
 			const char * order_items[] = { "1", "2", "3" };
 			static int order_selected_idx = 0;
@@ -475,6 +495,7 @@ public:
 	std::function<void(float, float, float)> onLSRotationChanged;
 	std::function<void(int)> onLayoutChanged;
 	std::function<void(int)> onOrderChanged;
+	std::function<void(int)> onVisualizationChanged;
 
 	// --- Controller-specific callbacks ---
 	using ControllerPtr = std::shared_ptr<CAmbisonicSoundFieldController>;
