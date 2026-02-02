@@ -38,11 +38,11 @@ public:
 		// Centro
 		ofTranslate(cx + width / 2.0f, cy + height / 2.0f);
 
-		// --- Círculo base gris ---
-		DrawBaseCircle(maxRadius);
-
 		// --- Curva deformada por energías (rosa) ---
 		DrawCircularEnergy(energies, maxRadius, plane);
+
+		// --- Círculo base gris ---
+		DrawBaseCircle(maxRadius);
 
 		ofPopMatrix();
 	}
@@ -55,7 +55,7 @@ private:
 		float rBase = maxRadius * 0.5f; 
 
 		ofPushStyle();
-		ofNoFill();
+		//ofNoFill();
 		ofSetColor(150); 
 		ofSetLineWidth(1.0f);
 		ofDrawCircle(0, 0, rBase);
@@ -73,18 +73,18 @@ private:
 		if (maxVal <= 0.0f) maxVal = 1.0f;
 
 		float rBase = maxRadius * 0.5f;
-		float deformationScale = 0.6f;
+		float deformationScale = 0.7f;
 
 		// --- Curva deformada (rosa) ---
 		ofPushStyle();
-		ofNoFill();
+		ofFill();
 
 		ImVec4 defaultColor = ImGui::GetStyleColorVec4(ImGuiCol_ScrollbarGrabActive);
 		ofColor haloColor(
 			defaultColor.x * 255.f,
 			defaultColor.y * 255.f,
 			defaultColor.z * 255.f,
-			defaultColor.w * 255.f);
+			defaultColor.w * 100.f);
 
 		ofSetColor(haloColor);
 		ofSetLineWidth(2.0f);

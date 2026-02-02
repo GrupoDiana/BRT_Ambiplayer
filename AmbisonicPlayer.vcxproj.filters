@@ -3767,6 +3767,9 @@
     <ClInclude Include="src\GUI\CircularProjection.hpp">
       <Filter>src\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="src\CommonDefinitions.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="icon.rc" />

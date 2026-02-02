@@ -258,85 +258,7 @@ public:
 		}
 	}
 
-std::vector<float> ComputeDirectionalEnergyMap(
-		const CAmbisonicSoundField & field,
-		int numAz,
-		int numEl) {
-		std::vector<float> energies(numAz * numEl, 0.0f);
-
-		const auto & soundField = field.GetSoundFieldArray();
-		if (soundField.empty()) return energies;
-
-		size_t order = field.GetOrder();
-		size_t numChannels = soundField.size();
-		size_t numSamples = field.GetBufferSize();
-		if (numSamples == 0) return energies;
-
-		std::vector<const float *> channels;
-		channels.reserve(numChannels);
-		for (const auto & ch : soundField)
-			channels.push_back(ch.data());
-
-		for (int ia = 0; ia < numAz; ++ia) {
-			float az = (2.0f * M_PI * ia) / numAz;
-			for (int ie = 0; ie < numEl; ++ie) {
-				float el = ((float)ie / (float)(numEl - 1)) * M_PI; 
-				float sinEl = std::sin(el);
-				float cosEl = std::cos(el);
-
-				Common::CVector3 pos(
-					sinEl * std::cos(az), // x
-					sinEl * std::sin(az), // y
-					cosEl // z
-				);
-
-
-				double energySum = 0.0;
-				for (size_t n = 0; n < numSamples; ++n) {
-					float sample = 0.0f;
-
-					if (order >= 1 && numChannels >= 4) {
-						const float W = channels[0][n];
-						const float Y = channels[1][n];
-						const float Z = channels[2][n];
-						const float X = channels[3][n];
-
-						sample += W + pos.x * X + pos.y * Y + pos.z * Z;
-					}
-
-					if (order >= 2 && numChannels > 8) {
-						const float V = channels[4][n];
-						const float T = channels[5][n];
-						const float R = channels[6][n];
-						const float S = channels[7][n];
-						const float U = channels[8][n];
-
-						sample += sqrtf(3.f) * pos.x * pos.y * V + sqrtf(3.f) * pos.y * pos.z * T + 0.5f * ((3.f * pos.z * pos.z) - 1.f) * R + sqrtf(3.f) * pos.x * pos.z * S + sqrtf(3.f / 4.f) * (pos.x * pos.x - pos.y * pos.y) * U;
-					}
-
-					if (order >= 3 && numChannels > 15) {
-						const float Q = channels[9][n];
-						const float O = channels[10][n];
-						const float M = channels[11][n];
-						const float K = channels[12][n];
-						const float L = channels[13][n];
-						const float N = channels[14][n];
-						const float P = channels[15][n];
-
-						sample += sqrtf(5.f / 8.f) * pos.y * (3.f * pos.x * pos.x - pos.y * pos.y) * Q + sqrtf(15.f) * pos.x * pos.y * pos.z * O + sqrtf(3.f / 8.f) * pos.y * (5.f * pos.z * pos.z - 1.f) * M + 0.5f * pos.z * (5.f * pos.z * pos.z - 3.f) * K + sqrtf(3.f / 8.f) * pos.x * (5.f * pos.z * pos.z - 1.f) * L + sqrtf(15.f / 4.f) * pos.z * (pos.x * pos.x - pos.y * pos.y) * N + sqrtf(5.f / 8.f) * pos.x * (pos.x * pos.x - 3.f * pos.y * pos.y) * P;
-					}
-
-					energySum += sample * sample;
-				}
-
-				float energyAvg = static_cast<float>(energySum / (double)numSamples);
-				energies[ia * numEl + ie] = energyAvg;
-			}
-		}
-
-		return energies;
-	}
-
+	//Hay que cambiarle el nombre porque se usa para geodesica y para circular
 	std::vector<float> ComputeDirectionalEnergyMapGeodesic(const CAmbisonicSoundField & field, std::vector<Common::CVector3> points) {
 		std::vector<float> energies(points.size(), 0.0f);
 
@@ -392,6 +314,8 @@ std::vector<float> ComputeDirectionalEnergyMap(
 					sample += sqrtf(5.f / 8.f) * pos.y * (3.f * pos.x * pos.x - pos.y * pos.y) * channels[9][n] + sqrtf(15.f) * pos.x * pos.y * pos.z * channels[10][n] + sqrtf(3.f / 8.f) * pos.y * (5.f * pos.z * pos.z - 1.f) * channels[11][n] + 0.5f * pos.z * (5.f * pos.z * pos.z - 3.f) * channels[12][n] + sqrtf(3.f / 8.f) * pos.x * (5.f * pos.z * pos.z - 1.f) * channels[13][n] + sqrtf(15.f / 4.f) * pos.z * (pos.x * pos.x - pos.y * pos.y) * channels[14][n] + sqrtf(5.f / 8.f) * pos.x * (pos.x * pos.x - 3.f * pos.y * pos.y) * channels[15][n];
 				}
 
+				//las divisiones y raices en un hpp de commondefinitions
+
 				float absSample = std::abs(sample);
 				
 				if (absSample > sampleEnergy) {
@@ -437,27 +361,72 @@ std::vector<float> ComputeDirectionalEnergyMap(
 		return dirs;
 	}
 
-	std::vector<Edge> GenerateFaces(int k, std::vector<Common::CVector3> & vertices) {
-		
+	void baricentricInterpolationSlerp(int k,
+		const std::vector<float> & energies,
+		std::vector<Common::CVector3> & outVertices,
+		std::vector<float> & outEnergies) {
+
+		outVertices.clear();
+		outEnergies.clear();
+
+		float a = 0.0f, b = 0.0f, c = 0.0f;
+		int i0, i1, i2;
+
+		// Recorremos todas las caras
+		for (int faceIndex = 0; faceIndex < facesSubdivided.size(); ++faceIndex) {
+			i0 = facesSubdivided[faceIndex].v0;
+			i1 = facesSubdivided[faceIndex].v1;
+			i2 = facesSubdivided[faceIndex].v2;
+
+			Common::CVector3 V0 = IVertices[i0];
+			Common::CVector3 V1 = IVertices[i1];
+			Common::CVector3 V2 = IVertices[i2];
+
+			float E0 = energies[i0];
+			float E1 = energies[i1];
+			float E2 = energies[i2];
+
+			// Rejilla baricéntrica
+			for (int i = 0; i <= k; ++i) {
+				for (int j = 0; j <= k - i; ++j) {
+					a = float(i) / k;
+					b = float(j) / k;
+					c = 1.0f - a - b;
+
+					// Interpolación esférica de la posición
+					Common::CVector3 rowStart = Slerp(V0, V2, a);
+					Common::CVector3 rowEnd = Slerp(V0, V1, a);
+					Common::CVector3 P = Slerp(rowStart, rowEnd, b / (1.0f - a + 1e-6f));
+
+					// Interpolación lineal de la energía
+					float E = a * E0 + b * E1 + c * E2;
+
+					outVertices.push_back(P);
+					outEnergies.push_back(E);
+				}
+			}
+		}
+
+		std::cout << "Vertices generados: " << outVertices.size() << std::endl;
 	}
 
 	std::vector<Common::CVector3> kDivision(int k) {
+
 		std::vector<Edge> edges = Edges();
 		verticesSubdivided.clear();
+		facesSubdivided.clear();
 
-		// Copiar los vértices originales
-		for (const auto & v : IVertices) {
+		for (const auto& v : IVertices)
 			verticesSubdivided.push_back(v);
-		}
 
-		// Subdividir todas las aristas
-		for (auto & e : edges) {
+		// --- Edge points ---
+		for (auto& e : edges) {
 			Common::CVector3 V1 = IVertices[e.vertex1];
 			Common::CVector3 V2 = IVertices[e.vertex2];
 
 			e.points.clear();
 
-			for (int i = 1; i <= k; i++) {
+			for (int i = 1; i <= k; ++i) {
 				float t = float(i) / (k + 1);
 				Common::CVector3 P = Slerp(V1, V2, t);
 				verticesSubdivided.push_back(P);
@@ -465,33 +434,67 @@ std::vector<float> ComputeDirectionalEnergyMap(
 			}
 		}
 
-		// Subdividir el interior de cada cara usando los puntos de las aristas
-		for (int f = 0; f < IFaces.size(); f++) {
-			int i0 = IFaces[f][0];
-			int i1 = IFaces[f][1];
-			int i2 = IFaces[f][2];
+		// --- Internal points ---
+		for (const auto& face : IFaces) {
 
-			Common::CVector3 V0 = IVertices[i0];
-			Common::CVector3 V1 = IVertices[i1];
-			Common::CVector3 V2 = IVertices[i2];
+			int i0 = face[0];
+			int i1 = face[1];
+			int i2 = face[2];
 
-			// Crear filas internas (fila 1..k-1)
-			for (int i = 2; i <= k; i++) {
-				//float t_corrected = 0.5f - 0.5f * cosf(M_PI * (float(i) / (k + 1)));
-				float t_corrected = M_PI * (float(i) / (k + 1));
-				Common::CVector3 rowStart = Slerp(V0, V2, t_corrected);
-				Common::CVector3 rowEnd = Slerp(V0, V1, t_corrected);
+			Edge * e01 = findEdge(i0, i1, edges);
+			Edge * e02 = findEdge(i0, i2, edges);
+			Edge * e21 = findEdge(i2, i1, edges);
 
-				// Interpolación interna de la fila
-				for (int j = 1; j <= i - 1; j++) {
-					float t = float(j) / (i);
+			// Rejilla de índices
+			std::vector<std::vector<int>> grid(k + 2);
+			for (int i = 0; i <= k + 1; ++i)
+				grid[i].resize(i + 1);
+
+			// Esquinas
+			grid[0][0] = i0;
+			grid[k + 1][0] = i2;
+			grid[k + 1][k + 1] = i1;
+
+			// Aristas
+			for (int i = 1; i <= k; ++i) {
+				grid[i][0] = e02->points[i - 1];        // V0–V2
+				grid[i][i] = e01->points[i - 1];        // V0–V1
+				grid[k + 1][i] = e21->points[i - 1];    // V2–V1
+			}
+
+			// Interior
+			for (int i = 2; i <= k; ++i) {
+				Common::CVector3 rowStart = Slerp(IVertices[i0], IVertices[i2], float(i) / (k + 1));
+				Common::CVector3 rowEnd   = Slerp(IVertices[i0], IVertices[i1], float(i) / (k + 1));
+
+				for (int j = 1; j < i; ++j) {
+					float t = float(j) / i;
 					Common::CVector3 P = Slerp(rowStart, rowEnd, t);
 					verticesSubdivided.push_back(P);
+					grid[i][j] = verticesSubdivided.size() - 1;
+				}
+			}
+
+			// --- Generar caras ---
+			for (int i = 0; i < k + 1; ++i) {
+				for (int j = 0; j <= i; ++j) {
+
+					int a = grid[i][j];
+					int b = grid[i + 1][j];
+					int c = grid[i + 1][j + 1];
+
+					facesSubdivided.push_back({ a, b, c });
+
+					if (j < i) {
+						int d = grid[i][j + 1];
+						facesSubdivided.push_back({ a, c, d });
+					}
 				}
 			}
 		}
 
-		std::cout << "Num vertices subdivided: " << verticesSubdivided.size() << std::endl;
+		std::cout << "Vertices: " << verticesSubdivided.size() << std::endl;
+
 		return verticesSubdivided;
 	}
 
@@ -507,6 +510,7 @@ private:
 	std::vector<SourceModelPtr> speakers;
 
 	std::vector<Common::CVector3> verticesSubdivided;
+	std::vector<Face> facesSubdivided;
 
 	std::shared_ptr<BRTSourceModel::CSourceOmnidirectionalModel> CreateOmnidirectionalSoundSource(
 		BRTBase::CBRTManager & brtManager, const std::string & _soundSourceID) {
@@ -534,6 +538,14 @@ private:
 		return P;
 	}
 
+	Edge * findEdge(int a, int b, std::vector<Edge> & edges) {
+		for (int i = 0; i < edges.size(); ++i) {
+			if ((edges[i].vertex1 == a && edges[i].vertex2 == b) || (edges[i].vertex1 == b && edges[i].vertex2 == a)) {
+				return &edges[i]; 
+			}
+		}
+		return nullptr;
+	}
 
 
 	std::vector<Edge> Edges() {

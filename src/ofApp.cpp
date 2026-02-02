@@ -274,7 +274,9 @@ void ofApp::draw() {
 
 	// --- Dibujar GUI y proyecciones ---
 	if (visualization == 0) {
-		// Geodésica: solo un conjunto de energías
+		//speakerArrayController.baricentricInterpolationSlerp(2, energiesCopy, interpolatedVertices, interpolatedEnergies);
+
+		//guiManager.draw(visualization, interpolatedEnergies, {}, speakerEnergies, interpolatedVertices);
 		guiManager.draw(visualization, energiesCopy, {}, speakerEnergies, vertices);
 	} else {
 		// Planar / Circular: pasamos las 3 energías por plano

@@ -28,6 +28,8 @@ std::vector<float> directionalEnergies;
 std::vector < std::vector<float> > planarEnergies;
 std::vector<float> speakerEnergies;
 int visualization;
+std::vector<Common::CVector3> interpolatedVertices;
+std::vector<float> interpolatedEnergies;
 
 CConfigurationA configurationA;
 

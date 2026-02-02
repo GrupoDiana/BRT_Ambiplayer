@@ -81,6 +81,8 @@ public:
 
 		float Wgain = 0.0f, XYZgain = 0.0f, VTRSUgain = 0.0f;
 
+		//definir sqrt(speakerArray.GetNumSpeakers()) para no calcularlo 3 veces
+
 		if (decoding == "basic") {
 			Wgain = 1 / std::sqrt(speakerArray.GetNumSpeakers());
 			XYZgain = 0.932f / std::sqrt(speakerArray.GetNumSpeakers());
@@ -104,35 +106,35 @@ public:
 			for (size_t n = 0; n < numSamples; ++n) {
 				float sample = 0.0f;
 
-				if (order >= 1) {
-					const float W = channels[0][n];
-					const float Y = channels[1][n];
-					const float Z = channels[2][n];
-					const float X = channels[3][n];
+				if (order >= 1 && channels.size() >= 4) {
+					//const float W = channels[0][n];
+					//const float Y = channels[1][n];
+					//const float Z = channels[2][n];
+					//const float X = channels[3][n];
 
-					sample += Wgain * W + XYZgain * (pos.x * X + pos.y * Y + pos.z * Z);
+					sample += channels[0][n] + pos.x * channels[3][n] + pos.y * channels[1][n] + pos.z * channels[2][n];
 				}
 
 				if (order >= 2 && channels.size() > 8) {
-					const float V = channels[4][n];
-					const float T = channels[5][n];
-					const float R = channels[6][n];
-					const float S = channels[7][n];
-					const float U = channels[8][n];
+					//const float V = channels[4][n];
+					//const float T = channels[5][n];
+					//const float R = channels[6][n];
+					//const float S = channels[7][n];
+					//const float U = channels[8][n];
 
-					sample += VTRSUgain * (sqrtf(3.f) * pos.x * pos.y * V + sqrtf(3.f) * pos.y * pos.z * T + 0.5f * ((3.f * pos.z * pos.z) - 1.f) * R + sqrtf(3.f) * pos.x * pos.z * S + sqrtf(3.f / 4.f) * (pos.x * pos.x - pos.y * pos.y) * U);
+					sample += sqrtf(3.f) * pos.x * pos.y * channels[4][n] + sqrtf(3.f) * pos.y * pos.z * channels[5][n] + 0.5f * ((3.f * pos.z * pos.z) - 1.f) * channels[6][n] + sqrtf(3.f) * pos.x * pos.z * channels[7][n] + sqrtf(3.f / 4.f) * (pos.x * pos.x - pos.y * pos.y) * channels[8][n];
 				}
 
 				if (order >= 3 && channels.size() > 15) {
-					const float Q = channels[9][n];
-					const float O = channels[10][n];
-					const float M = channels[11][n];
-					const float K = channels[12][n];
-					const float L = channels[13][n];
-					const float N = channels[14][n];
-					const float P = channels[15][n];
+					//const float Q = channels[9][n];
+					//const float O = channels[10][n];
+					//const float M = channels[11][n];
+					//const float K = channels[12][n];
+					//const float L = channels[13][n];
+					//const float N = channels[14][n];
+					//const float P = channels[15][n];
 
-					sample += XYZgain * (sqrtf(5.f / 8.f) * pos.y * (3.f * pos.x * pos.x - pos.y * pos.y) * Q + sqrtf(15.f) * pos.x * pos.y * pos.z * O + sqrtf(3.f / 8.f) * pos.y * (5.f * pos.z * pos.z - 1.f) * M + 0.5f * pos.z * (5.f * pos.z * pos.z - 3.f) * K + sqrtf(3.f / 8.f) * pos.x * (5.f * pos.z * pos.z - 1.f) * L + sqrtf(15.f / 4.f) * pos.z * (pos.x * pos.x - pos.y * pos.y) * N + sqrtf(5.f / 8.f) * pos.x * (pos.x * pos.x - 3.f * pos.y * pos.y) * P);
+					sample += sqrtf(5.f / 8.f) * pos.y * (3.f * pos.x * pos.x - pos.y * pos.y) * channels[9][n] + sqrtf(15.f) * pos.x * pos.y * pos.z * channels[10][n] + sqrtf(3.f / 8.f) * pos.y * (5.f * pos.z * pos.z - 1.f) * channels[11][n] + 0.5f * pos.z * (5.f * pos.z * pos.z - 3.f) * channels[12][n] + sqrtf(3.f / 8.f) * pos.x * (5.f * pos.z * pos.z - 1.f) * channels[13][n] + sqrtf(15.f / 4.f) * pos.z * (pos.x * pos.x - pos.y * pos.y) * channels[14][n] + sqrtf(5.f / 8.f) * pos.x * (pos.x * pos.x - 3.f * pos.y * pos.y) * channels[15][n];
 				}
 				buffer[n] = sample;
 			}
