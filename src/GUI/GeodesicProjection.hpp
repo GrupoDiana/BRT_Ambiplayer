@@ -46,7 +46,7 @@ private:
 	int numAz;
 	int numEl;
 
-	void DrawDirectionalLobeProjectedPoints(
+	/* void DrawDirectionalLobeProjectedPoints(
 		const std::vector<float> & energies,
 		float maxRadius,
 		Plane plane) {
@@ -91,49 +91,64 @@ private:
 		}
 
 		ofPopStyle();
-	}
+	}*/
 
-	void DrawDirectionalLobeProjectedPointsGeodesic(
+void DrawDirectionalLobeProjectedPointsGeodesic(
 		const std::vector<float> & energies,
 		float maxRadius,
-		Plane plane, const std::vector<Common::CVector3> & vertices) {
+		Plane plane,
+		const std::vector<Common::CVector3> & vertices) {
 		if (energies.empty()) return;
+
+		const float minDb = -80.0f;
+		const float maxDb = 0.0f;
 
 		float maxVal = 0.0f;
 		for (float e : energies)
 			if (e > maxVal) maxVal = e;
-		if (maxVal == 0.0f) maxVal = 1.0f;
+		if (maxVal <= 0.0f) maxVal = 1e-12f;
+
+		float frameMaxDb = 20.0f * log10(maxVal);
+		float targetScale = ofMap(frameMaxDb, minDb, maxDb, 0.0f, 1.0f, true);
+
+		//Parasuavizar, si lo quito lo que cambia es que se agranda/achica mas rapido
+		static float smoothedScale = 0.0f;
+		const float alpha = 0.05f;
+		smoothedScale = ofLerp(smoothedScale, targetScale, alpha);
+		float globalScale = smoothedScale;
 
 		ofPushStyle();
 		ofNoFill();
-		ofSetLineWidth(1.0);
+		ofSetLineWidth(1.0f);
 
 		for (int i = 0; i < vertices.size(); ++i) {
-				float val = energies[i];
-				float r = std::sqrt(val / maxVal);
 
-				float az = ofDegToRad(CartesianToSpherical(vertices[i]).x);
-				float el = ofDegToRad(CartesianToSpherical(vertices[i]).y);
+			float val = std::max(energies[i], 0.0f);
+			float rShape = std::sqrt(val / maxVal);
 
-				float x3D = r * cos(el) * cos(az);
-				float y3D = r * cos(el) * sin(az);
-				float z3D = r * sin(el);
+			float r = rShape * globalScale;
 
-				float px, py;
+			float az = ofDegToRad(CartesianToSpherical(vertices[i]).x);
+			float el = ofDegToRad(CartesianToSpherical(vertices[i]).y);
 
-				if (plane == ZY) {
-					px = -y3D * maxRadius;
-					py = -z3D * maxRadius;
-				} else if (plane == XY) {
-					px = -y3D * maxRadius;
-					py = -x3D * maxRadius;
-				} else { // XZ
-					px = -x3D * maxRadius;
-					py = -z3D * maxRadius;
-				}
+			float x3D = r * cos(el) * cos(az);
+			float y3D = r * cos(el) * sin(az);
+			float z3D = r * sin(el);
 
-				ofDrawCircle(px, py, 1.5f);
+			float px, py;
+			if (plane == ZY) {
+				px = -y3D * maxRadius;
+				py = -z3D * maxRadius;
+			} else if (plane == XY) {
+				px = -y3D * maxRadius;
+				py = -x3D * maxRadius;
+			} else {
+				px = -x3D * maxRadius;
+				py = -z3D * maxRadius;
 			}
+
+			ofDrawCircle(px, py, 1.5f);
+		}
 
 		ofPopStyle();
 	}
