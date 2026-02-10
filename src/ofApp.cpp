@@ -282,6 +282,16 @@ void ofApp::draw() {
 		// Planar / Circular: pasamos las 3 energías por plano
 		guiManager.draw(visualization, {}, planarEnergies, speakerEnergies, vertices);
 	}
+
+	if (tracker.leerLinea()) {
+		/* if (tracker.parsearQuaternion6()) {
+			double roll, pitch, yaw;
+			tracker.calcularEuler(roll, pitch, yaw);
+
+			std::cout << "Roll: " << roll << " Pitch: " << pitch << " Yaw: " << yaw << std::endl;
+			tracker.mostrarQuaternion();
+		}*/
+	}
 }
 
 
@@ -416,7 +426,7 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 			*SFbuffer += *OutBuffer;
 	}
 
-	ambisonicProcessor.CalculateRotationMatrices(qRotation, *SFbuffer);
+	ambisonicProcessor.CalculateRotationMatrices(tracker.getUltimoQuat().Inverse(), *SFbuffer);
 	SFbuffer->GetSoundFieldArrayRotate();
 
 	ambisonicProcessor.DecodeToSpeakerArray(speakerArrayController, *SFbuffer, "basic");

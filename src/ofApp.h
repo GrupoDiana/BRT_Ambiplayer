@@ -15,6 +15,7 @@
 #include "AmbisonicSoundField.hpp"
 #include "AmbisonicProcessor.hpp"
 #include "LoudSpeakerArrayController.hpp"
+#include "TrackerController.hpp"
 
 ofSoundStream soundStream;
 Common::CGlobalParameters globalParameters; 
@@ -32,6 +33,8 @@ std::vector<Common::CVector3> interpolatedVertices;
 std::vector<float> interpolatedEnergies;
 
 CConfigurationA configurationA;
+
+TrackerController & tracker = TrackerController::getInstance(L"\\\\.\\COM4", 115200);
 
 Common::CEarPair<CMonoBuffer<float>> outputBufferStereo; 
 

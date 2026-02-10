@@ -3770,6 +3770,9 @@
     <ClInclude Include="src\CommonDefinitions.hpp">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\TrackerController.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="icon.rc" />

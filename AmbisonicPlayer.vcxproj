@@ -1364,6 +1364,7 @@
     <ClInclude Include="addons\ofxImGui\libs\imgui\src\imstb_rectpack.h" />
     <ClInclude Include="addons\ofxImGui\libs\imgui\src\imstb_textedit.h" />
     <ClInclude Include="addons\ofxImGui\libs\imgui\src\imstb_truetype.h" />
+    <ClInclude Include="src\TrackerController.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(OF_ROOT)\libs\openFrameworksCompiled\project\vs\openframeworksLib.vcxproj">

@@ -84,30 +84,33 @@ private:
 		float frameMaxDb = 20.0f * log10(maxVal);
 		float targetScale = ofMap(frameMaxDb, minDb, maxDb, 0.0f, 1.0f, true);
 
-		//Parasuavizar, si lo quito lo que cambia es que se agranda/achica mas rapido
 		static float smoothedScale = 0.0f;
 		const float alpha = 0.05f;
 		smoothedScale = ofLerp(smoothedScale, targetScale, alpha);
 		float globalScale = smoothedScale;
 
-
 		float rBase = maxRadius * 0.5f;
-
-		// --- Curva deformada (rosa) ---
-		ofPushStyle();
-		ofFill();
+		int N = energies.size();
 
 		ImVec4 defaultColor = ImGui::GetStyleColorVec4(ImGuiCol_ScrollbarGrabActive);
-		ofColor haloColor(
+
+		ofColor haloFill(
 			defaultColor.x * 255.f,
 			defaultColor.y * 255.f,
 			defaultColor.z * 255.f,
 			defaultColor.w * 100.f);
 
-		ofSetColor(haloColor);
-		ofSetLineWidth(2.0f);
+		ofColor haloStroke(
+			defaultColor.x * 255.f,
+			defaultColor.y * 255.f,
+			defaultColor.z * 255.f,
+			255.f);
 
-		int N = energies.size();
+		ofPushStyle();
+
+		ofFill();
+		ofSetColor(haloFill);
+
 		ofBeginShape();
 		for (int i = 0; i < N + 3; ++i) {
 			int idx = i % N;
@@ -120,9 +123,36 @@ private:
 			float px, py;
 			switch (plane) {
 			case XY:
+			case ZY:
 				px = -sinf(theta);
 				py = -cosf(theta);
 				break;
+			case ZX:
+				px = -cosf(theta);
+				py = -sinf(theta);
+				break;
+			}
+
+			ofCurveVertex(px * r, py * r);
+		}
+		ofEndShape(true);
+
+		ofNoFill();
+		ofSetColor(haloStroke);
+		ofSetLineWidth(3.0f);
+
+		ofBeginShape();
+		for (int i = 0; i < N + 3; ++i) {
+			int idx = i % N;
+			float theta = TWO_PI * idx / N;
+			float normE = energies[idx] / maxVal;
+
+			float deformation = sqrt(normE) * globalScale;
+			float r = rBase + (maxRadius - rBase) * deformation;
+
+			float px, py;
+			switch (plane) {
+			case XY:
 			case ZY:
 				px = -sinf(theta);
 				py = -cosf(theta);
@@ -139,6 +169,7 @@ private:
 
 		ofPopStyle();
 	}
+
 
 
 	void AngleToPlaneXY(float theta, float & x, float & y) {
