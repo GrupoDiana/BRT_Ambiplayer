@@ -96,12 +96,12 @@ public:
 						ultimoQuat = { q0, q1, q2, q3 };
 
 						// Mostrar debug
-						/* std::cout << "Leído: " << auxiliar << "\n";
+						std::cout << "Leído: " << auxiliar << "\n";
 						double roll, pitch, yaw;
 						calcularEuler(yaw, pitch, roll);
 						std::cout << "Yaw: " << yaw
 								  << " Pitch: " << pitch
-								  << " Roll: " << roll << "\n";*/
+								  << " Roll: " << roll << "\n";
 					}
 				}
 				// Reset para la siguiente línea
@@ -141,6 +141,34 @@ public:
 
 	CQuaternion getUltimoQuat() const {
 		return ultimoQuat;
+	}
+
+	 static std::vector<std::string> listarCOMs() {
+		std::vector<std::string> coms;
+		const uint32_t CHAR_NUM = 1024;
+		const uint32_t MAX_PORTS = 255;
+		const std::string COM_STR = "COM";
+		char path[CHAR_NUM];
+
+		for (uint32_t k = 1; k <= MAX_PORTS; k++) { // empezamos en 1
+			std::string port_name = COM_STR + std::to_string(k);
+			DWORD res = QueryDosDeviceA(port_name.c_str(), path, CHAR_NUM);
+			if (res != 0) { // puerto existe
+				coms.push_back(port_name);
+			}
+		}
+
+		std::sort(coms.begin(), coms.end());
+		return coms;
+	}
+
+	
+	static void printCOMs() {
+		auto lst = listarCOMs();
+		std::cout << "COM ports available:\n";
+		for (const auto & s : lst) {
+			std::cout << "  " << s << "\n";
+		}
 	}
 
 	GyroData ultimoGyro;

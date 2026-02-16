@@ -249,7 +249,14 @@ void ofApp::setup() {
 			
 	};
 
+	guiManager.onSerialPortChanged =
+		[this](int serialIndex) {
+			//TrackerController & tracker = TrackerController::getInstance(L"\\\\.\\COM3", 115200);
+	};
+
 	guiManager.setSpeakerController(&speakerArrayController);
+
+	tracker.printCOMs();
 
 	soundStream.start();
 }

@@ -2,6 +2,7 @@
 #define _MENU_PANEL_HPP_
 
 #include "AmbisonicSoundFieldController.hpp"
+#include "TrackerController.hpp"
 #include "imgui.h"
 #include "ofMain.h"
 #include <algorithm>
@@ -14,6 +15,7 @@ public:
 	CMenuPanel() {
 		SFyawRad = SFpitchRad = SFrollRad = 0.0f;
 		LSyawRad = LSpitchRad = LSrollRad = 0.0f;
+		initSerialPorts();
 	}
 
 	void draw(float x, float y, float screenWidth, float screenHeight) {
@@ -208,6 +210,25 @@ public:
 		}
 
 		ImGui::PopStyleColor(3);
+
+		// --- Tracker settings ---
+		if (ImGui::CollapsingHeader("Tracker Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+
+			ImGui::Text("Serial Terminal:");
+			if (ImGui::BeginCombo("##SerialPorts", availableCOMs[serial_selected_idx].c_str())) {
+				for (int n = 0; n < (int)availableCOMs.size(); ++n) {
+					bool selected = (serial_selected_idx == n);
+					if (ImGui::Selectable(availableCOMs[n].c_str(), selected)) {
+						serial_selected_idx = n;
+						if (onSerialPortChanged)
+							onSerialPortChanged(n);
+					}
+					if (selected) ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+		}
+		ImGui::Separator();
 
 		// --- Listener settings ---
 		if (ImGui::CollapsingHeader("Listener Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -496,6 +517,7 @@ public:
 	std::function<void(int)> onLayoutChanged;
 	std::function<void(int)> onOrderChanged;
 	std::function<void(int)> onVisualizationChanged;
+	std::function<void(int)> onSerialPortChanged;
 
 	// --- Controller-specific callbacks ---
 	using ControllerPtr = std::shared_ptr<CAmbisonicSoundFieldController>;
@@ -514,8 +536,11 @@ private:
 	int margen = 10;
 
 	int layout_selected_idx = 0;
+	int serial_selected_idx = 0;
 
-	bool isPlaying = false; 
+	bool isPlaying = false;
+
+	std::vector<std::string> availableCOMs;
 
 	std::vector<std::shared_ptr<CAmbisonicSoundFieldController>> controllers;
 	bool showSourcePopup = false, showWAVPopup = false, showSettingsPopUp = false;
@@ -537,6 +562,17 @@ private:
 	snprintf(buf, sizeof(buf), "%02d:%02d", min, sec);
 	return std::string(buf);
 	}
+
+	void initSerialPorts() {
+		availableCOMs = TrackerController::listarCOMs();
+
+		if (availableCOMs.empty()) {
+			availableCOMs.push_back("No COM found");
+		}
+
+		serial_selected_idx = 0; // seleccionar el primero por defecto
+	}
+
 
 };
 
