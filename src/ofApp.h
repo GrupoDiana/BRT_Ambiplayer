@@ -34,7 +34,7 @@ std::vector<float> interpolatedEnergies;
 
 CConfigurationA configurationA;
 
-TrackerController & tracker = TrackerController::getInstance(L"\\\\.\\COM3", 115200);
+TrackerController tracker;
 
 Common::CEarPair<CMonoBuffer<float>> outputBufferStereo; 
 

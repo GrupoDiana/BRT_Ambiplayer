@@ -251,12 +251,38 @@ void ofApp::setup() {
 
 	guiManager.onSerialPortChanged =
 		[this](int serialIndex) {
-			//TrackerController & tracker = TrackerController::getInstance(L"\\\\.\\COM3", 115200);
+			auto coms = TrackerController::listarCOMsConNombre();
+
+			if (serialIndex == -1) {
+				std::cout << "Ningún COM seleccionado.\n";
+				tracker.disconnect();
+			}
+
+			if (serialIndex < 0 || serialIndex >= coms.size()) {
+				std::cout << "Índice COM inválido\n";
+				return;
+			}
+
+			std::wstring portName(coms[serialIndex].port.begin(), coms[serialIndex].port.end());
+			portName = L"\\\\.\\" + portName; 
+
+			if (tracker.setup(portName, 115200)) {
+				std::cout << "Tracker conectado a "<< std::string(coms[serialIndex].port.begin(), coms[serialIndex].port.end())<< "\n";
+			} else {
+				std::cout << "No se pudo conectar a "<< std::string(coms[serialIndex].port.begin(), coms[serialIndex].port.end())<< "\n";
+			}
+		};
+
+
+	guiManager.onCalibrateHead = [this]() {
+		
+	};
+
+	guiManager.onCalibrateCompass = [this]() {
+
 	};
 
 	guiManager.setSpeakerController(&speakerArrayController);
-
-	tracker.printCOMs();
 
 	soundStream.start();
 }
@@ -290,15 +316,7 @@ void ofApp::draw() {
 		guiManager.draw(visualization, {}, planarEnergies, speakerEnergies, vertices);
 	}
 
-	if (tracker.leerLinea()) {
-		/* if (tracker.parsearQuaternion6()) {
-			double roll, pitch, yaw;
-			tracker.calcularEuler(roll, pitch, yaw);
-
-			std::cout << "Roll: " << roll << " Pitch: " << pitch << " Yaw: " << yaw << std::endl;
-			tracker.mostrarQuaternion();
-		}*/
-	}
+	tracker.leerLinea();
 }
 
 

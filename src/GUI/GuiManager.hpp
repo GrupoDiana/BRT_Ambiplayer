@@ -43,6 +43,9 @@ public:
         menuPanel.onOrderChanged = [this](int orderIndex) { if (onOrderChanged) onOrderChanged(orderIndex); };
         menuPanel.onVisualizationChanged = [this](int visualizationIndex) { if (onVisualizationChanged) onVisualizationChanged(visualizationIndex); };
 		menuPanel.onSerialPortChanged = [this](int serialIndex) { if (onSerialPortChanged) onSerialPortChanged(serialIndex); };
+		menuPanel.onCalibrateHead = [this]() { if (onCalibrateHead) onCalibrateHead(); };
+		menuPanel.onCalibrateCompass = [this]() { if (onCalibrateCompass) onCalibrateCompass(); };
+
         // ---- Controller callbacks ----
         menuPanel.onControllerPlay = [this](CMenuPanel::ControllerPtr c) { if (onControllerPlay) onControllerPlay(c); };
         menuPanel.onControllerStop = [this](CMenuPanel::ControllerPtr c) { if (onControllerStop) onControllerStop(c); };
@@ -177,6 +180,8 @@ public:
     std::function<void(int)> onOrderChanged;
     std::function<void(int)> onVisualizationChanged;
 	std::function<void(int)> onSerialPortChanged;
+	std::function<void()> onCalibrateHead;
+	std::function<void()> onCalibrateCompass;
 
     using ControllerPtr = std::shared_ptr<CAmbisonicSoundFieldController>;
     std::function<void(std::shared_ptr<CAmbisonicSoundFieldController>)> onAddControllerButton;

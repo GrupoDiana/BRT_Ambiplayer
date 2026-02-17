@@ -215,18 +215,48 @@ public:
 		if (ImGui::CollapsingHeader("Tracker Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
 
 			ImGui::Text("Serial Terminal:");
-			if (ImGui::BeginCombo("##SerialPorts", availableCOMs[serial_selected_idx].c_str())) {
+			static int serial_selected_idx = -1; 
+
+			if (ImGui::BeginCombo(
+					"##SerialPorts",
+					serial_selected_idx == -1 ? "-Selecciona un COM-" : availableCOMs[serial_selected_idx].port.c_str())) {
+				// Primer ítem: placeholder
+				bool placeholder_selected = (serial_selected_idx == -1);
+				if (ImGui::Selectable("-Selecciona un COM-", placeholder_selected)) {
+					serial_selected_idx = -1; // ningún COM seleccionado
+					if (onSerialPortChanged)
+						onSerialPortChanged(-1);
+				}
+				if (placeholder_selected)
+					ImGui::SetItemDefaultFocus();
+
+				// COMs reales
 				for (int n = 0; n < (int)availableCOMs.size(); ++n) {
 					bool selected = (serial_selected_idx == n);
-					if (ImGui::Selectable(availableCOMs[n].c_str(), selected)) {
-						serial_selected_idx = n;
+
+					if (ImGui::Selectable(availableCOMs[n].name.c_str(), selected)) {
+						serial_selected_idx = n; 
 						if (onSerialPortChanged)
 							onSerialPortChanged(n);
 					}
-					if (selected) ImGui::SetItemDefaultFocus();
+
+					if (selected)
+						ImGui::SetItemDefaultFocus();
 				}
+
 				ImGui::EndCombo();
 			}
+
+			ImGui::Text("Calibrations:");
+			//Boton calibrate head
+			if (ImGui::Button("HEAD") && onCalibrateHead) {
+				onCalibrateHead();
+			}
+			//boton calibrate compass
+			if (ImGui::Button("COMPASS") && onCalibrateCompass) {
+				onCalibrateCompass();
+			}
+
 		}
 		ImGui::Separator();
 
@@ -518,6 +548,8 @@ public:
 	std::function<void(int)> onOrderChanged;
 	std::function<void(int)> onVisualizationChanged;
 	std::function<void(int)> onSerialPortChanged;
+	std::function<void()> onCalibrateHead;
+	std::function<void()> onCalibrateCompass;
 
 	// --- Controller-specific callbacks ---
 	using ControllerPtr = std::shared_ptr<CAmbisonicSoundFieldController>;
@@ -540,7 +572,7 @@ private:
 
 	bool isPlaying = false;
 
-	std::vector<std::string> availableCOMs;
+	std::vector<COMInfo> availableCOMs;
 
 	std::vector<std::shared_ptr<CAmbisonicSoundFieldController>> controllers;
 	bool showSourcePopup = false, showWAVPopup = false, showSettingsPopUp = false;
@@ -564,11 +596,11 @@ private:
 	}
 
 	void initSerialPorts() {
-		availableCOMs = TrackerController::listarCOMs();
+		availableCOMs = TrackerController::listarCOMsConNombre();
 
-		if (availableCOMs.empty()) {
+		/*if (availableCOMs.empty()) {
 			availableCOMs.push_back("No COM found");
-		}
+		}*/
 
 		serial_selected_idx = 0; // seleccionar el primero por defecto
 	}
