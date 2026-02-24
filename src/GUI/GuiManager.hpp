@@ -22,6 +22,7 @@ public:
         menuPanel.onCreateSource = [this](int frames, Common::CVector3 pos) { if (onCreateSource) onCreateSource(frames, pos); };
         menuPanel.onChangeK = [this](int k) { if (onChangeK) onChangeK(k); };
         menuPanel.onSettings = [this]() { if (onSettings) onSettings(); };
+		menuPanel.onAbout = [this]() { if (onAbout) onAbout(); };
         menuPanel.onSFRotationChanged = [this](float yaw, float pitch, float roll) { if (onSFRotationChanged) onSFRotationChanged(yaw, pitch, roll); };
 
         menuPanel.onLSRotationChanged = [this](float yaw, float pitch, float roll) {
@@ -109,6 +110,8 @@ public:
                              speakersEnergies);
         }
 
+		setTotalRotation();
+
         gui.end();
     }
 
@@ -135,10 +138,21 @@ public:
 
     void setLayout(int layoutIndex) { menuPanel.setLayout(layoutIndex); }
 
+	void getTotalRotation(CQuaternion _qRotation) {
+		qRotation = _qRotation;
+	}
+
+	void setTotalRotation() {
+		qRotation.ToYawPitchRoll(Totalyaw, Totalpitch, Totalroll);
+		menuPanel.setTotalRotation(Totalyaw, Totalpitch, Totalroll);
+	}
+
 private:
     ofxImGui::Gui gui;
     CLogo logo;
     CMenuPanel menuPanel;
+	CQuaternion qRotation;
+	float Totalyaw, Totalpitch, Totalroll;
 
     // Proyecciones
     CGeodesicProjection lobeXY, lobeYZ, lobeZX;
@@ -173,6 +187,7 @@ public:
     std::function<void(int numFrames, Common::CVector3 pos)> onCreateSource;
     std::function<void(int k)> onChangeK;
     std::function<void()> onSettings;
+	std::function<void()> onAbout;
     std::function<void(float, float, float)> onSFRotationChanged;
     std::function<void(float, float, float)> onLSRotationChanged;
     std::function<void(float yaw, float pitch, float roll)> onRotationChangedByMouse;

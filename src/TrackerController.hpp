@@ -104,6 +104,10 @@ public:
 		}
 	}
 
+	bool isConnected() const {
+		return initialized && hSerial != INVALID_HANDLE_VALUE;
+	}
+
 	bool leerLinea() {
 		if (!initialized || hSerial == INVALID_HANDLE_VALUE) return false;
 

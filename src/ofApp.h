@@ -23,7 +23,7 @@ BRTBase::CBRTManager brtManager;
 std::shared_ptr<BRTBase::CListener> listener; 
 size_t currentSample = 0; 
 std::string decoding;
-Common::CQuaternion qRotation, qLoudSpeakers;
+Common::CQuaternion qRotation, qLoudSpeakers, qField, qHead;
 
 std::vector<float> directionalEnergies;
 std::vector < std::vector<float> > planarEnergies;

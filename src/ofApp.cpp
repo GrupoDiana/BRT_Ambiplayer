@@ -196,7 +196,7 @@ void ofApp::setup() {
 
 	guiManager.onSFRotationChanged =
 		[this](float yaw, float pitch, float roll) {
-			qRotation = Common::CQuaternion::FromYawPitchRoll(yaw, pitch, roll);
+			qField = Common::CQuaternion::FromYawPitchRoll(yaw, pitch, roll);
 		};
 
 	guiManager.onLSRotationChanged = [this](float yaw, float pitch, float roll) {
@@ -254,12 +254,14 @@ void ofApp::setup() {
 			auto coms = TrackerController::listarCOMsConNombre();
 
 			if (serialIndex == -1) {
-				std::cout << "Ningún COM seleccionado.\n";
+				std::cout << "Ningun COM seleccionado.\n";
 				tracker.disconnect();
+				qHead = CQuaternion::UNIT();
+				cout << "Llega a aqui" << endl;
 			}
 
 			if (serialIndex < 0 || serialIndex >= coms.size()) {
-				std::cout << "Índice COM inválido\n";
+				std::cout << "Indice COM invalido\n";
 				return;
 			}
 
@@ -311,12 +313,17 @@ void ofApp::draw() {
 
 		//guiManager.draw(visualization, interpolatedEnergies, {}, speakerEnergies, interpolatedVertices);
 		guiManager.draw(visualization, energiesCopy, {}, speakerEnergies, vertices);
+		guiManager.getTotalRotation(qRotation);
 	} else {
 		// Planar / Circular: pasamos las 3 energías por plano
 		guiManager.draw(visualization, {}, planarEnergies, speakerEnergies, vertices);
+		guiManager.getTotalRotation(qRotation);
 	}
 
-	tracker.leerLinea();
+	if (tracker.isConnected()) {
+		tracker.leerLinea();
+		qHead = tracker.getUltimoQuat().Inverse();
+	}
 }
 
 
@@ -451,7 +458,9 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 			*SFbuffer += *OutBuffer;
 	}
 
-	ambisonicProcessor.CalculateRotationMatrices(tracker.getUltimoQuat().Inverse(), *SFbuffer);
+	qRotation = qField * qHead;
+	ambisonicProcessor.CalculateRotationMatrices(qRotation, *SFbuffer);
+
 	SFbuffer->GetSoundFieldArrayRotate();
 
 	ambisonicProcessor.DecodeToSpeakerArray(speakerArrayController, *SFbuffer, "basic");

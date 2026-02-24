@@ -164,6 +164,13 @@ public:
 					onSFRotationChanged(SFyawRad, SFpitchRad, SFrollRad);
 			}
 
+			//     --- Total Rotation (SoundField + Tracker) ---
+			ImGui::Text("Final Yaw: %.2f", ofRadToDeg(TotalyawRad));
+			ImGui::Text("Final Pitch: %.2f", ofRadToDeg(TotalpitchRad));
+			ImGui::Text("Final Roll: %.2f", ofRadToDeg(TotalrollRad));
+
+
+
 			// --- Loudspeaker Rotation Sliders ---
 			if (ImGui::CollapsingHeader("LoudSpeakers Rotation", ImGuiTreeNodeFlags_DefaultOpen)) {
 				bool LSchanged = false;
@@ -409,6 +416,12 @@ public:
 			ImGui::PopStyleColor(3);
 		}
 
+		ImVec2 winSize = ImGui::GetWindowSize();
+		ImVec2 cursorPos = ImGui::GetCursorPos();
+		float buttonHeight = ImGui::GetFrameHeight(); // altura del botón
+		ImGui::SetCursorPosY(winSize.y - buttonHeight - 10);
+		if (ImGui::Button("ABOUT")) showAboutPopUp = true;
+
 		ImGui::End();
 
 		// --- WAV Popup ---
@@ -509,6 +522,15 @@ public:
 			ImGui::EndPopup();
 		}
 
+		if (showAboutPopUp) ImGui::OpenPopup("About");
+		if (ImGui::BeginPopupModal("About", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+			
+			ImGui::Text("This player is the result of the Bachelors Thesis project by");
+			ImGui::Text("Rocio Liceras Ramirez, supervised by Arcadio Reyes Lecuona");
+			ImGui::Text("and co-supervised by Daniel Gonzalez Toledo at the University of Malaga.");
+			ImGui::EndPopup();
+		}
+
 		ImGui::PopStyleColor(5);
 	}
 
@@ -535,6 +557,11 @@ public:
 		layout_selected_idx = std::clamp(layoutIndex, 0, 3); // porque tienes 4 layouts
 	}
 
+	void setTotalRotation(float yaw, float pitch, float roll) {
+		TotalyawRad = yaw;
+		TotalpitchRad = pitch;
+		TotalrollRad = roll;
+	}
 
 	// --- Callbacks ---
 	std::function<void(bool)> onPlay;
@@ -543,6 +570,7 @@ public:
 	std::function<void(size_t, Common::CVector3)> onCreateSource;
 	std::function<void(int)> onChangeK;
 	std::function<void()> onSettings;
+	std::function<void()> onAbout;
 	std::function<void(float, float, float)> onSFRotationChanged;
 	std::function<void(float, float, float)> onLSRotationChanged;
 	std::function<void(int)> onLayoutChanged;
@@ -565,6 +593,7 @@ public:
 private:
 	float SFyawRad, SFpitchRad, SFrollRad;
 	float LSyawRad, LSpitchRad, LSrollRad;
+	float TotalyawRad, TotalpitchRad, TotalrollRad;
 	int layoutIndex;
 	int margen = 10;
 
@@ -576,7 +605,7 @@ private:
 	std::vector<COMInfo> availableCOMs;
 
 	std::vector<std::shared_ptr<CAmbisonicSoundFieldController>> controllers;
-	bool showSourcePopup = false, showWAVPopup = false, showSettingsPopUp = false;
+	bool showSourcePopup = false, showWAVPopup = false, showSettingsPopUp = false, showAboutPopUp = false;
 
 	Common::CVector3 SphericalToCartesian(float azimuthDeg, float elevationDeg, float radius = 1.0f) {
 		float azim = ofDegToRad(azimuthDeg);

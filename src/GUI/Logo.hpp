@@ -9,10 +9,15 @@ public:
 		string pathResources = ofToDataPath("../../../resources");
 
 		bool imageOk = logoUMA.load(pathResources + "/UMA.png");
+		bool imageDIANAOk = logoDIANA.load(pathResources + "/LogoDiana.png");
 		bool fontOk = titleFont.load(pathResources + "/Verdana.ttf", 32);
 
 		if (imageOk) {
 			logoUMA.resize(logoUMA.getWidth() / 13, logoUMA.getHeight() / 13);
+		}
+
+		if (imageDIANAOk) {
+			logoDIANA.resize(logoDIANA.getWidth() / 3, logoDIANA.getHeight() / 3);
 		}
 	}
 
@@ -38,6 +43,11 @@ public:
 				ofSetColor(255);
 				logoUMA.draw(width - x -  2 * margen - logoUMA.getWidth(), y + (height - logoUMA.getHeight()) / 2);
 			}
+
+			if (logoDIANA.isAllocated()) {
+				ofSetColor(255);
+				logoDIANA.draw(x + 2 * margen + width / 4.5 - logoUMA.getWidth(), y + (height - logoDIANA.getHeight()) / 2);
+			}
 		} else{
 			if (titleFont.isLoaded()) {
 				string title = "AmbiPlayer";
@@ -51,7 +61,7 @@ public:
 	}
 
 private:
-	ofImage logoUMA;
+	ofImage logoUMA, logoDIANA;
 	ofTrueTypeFont titleFont;
 
 	int margen = 10;
