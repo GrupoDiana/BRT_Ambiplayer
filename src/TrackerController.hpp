@@ -231,6 +231,53 @@ public:
 		return coms;
 	}
 
+void calibrarSensoresQuat(int muestrasQuieto = 50, int muestrasMov = 100) {
+		std::cout << "=== Calibración de orientación (cuaterniones) ===\n";
+
+		std::cout << "Mantenga el sensor quieto...\n";
+
+		CQuaternion sumaQuat;
+		int leidas = 0;
+		while (leidas < muestrasQuieto) {
+			if (leerLinea()) {
+				sumaQuat.x += ultimoQuat.x;
+				sumaQuat.y += ultimoQuat.y;
+				sumaQuat.z += ultimoQuat.z;
+				sumaQuat.w += ultimoQuat.w;
+				leidas++;
+			}
+		}
+
+		CQuaternion qQuieto;
+		qQuieto.w = sumaQuat.w / muestrasQuieto;
+		qQuieto.x = sumaQuat.x / muestrasQuieto;
+		qQuieto.y = sumaQuat.y / muestrasQuieto;
+		qQuieto.z = sumaQuat.z / muestrasQuieto;
+
+		std::cout << "Valor promedio en reposo (referencia): "
+				  << "q0=" << qQuieto.w << ", "
+				  << "q1=" << qQuieto.x << ", "
+				  << "q2=" << qQuieto.y << ", "
+				  << "q3=" << qQuieto.z << "\n";
+
+		std::cout << "Gire el sensor lentamente en todas las direcciones (tipo infinito)...\n";
+
+		std::vector<CQuaternion> datasetMov;
+		leidas = 0;
+		while (leidas < muestrasMov) {
+			if (leerLinea()) {
+				datasetMov.push_back(ultimoQuat);
+				leidas++;
+			}
+		}
+
+		std::cout << "Calibración completada. Se recolectaron "
+				  << datasetMov.size() << " cuaterniones en movimiento.\n";
+
+	}
+
+
+
 private:
 	HANDLE hSerial = INVALID_HANDLE_VALUE;
 	bool initialized = false;

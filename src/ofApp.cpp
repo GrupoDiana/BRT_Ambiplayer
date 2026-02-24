@@ -40,7 +40,7 @@ void ofApp::setup() {
 		originalPositions.push_back(speakerArrayController.GetSpeaker(i)->GetSourceTransform().GetPosition());
 	}
 
-	vertices = speakerArrayController.kDivision(0);
+	vertices = speakerArrayController.kDivision(5);
 
 	////////////////////////////
 	// Create Ambisonic Buffers
@@ -279,7 +279,7 @@ void ofApp::setup() {
 	};
 
 	guiManager.onCalibrateCompass = [this]() {
-
+		tracker.calibrarSensoresQuat();
 	};
 
 	guiManager.setSpeakerController(&speakerArrayController);

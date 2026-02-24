@@ -1,8 +1,13 @@
-//Para definicion de constantes
+#ifndef COMMON_DEFINITIONS_HPP_
+#define COMMON_DEFINITIONS_HPP_
 
-//sqrtf(3.f)
-//sqrtf(3.f / 4.f)
-//sqrtf(5.f / 8.f)
-//sqrtf(15.f)
-//sqrtf(3.f / 8.f)
-//sqrtf(15.f / 4.f)
+namespace CommonDefinitions {
+constexpr float SQRT_3 = 1.7320508f;
+constexpr float SQRT_3_DIV_4 = 0.8660254f;
+constexpr float SQRT_5_DIV_8 = 0.7905694f;
+constexpr float SQRT_15 = 3.8729833f;
+constexpr float SQRT_3_DIV_8 = 0.6123724f;
+constexpr float SQRT_15_DIV_4 = 1.9364917f;
+}
+
+#endif // COMMON_DEFINITIONS_HPP_

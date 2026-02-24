@@ -252,6 +252,7 @@ public:
 			if (ImGui::Button("HEAD") && onCalibrateHead) {
 				onCalibrateHead();
 			}
+			ImGui::SameLine();
 			//boton calibrate compass
 			if (ImGui::Button("COMPASS") && onCalibrateCompass) {
 				onCalibrateCompass();
@@ -487,7 +488,7 @@ public:
 		//Settings Popup
 		if (showSettingsPopUp) ImGui::OpenPopup("Settings");
 		if (ImGui::BeginPopupModal("Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-			static int k = 0;
+			static int k = 5;
 			//To implement settings options here
 			ImGui::Text("SampleRate: 48000");
 			ImGui::Text("BufferSize: 512");

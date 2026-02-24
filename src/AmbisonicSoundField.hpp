@@ -263,7 +263,6 @@ private:
 	std::vector<CMonoBuffer<float>> soundFieldArray;
 
 	std::vector<CMatrix<float>> ambisonicRotationMatrices;
-	//metodo que aplique la rotacion pero borre las matriz
 
 	//Añadir comentarios
 	void RotateFieldRecursive(int l, const std::vector<CMonoBuffer<float>> & source, std::vector<CMonoBuffer<float>> & dest, int offset) {
