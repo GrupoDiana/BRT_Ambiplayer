@@ -277,7 +277,7 @@ void ofApp::setup() {
 
 
 	guiManager.onCalibrateHead = [this]() {
-		
+		tracker.calibrarCentroConMovimientos(50);
 	};
 
 	guiManager.onCalibrateCompass = [this]() {

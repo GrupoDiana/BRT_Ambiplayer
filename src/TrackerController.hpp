@@ -111,8 +111,8 @@ public:
 	bool leerLinea() {
 		if (!initialized || hSerial == INVALID_HANDLE_VALUE) return false;
 
-		char receive_data_buffer[300] = { 0 };
 		DWORD bytesRead = 0;
+		char receive_data_buffer[300] = { 0 };
 
 		bool success = ReadFile(
 			hSerial,
@@ -121,28 +121,26 @@ public:
 			&bytesRead,
 			NULL);
 
-		if (!success) {
-			std::cout << "ERROR EN LECTURA\n";
-			return false;
-		}
+		if (!success || bytesRead == 0) return false;
 
-		if (bytesRead == 0) return false;
+		std::vector<char> read_vector(receive_data_buffer, receive_data_buffer + bytesRead);
 
 		size_t j = 0;
 		int z = 0;
 		int num_comas = 0;
 		double array[10] = { 0 };
 		char auxiliar[300] = { 0 };
+		bool correct = false;
 
-		while (j < bytesRead) {
-			char c = receive_data_buffer[j];
+		while (j < read_vector.size()) {
+			char c = read_vector[j];
 
 			if (c != '\r' && c != '\n') {
 				auxiliar[z] = c;
-				if (c == ',') num_comas++;
+				if (auxiliar[z] == ',') num_comas++;
 				z++;
 			} else {
-				if (num_comas == 4) {
+				if (num_comas == 4) { // línea válida
 					auxiliar[z] = '\0';
 					char * token = strtok(auxiliar, ",");
 					int pos = 0;
@@ -152,8 +150,7 @@ public:
 						char * pEnd;
 						array[pos] = strtod(token, &pEnd);
 
-						if (pos == 0 && array[pos] <= 1000)
-							linea_correcta = false;
+						if (pos == 0 && array[pos] <= 1000) linea_correcta = false;
 
 						token = strtok(NULL, ",");
 						pos++;
@@ -164,18 +161,27 @@ public:
 						float q2 = static_cast<float>(array[2]);
 						float q3 = static_cast<float>(array[3]);
 						float q0 = sqrt(1.0f - (q1 * q1 + q2 * q2 + q3 * q3));
-						ultimoQuat = { q0, q1, q2, q3 };
-						return true;
+
+						// Cuaternión original leído
+						CQuaternion qRaw = { q0, q1, q2, q3 };
+
+						// Aplicamos offset de calibración
+						ultimoQuat = aplicarOffset(qRaw, trackerCenterOffset);
+
+						correct = true;
+						break;
 					}
 				}
+
 				memset(auxiliar, 0, sizeof(auxiliar));
 				z = 0;
 				num_comas = 0;
 			}
+
 			j++;
 		}
 
-		return false;
+		return correct;
 	}
 
 	void calcularEuler(double & yaw, double & pitch, double & roll) {
@@ -280,12 +286,86 @@ void calibrarSensoresQuat(int muestrasQuieto = 50, int muestrasMov = 100) {
 
 	}
 
+	void calibrarCentroConMovimientos(int muestrasPorDireccion = 500) {
+		if (!isConnected()) {
+			std::cout << "Tracker no conectado. Conecta primero.\n";
+			return;
+		}
 
+		std::cout << "=== Calibración de centro del tracker ===\n";
+		std::cout << "Pulsa Enter para comenzar...\n";
+		std::cin.get();
+
+		// --- Muestras para el eje "sí" (arriba-abajo) ---
+		std::cout << "Inclina la cabeza hacia arriba y hacia abajo varias veces (tipo 'sí')...\n";
+
+		// --- Esperar primera lectura válida antes de empezar a contar ---
+		while (!leerLinea()) { /* espera hasta que haya un dato válido */
+		}
+
+		CQuaternion sumaSi = { 0, 0, 0, 0 };
+		int leidas = 0;
+		while (leidas < muestrasPorDireccion) {
+			if (leerLinea()) { // solo cuenta muestras válidas
+				sumaSi.w += ultimoQuat.w;
+				sumaSi.x += ultimoQuat.x;
+				sumaSi.y += ultimoQuat.y;
+				sumaSi.z += ultimoQuat.z;
+				leidas++;
+			}
+		}
+
+		CQuaternion promedioSi = {
+			sumaSi.w / muestrasPorDireccion,
+			sumaSi.x / muestrasPorDireccion,
+			sumaSi.y / muestrasPorDireccion,
+			sumaSi.z / muestrasPorDireccion
+		};
+
+		// --- Muestras para el eje "no" (izquierda-derecha) ---
+		std::cout << "Inclina la cabeza hacia los lados varias veces (tipo 'no')...\n";
+
+		// Esperar primera lectura válida
+		while (!leerLinea()) { /* espera hasta que haya un dato válido */
+		}
+
+		CQuaternion sumaNo = { 0, 0, 0, 0 };
+		leidas = 0;
+		while (leidas < muestrasPorDireccion) {
+			if (leerLinea()) {
+				sumaNo.w += ultimoQuat.w;
+				sumaNo.x += ultimoQuat.x;
+				sumaNo.y += ultimoQuat.y;
+				sumaNo.z += ultimoQuat.z;
+				leidas++;
+			}
+		}
+
+		CQuaternion promedioNo = {
+			sumaNo.w / muestrasPorDireccion,
+			sumaNo.x / muestrasPorDireccion,
+			sumaNo.y / muestrasPorDireccion,
+			sumaNo.z / muestrasPorDireccion
+		};
+
+		// --- Calculamos el offset de centro ---
+		trackerCenterOffset.w = (promedioSi.w + promedioNo.w) / 2.0f;
+		trackerCenterOffset.x = (promedioSi.x + promedioNo.x) / 2.0f;
+		trackerCenterOffset.y = (promedioSi.y + promedioNo.y) / 2.0f;
+		trackerCenterOffset.z = (promedioSi.z + promedioNo.z) / 2.0f;
+
+		std::cout << "Calibración completada. Offset central aplicado.\n";
+		std::cout << "Offset: q0=" << trackerCenterOffset.w
+				  << ", q1=" << trackerCenterOffset.x
+				  << ", q2=" << trackerCenterOffset.y
+				  << ", q3=" << trackerCenterOffset.z << "\n";
+	}
 
 private:
 	HANDLE hSerial = INVALID_HANDLE_VALUE;
 	bool initialized = false;
 	CQuaternion ultimoQuat;
+	CQuaternion trackerCenterOffset = { 1.0f, 0.0f, 0.0f, 0.0f };
 
 	void PrintLastError(const char * functionName) {
 		DWORD error = GetLastError();
@@ -293,6 +373,17 @@ private:
 		FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 			NULL, error, 0, message, sizeof(message), NULL);
 		std::cout << functionName << " failed. Error " << error << ": " << message << std::endl;
+	}
+
+	CQuaternion aplicarOffset(const CQuaternion & q, const CQuaternion & offset) {
+		// Multiplicación de cuaterniones q * offset^-1
+		CQuaternion offsetInv = { offset.w, -offset.x, -offset.y, -offset.z };
+		CQuaternion result;
+		result.w = q.w * offsetInv.w - q.x * offsetInv.x - q.y * offsetInv.y - q.z * offsetInv.z;
+		result.x = q.w * offsetInv.x + q.x * offsetInv.w + q.y * offsetInv.z - q.z * offsetInv.y;
+		result.y = q.w * offsetInv.y - q.x * offsetInv.z + q.y * offsetInv.w + q.z * offsetInv.x;
+		result.z = q.w * offsetInv.z + q.x * offsetInv.y - q.y * offsetInv.x + q.z * offsetInv.w;
+		return result;
 	}
 };
 
