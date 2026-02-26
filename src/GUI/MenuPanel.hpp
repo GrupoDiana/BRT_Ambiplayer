@@ -528,6 +528,11 @@ public:
 			ImGui::Text("This player is the result of the Bachelors Thesis project by");
 			ImGui::Text("Rocio Liceras Ramirez, supervised by Arcadio Reyes Lecuona");
 			ImGui::Text("and co-supervised by Daniel Gonzalez Toledo at the University of Malaga.");
+
+			if (ImGui::Button("Close")) {
+				showAboutPopUp = false;
+				ImGui::CloseCurrentPopup();
+			}
 			ImGui::EndPopup();
 		}
 
