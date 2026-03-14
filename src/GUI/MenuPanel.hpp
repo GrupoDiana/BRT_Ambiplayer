@@ -29,8 +29,9 @@ public:
 
 		ImVec4 grayColor(0.5f, 0.5f, 0.5f, 1.0f);
 
+
 		//ImGuiWindowFlags_AlwaysHorizontalScrollbar
-		ImGui::Begin("Ambisonic Controls", nullptr,
+		ImGui::Begin("Ambisonic", nullptr,
 			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysVerticalScrollbar);
 
 		// --- Play/Stop/WAV/Source Buttons ---
@@ -58,6 +59,44 @@ public:
 
 		ImGui::Separator();
 
+		if (ImGui::CollapsingHeader("Audio Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+
+			ImGui::Text("Audio Output Devices:");
+
+			if (ImGui::BeginCombo(
+					"##AudioDevices",
+					audio_selected_idx == -1 ? "-Select device-" : audioDevices[audio_selected_idx].name.c_str())) {
+
+				// Placeholder
+				bool placeholder_selected = (audio_selected_idx == -1);
+				if (ImGui::Selectable("-Select device-", placeholder_selected)) {
+					audio_selected_idx = -1;
+					if (onAudioDeviceChanged)
+						onAudioDeviceChanged(-1);
+				}
+				if (placeholder_selected)
+					ImGui::SetItemDefaultFocus();
+
+				// Dispositivos reales
+				for (int n = 0; n < (int)audioDevices.size(); ++n) {
+
+					bool selected = (audio_selected_idx == n);
+
+					if (ImGui::Selectable(audioDevices[n].name.c_str(), selected)) {
+						audio_selected_idx = n;
+
+						if (onAudioDeviceChanged)
+							onAudioDeviceChanged(n);
+					}
+
+					if (selected)
+						ImGui::SetItemDefaultFocus();
+				}
+
+				ImGui::EndCombo();
+			}
+		}
+
 
 		if (ImGui::CollapsingHeader("Ambisonic Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
 
@@ -75,7 +114,7 @@ public:
 					if (selected) ImGui::SetItemDefaultFocus();
 				}
 				ImGui::EndCombo();
-			}
+		}
 
 			ImGui::Separator();
 
@@ -226,10 +265,10 @@ public:
 
 			if (ImGui::BeginCombo(
 					"##SerialPorts",
-					serial_selected_idx == -1 ? "-Selecciona un COM-" : availableCOMs[serial_selected_idx].port.c_str())) {
+					serial_selected_idx == -1 ? "-Select COM-" : availableCOMs[serial_selected_idx].port.c_str())) {
 				// Primer ítem: placeholder
 				bool placeholder_selected = (serial_selected_idx == -1);
-				if (ImGui::Selectable("-Selecciona un COM-", placeholder_selected)) {
+				if (ImGui::Selectable("-Select COM-", placeholder_selected)) {
 					serial_selected_idx = -1; // ningún COM seleccionado
 					if (onSerialPortChanged)
 						onSerialPortChanged(-1);
@@ -568,6 +607,10 @@ public:
 		TotalrollRad = roll;
 	}
 
+	void setAudioDevices(const std::vector<ofSoundDevice> & devices) {
+		audioDevices = devices;
+	}
+
 	// --- Callbacks ---
 	std::function<void(bool)> onPlay;
 	std::function<void()> onStop;
@@ -584,6 +627,7 @@ public:
 	std::function<void(int)> onSerialPortChanged;
 	std::function<void()> onCalibrateHead;
 	std::function<void()> onCalibrateCompass;
+	std::function<void(int)> onAudioDeviceChanged;
 
 	// --- Controller-specific callbacks ---
 	using ControllerPtr = std::shared_ptr<CAmbisonicSoundFieldController>;
@@ -604,10 +648,13 @@ private:
 
 	int layout_selected_idx = 0;
 	int serial_selected_idx = 0;
+	int audio_selected_idx = -1;
 
 	bool isPlaying = false;
 
 	std::vector<COMInfo> availableCOMs;
+
+	std::vector<ofSoundDevice> audioDevices;
 
 	std::vector<std::shared_ptr<CAmbisonicSoundFieldController>> controllers;
 	bool showSourcePopup = false, showWAVPopup = false, showSettingsPopUp = false, showAboutPopUp = false;

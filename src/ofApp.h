@@ -32,6 +32,10 @@ int visualization;
 std::vector<Common::CVector3> interpolatedVertices;
 std::vector<float> interpolatedEnergies;
 
+int selectedAudioDeviceIndex = -1;
+
+ofSoundDevice audioDevices;
+
 CConfigurationA configurationA;
 
 TrackerController tracker;
@@ -69,6 +73,7 @@ public:
 	void audioOut(ofSoundBuffer & buffer);
 	void audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, int uiBufferSize);
 	ofSoundDevice ShowSelectAudioDeviceMenu();
+	void changeAudioDevice(int index);
 
 private:
 	CGuiManager guiManager;

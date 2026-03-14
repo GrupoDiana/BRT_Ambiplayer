@@ -46,6 +46,10 @@ public:
 		menuPanel.onSerialPortChanged = [this](int serialIndex) { if (onSerialPortChanged) onSerialPortChanged(serialIndex); };
 		menuPanel.onCalibrateHead = [this]() { if (onCalibrateHead) onCalibrateHead(); };
 		menuPanel.onCalibrateCompass = [this]() { if (onCalibrateCompass) onCalibrateCompass(); };
+		menuPanel.onAudioDeviceChanged = [this](int index) {
+			if (onAudioDeviceChanged)
+				onAudioDeviceChanged(index);
+		};
 
         // ---- Controller callbacks ----
         menuPanel.onControllerPlay = [this](CMenuPanel::ControllerPtr c) { if (onControllerPlay) onControllerPlay(c); };
@@ -64,6 +68,10 @@ public:
     void setSpeakerController(const CLoudSpeakerArrayController * controller) {
         loudspeakers.setController(controller);
     }
+
+	void setAudioDevices(const std::vector<ofSoundDevice> & devices) {
+		menuPanel.setAudioDevices(devices);
+	}
 
     // ---- Draw GUI and speaker windows ----
     void draw(int visualization,
@@ -197,6 +205,7 @@ public:
 	std::function<void(int)> onSerialPortChanged;
 	std::function<void()> onCalibrateHead;
 	std::function<void()> onCalibrateCompass;
+	std::function<void(int)> onAudioDeviceChanged;
 
     using ControllerPtr = std::shared_ptr<CAmbisonicSoundFieldController>;
     std::function<void(std::shared_ptr<CAmbisonicSoundFieldController>)> onAddControllerButton;

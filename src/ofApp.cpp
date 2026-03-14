@@ -2,6 +2,8 @@
 
 //--------------------------------------------------------------
 void ofApp::setup() {
+	auto devices = soundStream.getDeviceList();
+	guiManager.setAudioDevices(devices);
 	/// AUDIO setup
 	AudioSetup();
 
@@ -284,6 +286,11 @@ void ofApp::setup() {
 		tracker.calibrarSensoresQuat();
 	};
 
+	guiManager.onAudioDeviceChanged = [this](int index) {
+		soundStream.close();
+		changeAudioDevice(index);
+	};
+
 	guiManager.setSpeakerController(&speakerArrayController);
 
 	soundStream.start();
@@ -378,11 +385,10 @@ void ofApp::AudioSetup() {
 	ofSoundStreamSettings outputParameters;
 	outputParameters.numOutputChannels = 2;
 
-	//outputParameters.getOutDevice();
-	//ofSoundDevice device = ShowSelectAudioDeviceMenu();
-	auto outDevices = soundStream.getMatchingDevices("Default");
-	if (!outDevices.empty()) {
-		outputParameters.setOutDevice(outDevices[0]); 
+	auto devices = soundStream.getDeviceList();
+
+	if (selectedAudioDeviceIndex >= 0 && selectedAudioDeviceIndex < devices.size()) {
+		outputParameters.setOutDevice(devices[selectedAudioDeviceIndex]);
 	}
 	
 
@@ -527,6 +533,25 @@ ofSoundDevice ofApp::ShowSelectAudioDeviceMenu() {
 	} while (!(selectAudioDevice > -1 && selectAudioDevice <= devices.size()));
 	std::cout << std::endl;
 	return devices[selectAudioDevice];
+}
+
+void ofApp::changeAudioDevice(int index) {
+	auto devices = soundStream.getDeviceList();
+
+	if (index < 0 || index >= devices.size())
+		return;
+
+	ofSoundStreamSettings settings;
+
+	settings.setOutListener(this);
+	settings.setOutDevice(devices[index]);
+
+	settings.sampleRate = SAMPLERATE;
+	settings.bufferSize = BUFFERSIZE;
+	settings.numOutputChannels = devices[index].outputChannels;
+	settings.numBuffers = 4;
+
+	soundStream.setup(settings);
 }
 
 
