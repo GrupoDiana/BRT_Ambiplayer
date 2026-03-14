@@ -2,10 +2,10 @@
 
 
 #define SAMPLERATE 48000
-#define BUFFERSIZE 512
+//#define BUFFERSIZE 512
 #define LISTENER_ID "listener1"
 
-#define SOURCE_FILEPATH "../resources/ambi_3OA_test.wav"
+#define SOURCE_FILEPATH "../resources/ambi_1OA_test.wav"
 
 #include "ofMain.h"
 #include "GUI/GuiManager.hpp"
@@ -20,8 +20,10 @@
 ofSoundStream soundStream;
 Common::CGlobalParameters globalParameters; 
 BRTBase::CBRTManager brtManager; 
-std::shared_ptr<BRTBase::CListener> listener; 
-size_t currentSample = 0; 
+std::shared_ptr<BRTBase::CListener> listener;
+int id = 0;
+std::string ListenerID = std::string(LISTENER_ID) + std::to_string(id);
+size_t currentSample = 0;
 std::string decoding;
 Common::CQuaternion qRotation, qLoudSpeakers, qField, qHead;
 
@@ -33,6 +35,8 @@ std::vector<Common::CVector3> interpolatedVertices;
 std::vector<float> interpolatedEnergies;
 
 int selectedAudioDeviceIndex = -1;
+
+int BUFFERSIZE = 256;
 
 ofSoundDevice audioDevices;
 
@@ -74,6 +78,8 @@ public:
 	void audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, int uiBufferSize);
 	ofSoundDevice ShowSelectAudioDeviceMenu();
 	void changeAudioDevice(int index);
+	void setupBRT();
+	void rebuildAudioSystem();
 
 private:
 	CGuiManager guiManager;

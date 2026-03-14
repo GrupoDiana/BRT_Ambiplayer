@@ -21,6 +21,7 @@ public:
         menuPanel.onWAV = [this](string ordering) { if (onWAV) onWAV(ordering); };
         menuPanel.onCreateSource = [this](int frames, Common::CVector3 pos) { if (onCreateSource) onCreateSource(frames, pos); };
         menuPanel.onChangeK = [this](int k) { if (onChangeK) onChangeK(k); };
+		menuPanel.onChangeBufferSize = [this](int bufferSize) { if (onChangeBufferSize) onChangeBufferSize(bufferSize); };
         menuPanel.onSettings = [this]() { if (onSettings) onSettings(); };
 		menuPanel.onAbout = [this]() { if (onAbout) onAbout(); };
         menuPanel.onSFRotationChanged = [this](float yaw, float pitch, float roll) { if (onSFRotationChanged) onSFRotationChanged(yaw, pitch, roll); };
@@ -194,6 +195,7 @@ public:
     std::function<void(string ordering)> onWAV;
     std::function<void(int numFrames, Common::CVector3 pos)> onCreateSource;
     std::function<void(int k)> onChangeK;
+	std::function<void(int)> onChangeBufferSize;
     std::function<void()> onSettings;
 	std::function<void()> onAbout;
     std::function<void(float, float, float)> onSFRotationChanged;

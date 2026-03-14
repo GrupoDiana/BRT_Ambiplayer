@@ -32,7 +32,12 @@ public:
 
 		//ImGuiWindowFlags_AlwaysHorizontalScrollbar
 		ImGui::Begin("Ambisonic", nullptr,
-			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysVerticalScrollbar);
+			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize );
+
+		ImGui::BeginChild("ScrollRegion",
+			ImVec2(0, -30), // deja espacio abajo
+			true,
+			ImGuiWindowFlags_AlwaysVerticalScrollbar);
 
 		// --- Play/Stop/WAV/Source Buttons ---
 		if (isPlaying) {
@@ -77,7 +82,6 @@ public:
 				if (placeholder_selected)
 					ImGui::SetItemDefaultFocus();
 
-				// Dispositivos reales
 				for (int n = 0; n < (int)audioDevices.size(); ++n) {
 
 					bool selected = (audio_selected_idx == n);
@@ -97,10 +101,11 @@ public:
 			}
 		}
 
+		if (ImGui::CollapsingHeader("Visualization Settings", NULL)) {
 
-		if (ImGui::CollapsingHeader("Ambisonic Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+			static int k = 5;
 
-			const char * visualization_items[] = { "Esphere Proyected", "Radial" };
+			const char * visualization_items[] = { "Geodesic Projection", "Radial Projection" };
 			static int visualization_selected_idx = 0;
 
 			ImGui::Text("Visualization Mode:");
@@ -114,9 +119,21 @@ public:
 					if (selected) ImGui::SetItemDefaultFocus();
 				}
 				ImGui::EndCombo();
-		}
+			}
 
 			ImGui::Separator();
+			ImGui::Text("For Geodesic Projection only:");
+			ImGui::InputInt("k", &k);
+
+			if (ImGui::Button("Update")) {
+				onChangeK(k);
+			}
+
+		}
+
+
+		if (ImGui::CollapsingHeader("Ambisonic Settings", NULL)) {
+
 
 			// --- Order Combo ---
 			const char * order_items[] = { "1", "2", "3" };
@@ -258,7 +275,7 @@ public:
 		ImGui::PopStyleColor(3);
 
 		// --- Tracker settings ---
-		if (ImGui::CollapsingHeader("Tracker Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+		if (ImGui::CollapsingHeader("Tracker Settings", NULL)){
 
 			ImGui::Text("Serial Terminal:");
 			static int serial_selected_idx = -1; 
@@ -308,7 +325,7 @@ public:
 		ImGui::Separator();
 
 		// --- Listener settings ---
-		if (ImGui::CollapsingHeader("Listener Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+		if (ImGui::CollapsingHeader("Listener Settings", NULL)) {
 			ImGui::Text("HRTF:");
 		}
 
@@ -455,6 +472,8 @@ public:
 			ImGui::PopStyleColor(3);
 		}
 
+		ImGui::EndChild();
+
 		ImVec2 winSize = ImGui::GetWindowSize();
 		ImVec2 cursorPos = ImGui::GetCursorPos();
 		float buttonHeight = ImGui::GetFrameHeight(); // altura del botón
@@ -540,19 +559,39 @@ public:
 		//Settings Popup
 		if (showSettingsPopUp) ImGui::OpenPopup("Settings");
 		if (ImGui::BeginPopupModal("Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-			static int k = 5;
+
+			const char * bufferSize_items[] = { "64", "128", "256", "512", "1024" };
+			static int bufferSize_selected_idx = 2;
+
+			static int bufferSize = 256;
 			//To implement settings options here
 			ImGui::Text("SampleRate: 48000");
-			ImGui::Text("BufferSize: 512");
-			ImGui::InputInt("k", &k);
+
+			ImGui::Text("Buffer Size:");
+			if (ImGui::BeginCombo("##BufferSize", bufferSize_items[bufferSize_selected_idx])) {
+				for (int n = 0; n < IM_ARRAYSIZE(bufferSize_items); ++n) {
+					bool selected = (bufferSize_selected_idx == n);
+					if (ImGui::Selectable(bufferSize_items[n], selected)) {
+						bufferSize_selected_idx = n; // actualizar índice
+					}
+					if (selected) ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+
 			ImGui::Separator();
 
 			if (ImGui::Button("Update")) {
-				onChangeK(k);
+				onChangeBufferSize(bufferSize);
 				showSettingsPopUp = false;
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::SameLine();
+
+			float buttonWidth = 100.0f;
+			ImGui::SetCursorPosX(
+				ImGui::GetWindowWidth() - buttonWidth / 2 - ImGui::GetStyle().WindowPadding.x);
+
 			if (ImGui::Button("Close")) {
 				showSettingsPopUp = false;
 				ImGui::CloseCurrentPopup();
@@ -562,11 +601,16 @@ public:
 		}
 
 		if (showAboutPopUp) ImGui::OpenPopup("About");
-		if (ImGui::BeginPopupModal("About", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-			
+		if (ImGui::BeginPopupModal("About", nullptr, ImGuiWindowFlags_NoResize)) {
+
 			ImGui::Text("This player is the result of the Bachelors Thesis project by");
 			ImGui::Text("Rocio Liceras Ramirez, supervised by Arcadio Reyes Lecuona");
 			ImGui::Text("and co-supervised by Daniel Gonzalez Toledo at the University of Malaga.");
+			
+
+			float buttonWidth = 100.0f;
+			ImGui::SetCursorPosX(
+				ImGui::GetWindowWidth() - buttonWidth/2 - ImGui::GetStyle().WindowPadding.x);
 
 			if (ImGui::Button("Close")) {
 				showAboutPopUp = false;
@@ -590,6 +634,7 @@ public:
 	void clearControllers() {
 		controllers.clear();
 	}
+
 
 	void setLSRotationSliders(float yaw, float pitch, float roll) {
 		LSyawRad = yaw;
@@ -617,6 +662,7 @@ public:
 	std::function<void(string)> onWAV;
 	std::function<void(size_t, Common::CVector3)> onCreateSource;
 	std::function<void(int)> onChangeK;
+	std::function<void(int)> onChangeBufferSize;
 	std::function<void()> onSettings;
 	std::function<void()> onAbout;
 	std::function<void(float, float, float)> onSFRotationChanged;
