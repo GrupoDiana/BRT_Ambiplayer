@@ -643,7 +643,7 @@ public:
 	}
 
 	void setLayout(int layoutIndex) {
-		layout_selected_idx = std::clamp(layoutIndex, 0, 3); // porque tienes 4 layouts
+		layout_selected_idx = std::clamp(layoutIndex, 0, 3); 
 	}
 
 	void setTotalRotation(float yaw, float pitch, float roll) {
@@ -694,7 +694,7 @@ private:
 
 	int layout_selected_idx = 0;
 	int serial_selected_idx = 0;
-	int audio_selected_idx = -1;
+	int audio_selected_idx = 0;
 
 	bool isPlaying = false;
 

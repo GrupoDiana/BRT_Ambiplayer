@@ -19,7 +19,7 @@
 
 ofSoundStream soundStream;
 Common::CGlobalParameters globalParameters; 
-BRTBase::CBRTManager brtManager; 
+std::shared_ptr < BRTBase::CBRTManager> brtManager;
 std::shared_ptr<BRTBase::CListener> listener;
 int id = 0;
 std::string ListenerID = std::string(LISTENER_ID) + std::to_string(id);
@@ -41,6 +41,7 @@ int BUFFERSIZE = 256;
 ofSoundDevice audioDevices;
 
 CConfigurationA configurationA;
+int cont = 0;
 
 TrackerController tracker;
 

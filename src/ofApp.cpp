@@ -7,6 +7,7 @@ void ofApp::setup() {
 	/// AUDIO setup
 	AudioSetup();
 
+	brtManager = std::make_shared<BRTBase::CBRTManager>();
 	setupBRT();
 
 	vertices = speakerArrayController.kDivision(5);
@@ -102,11 +103,12 @@ void ofApp::setup() {
 	};
 
 	guiManager.onChangeBufferSize = [this](int BufferSize) {
-		BUFFERSIZE = pow(2, 6 + BufferSize);
+		float bufferSize = static_cast<float>(pow(2, 6 + BufferSize));
 		soundStream.stop();
 		soundStream.close();
+		AudioSetup();
 		rebuildAudioSystem();
-		//soundStream.start();
+
 	};
 
 	guiManager.onControllerPlay =
@@ -188,7 +190,7 @@ void ofApp::setup() {
 
 	guiManager.onLayoutChanged =
 		[this](int layoutIndex) {
-			speakerArrayController.UpdateSpeakerLayout(brtManager,static_cast<PlatonicSolid>(layoutIndex),  configurationA);
+			speakerArrayController.UpdateSpeakerLayout(*brtManager, static_cast<PlatonicSolid>(layoutIndex), configurationA);
 
 			originalPositions.clear();
 
@@ -480,7 +482,7 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 
 	Common::CEarPair<CMonoBuffer<float>> bufferProcessed;
 
-	brtManager.ProcessAll();
+	brtManager->ProcessAll();
 	listener->GetBuffers(bufferProcessed.left, bufferProcessed.right);
 
 	bufferOutput.left += bufferProcessed.left;
@@ -542,47 +544,31 @@ void ofApp::changeAudioDevice(int index) {
 }
 
 void ofApp::setupBRT() {
-	// ============================
-	// Global Parameters
-	// ============================
+
 	globalParameters.SetSampleRate(SAMPLERATE);
 	globalParameters.SetBufferSize(BUFFERSIZE);
 
-	// ============================
-	// BRT Setup
-	// ============================
-	brtManager.BeginSetup();
+	brtManager->BeginSetup();
 
-	// Listener
-	brtManager.RemoveListener(ListenerID);
-	std::string ListenerID = std::string(LISTENER_ID) + std::to_string(id);
-	id++;
-	listener = brtManager.CreateListener<BRTBase::CListener>(ListenerID);
+	listener = brtManager->CreateListener<BRTBase::CListener>(LISTENER_ID);
 
-	brtManager.EndSetup();
+	brtManager->EndSetup();
 
-	// ============================
-	// Modules
-	// ============================
-	configurationA.Setup(&brtManager, ListenerID);
-	configurationA.LoadResources(&brtManager, ListenerID);
+	configurationA.Setup(brtManager.get(), LISTENER_ID);
+	configurationA.LoadResources(brtManager.get(), LISTENER_ID);
 
 	Common::CTransform listenerPosition;
 	listenerPosition.SetPosition(Common::CVector3(0.0f, 0.0f, 0.0f));
 	listener->SetListenerTransform(listenerPosition);
 
-
-	// ============================
-	// Speaker Array
-	// ============================
-	speakerArrayController.SetUp(brtManager, static_cast<PlatonicSolid>(0));
+	speakerArrayController.SetUp(*brtManager, static_cast<PlatonicSolid>(0));
 
 	originalPositions.clear();
 
 	for (int i = 0; i < speakerArrayController.GetNumSpeakers(); i++) {
-		brtManager.BeginSetup();
-		configurationA.ConnectSoundSource(&brtManager, "Speaker" + std::to_string(i));
-		brtManager.EndSetup();
+		brtManager->BeginSetup();
+		configurationA.ConnectSoundSource(brtManager.get(), "Speaker" + std::to_string(i));
+		brtManager->EndSetup();
 
 		originalPositions.push_back(
 			speakerArrayController.GetSpeaker(i)
@@ -592,23 +578,15 @@ void ofApp::setupBRT() {
 }
 
 void ofApp::rebuildAudioSystem() {
-	// ============================
-	// Stop audio primero
-	// ============================
 	soundStream.stop();
 	soundStream.close();
 
-	// ============================
-	// Reconfigurar BRT
-	// ============================
-	brtManager.RemoveListener(LISTENER_ID);
-
+	brtManager.reset();
+	brtManager = std::make_shared<BRTBase::CBRTManager>();
 	listener.reset();
+	listener = nullptr;
 	setupBRT();
 
-	// ============================
-	// Recrear Ambisonic Buffers
-	// ============================
 	SFbuffer = std::make_shared<CAmbisonicSoundField>();
 	SFbuffer->SetUp(order, SAMPLERATE, BUFFERSIZE);
 
@@ -618,24 +596,9 @@ void ofApp::rebuildAudioSystem() {
 	audioBufferCopy = std::make_shared<CAmbisonicSoundField>();
 	audioBufferCopy->SetUp(order, SAMPLERATE, BUFFERSIZE);
 
-	// ============================
-	// Stereo buffers
-	// ============================
 	outputBufferStereo.left.resize(BUFFERSIZE);
 	outputBufferStereo.right.resize(BUFFERSIZE);
 
-	// ============================
-	// Audio stream again
-	// ============================
 	AudioSetup();
 	soundStream.start();
 }
-
-
-
-
-
-
-
-
-

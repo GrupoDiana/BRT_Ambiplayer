@@ -72,6 +72,18 @@ public:
 		}
 	}
 
+	void DisonnectListenerModel(BRTBase::CBRTManager * brtManager, const std::string & listenerID) {
+		brtManager->BeginSetup();
+
+		std::shared_ptr<BRTBase::CListener> listener = brtManager->GetListener(listenerID);
+		bool control = listener->DisconnectListenerModel(LISTENER_HRTF_MODEL_ID);
+		if (!control) {
+			std::cout << "Error connecting listener model" << std::endl;
+		}
+
+		brtManager->EndSetup();
+	}
+
 private:
 
 };
