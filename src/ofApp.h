@@ -1,8 +1,5 @@
 #pragma once
 
-
-#define SAMPLERATE 48000
-//#define BUFFERSIZE 512
 #define LISTENER_ID "listener1"
 
 #define SOURCE_FILEPATH "../resources/ambi_1OA_test.wav"
@@ -36,7 +33,8 @@ std::vector<float> interpolatedEnergies;
 
 int selectedAudioDeviceIndex = -1;
 
-int BUFFERSIZE = 256;
+float BUFFERSIZE = 256.0f;
+float SAMPLERATE = 48000.0f;
 
 ofSoundDevice audioDevices;
 

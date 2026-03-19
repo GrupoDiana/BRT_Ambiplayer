@@ -64,7 +64,7 @@ void ofApp::setup() {
 
 		auto controller = std::make_shared<CAmbisonicSoundFieldController>();
 
-		controller->SetUp(order, 48000, BUFFERSIZE, ordering);
+		controller->SetUp(order, SAMPLERATE, BUFFERSIZE, ordering);
 
 		if (controller->LoadWav(result.getPath().c_str(), ordering, order)) {
 			controller->GetWavSamplePositionSource() = 0;
@@ -103,12 +103,27 @@ void ofApp::setup() {
 	};
 
 	guiManager.onChangeBufferSize = [this](int BufferSize) {
-		float bufferSize = static_cast<float>(pow(2, 6 + BufferSize));
+		BUFFERSIZE = static_cast<float>(pow(2, 6 + BufferSize));
+
 		soundStream.stop();
 		soundStream.close();
 		AudioSetup();
 		rebuildAudioSystem();
 
+	};
+
+	guiManager.onChangeSampleRate = [this](int SampleRate) {
+		if (SampleRate == 0)
+			SAMPLERATE = 44100.0f;
+		else if (SampleRate == 1)
+			SAMPLERATE = 48000.0f;
+		else if (SampleRate == 2)
+			SAMPLERATE = 96000.0f;
+
+		soundStream.stop();
+		soundStream.close();
+		AudioSetup();
+		rebuildAudioSystem();
 	};
 
 	guiManager.onControllerPlay =
@@ -579,6 +594,8 @@ void ofApp::setupBRT() {
 
 void ofApp::rebuildAudioSystem() {
 	soundStream.stop();
+
+	
 	soundStream.close();
 
 	brtManager.reset();

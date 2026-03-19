@@ -261,7 +261,7 @@ public:
 			return;
 		}
 
-		int order = 3;
+		int order = 1;
 		int numChannels = (order + 1) * (order + 1);
 		soundFieldController.SetOrder(order);
 
@@ -270,7 +270,7 @@ public:
 			soundFieldController.GetSoundFieldArray()[ch].resize(numFrames, 0.0f);
 		}
 
-		int channel = 9;
+		int channel = 0;
 
 		// --- Generador de ruido gaussiano ---
 		static std::mt19937 rng(std::random_device {}());
@@ -331,9 +331,6 @@ public:
 		Common::CVector3 sourcePosNorm = Normalize(sourcePos);
 
 		EncodePuntualSourceToAmbisonic(*source, soundFieldController, sourcePosNorm);
-
-		std::cout << "Generated white noise in Ambisonic field" << std::endl;
-
 		return true;
 	}
 

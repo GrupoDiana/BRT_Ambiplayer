@@ -321,12 +321,21 @@ public:
 				onCalibrateCompass();
 			}
 
+			ImGui::Text("LLY: %.2f", ofRadToDeg(TotalyawRad));
+			ImGui::SameLine();
+			ImGui::Text("LLP: %.2f", ofRadToDeg(TotalpitchRad));
+			ImGui::SameLine();
+			ImGui::Text("LLR: %.2f", ofRadToDeg(TotalrollRad));
+
 		}
 		ImGui::Separator();
 
 		// --- Listener settings ---
 		if (ImGui::CollapsingHeader("Listener Settings", NULL)) {
 			ImGui::Text("HRTF:");
+			if (ImGui::Button("HRTF")) {
+				//COMPLETAR
+			}
 		}
 
 		// --- Loaded Controllers ---
@@ -522,6 +531,10 @@ public:
 			}
 
 			ImGui::SameLine();
+			float buttonWidth = 100.0f;
+			ImGui::SetCursorPosX(
+				ImGui::GetWindowWidth() - buttonWidth / 2 - ImGui::GetStyle().WindowPadding.x);
+
 			if (ImGui::Button("Cancel")) {
 				showWAVPopup = false;
 				ImGui::CloseCurrentPopup();
@@ -548,6 +561,10 @@ public:
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::SameLine();
+			float buttonWidth = 100.0f;
+			ImGui::SetCursorPosX(
+				ImGui::GetWindowWidth() - buttonWidth / 2 - ImGui::GetStyle().WindowPadding.x);
+
 			if (ImGui::Button("Cancel")) {
 				showSourcePopup = false;
 				ImGui::CloseCurrentPopup();
@@ -563,9 +580,21 @@ public:
 			const char * bufferSize_items[] = { "64", "128", "256", "512", "1024" };
 			static int bufferSize_selected_idx = 2;
 
-			static int bufferSize = 256;
+			const char * samplerate_items[] = { "44100", "48000", "96000"};
+			static int samplerate_selected_idx = 1;
+
 			//To implement settings options here
-			ImGui::Text("SampleRate: 48000");
+			ImGui::Text("Sample Rate:");
+			if (ImGui::BeginCombo("##SampleRate", samplerate_items[samplerate_selected_idx])) {
+				for (int n = 0; n < IM_ARRAYSIZE(samplerate_items); ++n) {
+					bool selected = (samplerate_selected_idx == n);
+					if (ImGui::Selectable(samplerate_items[n], selected)) {
+						samplerate_selected_idx = n; // actualizar índice
+					}
+					if (selected) ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
 
 			ImGui::Text("Buffer Size:");
 			if (ImGui::BeginCombo("##BufferSize", bufferSize_items[bufferSize_selected_idx])) {
@@ -581,8 +610,15 @@ public:
 
 			ImGui::Separator();
 
-			if (ImGui::Button("Update")) {
-				onChangeBufferSize(bufferSize);
+			if (ImGui::Button("Update SR")) {
+				onChangeSampleRate(samplerate_selected_idx);
+				showSettingsPopUp = false;
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::SameLine();
+
+			if (ImGui::Button("Update BS")) {
+				onChangeBufferSize(bufferSize_selected_idx);
 				showSettingsPopUp = false;
 				ImGui::CloseCurrentPopup();
 			}
@@ -663,6 +699,7 @@ public:
 	std::function<void(size_t, Common::CVector3)> onCreateSource;
 	std::function<void(int)> onChangeK;
 	std::function<void(int)> onChangeBufferSize;
+	std::function<void(int)> onChangeSampleRate;
 	std::function<void()> onSettings;
 	std::function<void()> onAbout;
 	std::function<void(float, float, float)> onSFRotationChanged;
