@@ -79,6 +79,7 @@ public:
 	void changeAudioDevice(int index);
 	void setupBRT();
 	void rebuildAudioSystem();
+	void updateGlobalPlayState();
 
 private:
 	CGuiManager guiManager;
@@ -97,5 +98,7 @@ private:
 		HANDLE hThread = GetCurrentThread();
 		SetThreadPriority(hThread, THREAD_PRIORITY_TIME_CRITICAL);
 	}
+
+
 
 };

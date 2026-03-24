@@ -43,13 +43,15 @@ public:
 		if (isPlaying) {
 			ImGui::PushStyleColor(ImGuiCol_Button, defaultColor);
 		}
-		if (ImGui::Button("PLAY")) {
+		const char * label = isPlaying ? "PLAY" : "PAUSED";
+		if (ImGui::Button(label)) {
 			isPlaying = !isPlaying;
 		if (onPlay) onPlay(isPlaying);
 		}
 		if (isPlaying) {
 			ImGui::PopStyleColor();
 		}
+
 		ImGui::SameLine();
 		if (ImGui::Button("STOP") && onStop) {
 			onStop();
@@ -216,15 +218,29 @@ public:
 				ImGui::SameLine();
 				SFchanged |= ImGui::SliderAngle("Roll##SF", &SFrollRad, -180, 180);
 
+
+
+					//     --- Total Rotation (SoundField + Tracker) ---
+				ImGui::Text("Final Yaw: %.2f", ofRadToDeg(SFyawRad + HeadyawRad));
+				ImGui::Text("Final Pitch: %.2f", ofRadToDeg(SFpitchRad + HeadpitchRad));
+				ImGui::Text("Final Roll: %.2f", ofRadToDeg(SFrollRad + HeadrollRad));
+
+				ImGui::SameLine();
+				float buttonWidth = 100.0f;
+				ImGui::SetCursorPosX(
+				ImGui::GetWindowWidth() - buttonWidth / 2 - ImGui::GetStyle().WindowPadding.x);
+
+				if (ImGui::Button("Reset")) {
+					SFyawRad = 0.0f;
+					SFpitchRad = 0.0f;
+					SFrollRad = 0.0f;
+
+					SFchanged = true;
+				}
+
 				if (SFchanged && onSFRotationChanged)
 					onSFRotationChanged(SFyawRad, SFpitchRad, SFrollRad);
 			}
-
-			//     --- Total Rotation (SoundField + Tracker) ---
-			ImGui::Text("Final Yaw: %.2f", ofRadToDeg(TotalyawRad));
-			ImGui::Text("Final Pitch: %.2f", ofRadToDeg(TotalpitchRad));
-			ImGui::Text("Final Roll: %.2f", ofRadToDeg(TotalrollRad));
-
 
 
 			// --- Loudspeaker Rotation Sliders ---
@@ -267,8 +283,21 @@ public:
 				ImGui::SameLine();
 				LSchanged |= ImGui::SliderAngle("Roll##LS", &LSrollRad, -180, 180);
 
+				float buttonWidth = 100.0f;
+				ImGui::SetCursorPosX(
+					ImGui::GetWindowWidth() - buttonWidth / 2 - ImGui::GetStyle().WindowPadding.x);
+
+				if (ImGui::Button("Reset##LS")) {
+					LSyawRad = 0.0f;
+					LSpitchRad = 0.0f;
+					LSrollRad = 0.0f;
+
+					LSchanged = true;
+				}
+
 				if (LSchanged && onLSRotationChanged)
 					onLSRotationChanged(LSyawRad, LSpitchRad, LSrollRad);
+
 			}
 		}
 
@@ -321,11 +350,11 @@ public:
 				onCalibrateCompass();
 			}
 
-			ImGui::Text("LLY: %.2f", ofRadToDeg(TotalyawRad));
+			ImGui::Text("LLY: %.2f", ofRadToDeg(HeadyawRad));
 			ImGui::SameLine();
-			ImGui::Text("LLP: %.2f", ofRadToDeg(TotalpitchRad));
+			ImGui::Text("LLP: %.2f", ofRadToDeg(HeadpitchRad));
 			ImGui::SameLine();
-			ImGui::Text("LLR: %.2f", ofRadToDeg(TotalrollRad));
+			ImGui::Text("LLR: %.2f", ofRadToDeg(HeadrollRad));
 
 		}
 		ImGui::Separator();
@@ -333,8 +362,10 @@ public:
 		// --- Listener settings ---
 		if (ImGui::CollapsingHeader("Listener Settings", NULL)) {
 			ImGui::Text("HRTF:");
-			if (ImGui::Button("HRTF")) {
-				//COMPLETAR
+			if (ImGui::Button("HRTF") && onHRTF) {
+				onHRTF();
+				showHRTFPopup = false;
+				ImGui::CloseCurrentPopup();
 			}
 		}
 
@@ -355,7 +386,8 @@ public:
 					if (controller->IsPlaying()) {
 						ImGui::PushStyleColor(ImGuiCol_Button, defaultColor);
 					}
-					if (ImGui::Button("Play")) {
+					const char * label = isPlaying ? "PLAY" : "PAUSED";
+					if (ImGui::Button(label)) {
 						if (onControllerPlay) onControllerPlay(controller);
 					}
 					if (controller->IsPlaying()) ImGui::PopStyleColor();
@@ -440,10 +472,6 @@ public:
 					ImGui::SameLine();
 					changed |= ImGui::SliderAngle("Roll##ctl", &rot.roll, -180, 180);
 
-					// Callback if changed
-					if (changed && onIRotationChanged)
-						onIRotationChanged(controller, rot.yaw, rot.pitch, rot.roll);
-
 					float currentSec = controller->GetCurrentTimeSeconds();
 					float totalSec = controller->GetTotalTimeSeconds();
 
@@ -474,6 +502,29 @@ public:
 					ImGui::TextUnformatted(timeText.c_str());
 
 					ImGui::PopStyleColor(2);
+
+					ImGui::Text("YPR: %.2f", ofRadToDeg(SFyawRad + HeadyawRad + rot.yaw));
+					ImGui::SameLine();
+					ImGui::Text("/ %.2f", ofRadToDeg(SFpitchRad + HeadpitchRad + rot.pitch));
+					ImGui::SameLine();
+					ImGui::Text("/ %.2f", ofRadToDeg(SFrollRad + HeadrollRad + rot.roll));
+					ImGui::SameLine();
+
+					float buttonWidth = 100.0f;
+					ImGui::SetCursorPosX(
+						ImGui::GetWindowWidth() - buttonWidth / 2 - ImGui::GetStyle().WindowPadding.x);
+
+					if (ImGui::Button("Reset")) {
+						rot.yaw = 0.0f;
+						rot.pitch = 0.0f;
+						rot.roll = 0.0f;
+
+						changed = true;
+					}
+
+					// Callback if changed
+					if (changed && onIRotationChanged)
+						onIRotationChanged(controller, rot.yaw, rot.pitch, rot.roll);
 				}
 
 				ImGui::PopID();
@@ -640,8 +691,8 @@ public:
 		if (ImGui::BeginPopupModal("About", nullptr, ImGuiWindowFlags_NoResize)) {
 
 			ImGui::Text("This player is the result of the Bachelors Thesis project by");
-			ImGui::Text("Rocio Liceras Ramirez, supervised by Arcadio Reyes Lecuona");
-			ImGui::Text("and co-supervised by Daniel Gonzalez Toledo at the University of Malaga.");
+			ImGui::Text("Rocio Liceras-Ramirez, supervised by Arcadio Reyes-Lecuona");
+			ImGui::Text("and co-supervised by Daniel Gonzalez-Toledo at the University of Malaga.");
 			
 
 			float buttonWidth = 100.0f;
@@ -682,20 +733,25 @@ public:
 		layout_selected_idx = std::clamp(layoutIndex, 0, 3); 
 	}
 
-	void setTotalRotation(float yaw, float pitch, float roll) {
-		TotalyawRad = yaw;
-		TotalpitchRad = pitch;
-		TotalrollRad = roll;
+	void setHeadRotation(float yaw, float pitch, float roll) {
+		HeadyawRad = yaw;
+		HeadpitchRad = pitch;
+		HeadrollRad = roll;
 	}
 
 	void setAudioDevices(const std::vector<ofSoundDevice> & devices) {
 		audioDevices = devices;
 	}
 
+	void setGlobalPlay(bool playing) {
+		isPlaying = playing;
+	}
+
 	// --- Callbacks ---
 	std::function<void(bool)> onPlay;
 	std::function<void()> onStop;
 	std::function<void(string)> onWAV;
+	std::function<void()> onHRTF;
 	std::function<void(size_t, Common::CVector3)> onCreateSource;
 	std::function<void(int)> onChangeK;
 	std::function<void(int)> onChangeBufferSize;
@@ -725,7 +781,7 @@ public:
 private:
 	float SFyawRad, SFpitchRad, SFrollRad;
 	float LSyawRad, LSpitchRad, LSrollRad;
-	float TotalyawRad, TotalpitchRad, TotalrollRad;
+	float HeadyawRad, HeadpitchRad, HeadrollRad;
 	int layoutIndex;
 	int margen = 10;
 
@@ -740,7 +796,7 @@ private:
 	std::vector<ofSoundDevice> audioDevices;
 
 	std::vector<std::shared_ptr<CAmbisonicSoundFieldController>> controllers;
-	bool showSourcePopup = false, showWAVPopup = false, showSettingsPopUp = false, showAboutPopUp = false;
+	bool showSourcePopup = false, showWAVPopup = false, showSettingsPopUp = false, showAboutPopUp = false, showHRTFPopup = false;
 
 	Common::CVector3 SphericalToCartesian(float azimuthDeg, float elevationDeg, float radius = 1.0f) {
 		float azim = ofDegToRad(azimuthDeg);
@@ -763,11 +819,7 @@ private:
 	void initSerialPorts() {
 		availableCOMs = TrackerController::listarCOMsConNombre();
 
-		/*if (availableCOMs.empty()) {
-			availableCOMs.push_back("No COM found");
-		}*/
-
-		serial_selected_idx = 0; // seleccionar el primero por defecto
+		serial_selected_idx = 0;
 	}
 
 

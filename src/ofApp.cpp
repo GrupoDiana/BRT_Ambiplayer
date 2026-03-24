@@ -76,6 +76,15 @@ void ofApp::setup() {
 		}
 	};
 
+	guiManager.onHRTF = [this]() {
+		ofFileDialogResult result = ofSystemLoadDialog("Select an HRTF SOFA file", false);
+		if (!result.bSuccess) {
+			ofLog() << "No file selected";
+			return;
+		}
+		configurationA.LoadResources(brtManager.get(), LISTENER_ID, result.getPath().c_str());
+	};
+
 	guiManager.onCreateSource =
 		[this](int numFrames, Common::CVector3 pos) {
 			ofFileDialogResult result = ofSystemLoadDialog("Select a WAV file", false);
@@ -113,23 +122,35 @@ void ofApp::setup() {
 	};
 
 	guiManager.onChangeSampleRate = [this](int SampleRate) {
-		if (SampleRate == 0)
+		string sampleRateStr;
+		if (SampleRate == 0) {
 			SAMPLERATE = 44100.0f;
-		else if (SampleRate == 1)
+			sampleRateStr = "44100";
+		} else if (SampleRate == 1) {
 			SAMPLERATE = 48000.0f;
-		else if (SampleRate == 2)
+			sampleRateStr = "48000";
+		}	
+		else if (SampleRate == 2) {
 			SAMPLERATE = 96000.0f;
+			sampleRateStr = "96000";
+		}
 
 		soundStream.stop();
 		soundStream.close();
 		AudioSetup();
 		rebuildAudioSystem();
+
+		 string HRTFName = "../resources/3DTI_HRTF_SADIE_II_D2_256s_" + sampleRateStr + "Hz.sofa";
+
+		configurationA.LoadResources(brtManager.get(), LISTENER_ID, HRTFName);
 	};
 
 	guiManager.onControllerPlay =
 		[this](CMenuPanel::ControllerPtr c) {
 			if (!c) return;
 			c->Play(!c->IsPlaying());
+
+			updateGlobalPlayState();
 		};
 
 	guiManager.onControllerStop =
@@ -137,6 +158,8 @@ void ofApp::setup() {
 			if (!c) return;
 			c->Play(false);
 			c->GetWavSamplePositionSource() = 0;
+
+			updateGlobalPlayState();
 		};
 
 	guiManager.onControllerMute =
@@ -179,6 +202,8 @@ void ofApp::setup() {
 				std::remove(ambisonicSoundFieldControllers.begin(),
 					ambisonicSoundFieldControllers.end(), c),
 				ambisonicSoundFieldControllers.end());
+
+			updateGlobalPlayState();
 		};
 
 	guiManager.onIRotationChanged =
@@ -321,15 +346,11 @@ void ofApp::draw() {
 
 	// --- Dibujar GUI y proyecciones ---
 	if (visualization == 0) {
-		//speakerArrayController.baricentricInterpolationSlerp(2, energiesCopy, interpolatedVertices, interpolatedEnergies);
-
-		//guiManager.draw(visualization, interpolatedEnergies, {}, speakerEnergies, interpolatedVertices);
 		guiManager.draw(visualization, energiesCopy, {}, speakerEnergies, vertices);
-		guiManager.getTotalRotation(qRotation);
+		guiManager.getHeadRotation(qHead);
 	} else {
-		// Planar / Circular: pasamos las 3 energías por plano
 		guiManager.draw(visualization, {}, planarEnergies, speakerEnergies, vertices);
-		guiManager.getTotalRotation(qRotation);
+		guiManager.getHeadRotation(qHead);
 	}
 
 	if (tracker.isConnected()) {
@@ -570,7 +591,7 @@ void ofApp::setupBRT() {
 	brtManager->EndSetup();
 
 	configurationA.Setup(brtManager.get(), LISTENER_ID);
-	configurationA.LoadResources(brtManager.get(), LISTENER_ID);
+	configurationA.LoadResources(brtManager.get(), LISTENER_ID, "../resources/3DTI_HRTF_SADIE_II_D2_256s_48000Hz.sofa");
 
 	Common::CTransform listenerPosition;
 	listenerPosition.SetPosition(Common::CVector3(0.0f, 0.0f, 0.0f));
@@ -618,4 +639,17 @@ void ofApp::rebuildAudioSystem() {
 
 	AudioSetup();
 	soundStream.start();
+}
+
+void ofApp::updateGlobalPlayState() {
+	bool anyPlaying = false;
+
+	for (auto & c : ambisonicSoundFieldControllers) {
+		if (c->IsPlaying()) {
+			anyPlaying = true;
+			break;
+		}
+	}
+
+	guiManager.setGlobalPlayState(anyPlaying);
 }

@@ -22,8 +22,9 @@ public:
 	void draw(float cx, float cy, float width, float height, const std::vector<float> & speakerEnergies) {
 		if (!controller) return;
 
-		float sceneScale = 100.0f;
-		float baseRadius = 5.0f;
+		float sceneScale = std::min(width, height) / 4.0f;
+		float baseRadius = std::min(width, height) / 40.0f;
+		//float baseRadius = 5.0f;
 
 		// --- ORIGINAL COLOR SETUP ---
 		ImVec4 defaultColor = ImGui::GetStyleColorVec4(ImGuiCol_ScrollbarGrabActive);

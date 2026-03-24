@@ -9,6 +9,9 @@
 #include "imgui.h"
 #include "ofMain.h"
 #include "ofxImGui.h"
+#include <GLFW/glfw3.h>
+#include "ofAppGLFWWindow.h"
+#include <memory>
 
 class CGuiManager {
 public:
@@ -19,6 +22,7 @@ public:
         menuPanel.onPlay = [this](bool isPlaying) { if (onPlay) onPlay(isPlaying); };
         menuPanel.onStop = [this]() { if (onStop) onStop(); };
         menuPanel.onWAV = [this](string ordering) { if (onWAV) onWAV(ordering); };
+		menuPanel.onHRTF = [this]() { if (onHRTF) onHRTF(); };
         menuPanel.onCreateSource = [this](int frames, Common::CVector3 pos) { if (onCreateSource) onCreateSource(frames, pos); };
         menuPanel.onChangeK = [this](int k) { if (onChangeK) onChangeK(k); };
 		menuPanel.onChangeBufferSize = [this](int bufferSize) { if (onChangeBufferSize) onChangeBufferSize(bufferSize); };
@@ -65,7 +69,15 @@ public:
         ofAddListener(ofEvents().mousePressed, this, &CGuiManager::mousePressed);
         ofAddListener(ofEvents().mouseDragged, this, &CGuiManager::mouseDragged);
         ofAddListener(ofEvents().mouseReleased, this, &CGuiManager::mouseReleased);
+
+		 auto window = static_cast<ofAppGLFWWindow *>(ofGetCurrentWindow().get());
+
+		if (window) {
+			GLFWwindow * glfwWindow = window->getGLFWWindow();
+			glfwSetWindowSizeLimits(glfwWindow, 500, 500, GLFW_DONT_CARE, GLFW_DONT_CARE);
+		}
     }
+
 
     void setSpeakerController(const CLoudSpeakerArrayController * controller) {
         loudspeakers.setController(controller);
@@ -111,16 +123,40 @@ public:
                              (screenHeight - screenHeight / 5) / 2,
                              speakersEnergies);
 
-        } else {
+        } else if (screenWidth > 690) {
             menuPanel.draw(0, screenHeight / 5, screenWidth / 4, screenHeight - screenHeight / 5);
+			if (visualization == 0) {
+				// ---- Geodesic ----
+				lobeYZ.draw(energies, screenWidth / 4, screenHeight / 5, (screenWidth - screenWidth / 4) / 2, (screenHeight - screenHeight / 5) / 2, ZY, vertices);
+				lobeZX.draw(energies, screenWidth / 4 + (screenWidth - screenWidth / 4) / 2, screenHeight / 5, (screenWidth - screenWidth / 4) / 2, (screenHeight - screenHeight / 5) / 2, ZX, vertices);
+				lobeXY.draw(energies, screenWidth / 4, screenHeight / 5 + (screenHeight - screenHeight / 5) / 2, (screenWidth - screenWidth / 4) / 2, (screenHeight - screenHeight / 5) / 2, XY, vertices);
+			} else {
+				// ---- Planar / Circular ----
+				circularYZ.draw(planarEnergies[0], screenWidth / 4, screenHeight / 5, (screenWidth - screenWidth / 4) / 2, (screenHeight - screenHeight / 5) / 2, ZY, vertices);
+				circularZX.draw(planarEnergies[1], screenWidth / 4 + (screenWidth - screenWidth / 4) / 2, screenHeight / 5, (screenWidth - screenWidth / 4) / 2, (screenHeight - screenHeight / 5) / 2, ZX, vertices);
+				circularXY.draw(planarEnergies[2], screenWidth / 4, screenHeight / 5 + (screenHeight - screenHeight / 5) / 2, (screenWidth - screenWidth / 4) / 2, (screenHeight - screenHeight / 5) / 2, XY, vertices);
+			}
             loudspeakers.draw(screenWidth / 4 + screenWidth * 1.5 / 4,
                              screenHeight / 5 + (screenHeight - screenHeight / 5) / 2,
                              screenWidth * 1.5 / 4,
                              (screenHeight - screenHeight / 5) / 2,
                              speakersEnergies);
-        }
+		} else {
+			menuPanel.draw(0, screenHeight / 5, screenWidth / 4, screenHeight - screenHeight / 5);
+			if (visualization == 0) {
+				// ---- Geodesic ----
+				lobeYZ.draw(energies, 172, screenHeight / 5, (screenWidth - 172) , (screenHeight - screenHeight / 5) / 2, ZY, vertices);
+				lobeXY.draw(energies, 172, screenHeight / 5 + (screenHeight - screenHeight / 5) / 2, (screenWidth - 172), (screenHeight - screenHeight / 5) / 2, XY, vertices);
+				
+			} else {
+				// ---- Planar / Circular ----
+				circularYZ.draw(planarEnergies[0], 172, screenHeight / 5, (screenWidth - 172), (screenHeight - screenHeight / 5) / 2, ZY, vertices);
+				circularXY.draw(planarEnergies[2], 172, screenHeight / 5 + (screenHeight - screenHeight / 5) / 2, (screenWidth - 172), (screenHeight - screenHeight / 5) / 2, XY, vertices);
+			}
+			
+		}
 
-		setTotalRotation();
+		setHeadRotation();
 
         gui.end();
     }
@@ -148,13 +184,17 @@ public:
 
     void setLayout(int layoutIndex) { menuPanel.setLayout(layoutIndex); }
 
-	void getTotalRotation(CQuaternion _qRotation) {
+	void getHeadRotation(CQuaternion _qRotation) {
 		qRotation = _qRotation;
 	}
 
-	void setTotalRotation() {
+	void setHeadRotation() {
 		qRotation.ToYawPitchRoll(Totalyaw, Totalpitch, Totalroll);
-		menuPanel.setTotalRotation(Totalyaw, Totalpitch, Totalroll);
+		menuPanel.setHeadRotation(Totalyaw, Totalpitch, Totalroll);
+	}
+
+	void setGlobalPlayState(bool playing) {
+		menuPanel.setGlobalPlay(playing);
 	}
 
 private:
@@ -193,6 +233,7 @@ public:
     // ---- Callbacks to main application ----
     std::function<void(bool)> onPlay;
     std::function<void()> onStop;
+	std::function<void()> onHRTF;
     std::function<void(string ordering)> onWAV;
     std::function<void(int numFrames, Common::CVector3 pos)> onCreateSource;
     std::function<void(int k)> onChangeK;
