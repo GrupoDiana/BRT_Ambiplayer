@@ -46,53 +46,6 @@ private:
 	int numAz;
 	int numEl;
 
-	/* void DrawDirectionalLobeProjectedPoints(
-		const std::vector<float> & energies,
-		float maxRadius,
-		Plane plane) {
-		if (energies.empty()) return;
-
-		float maxVal = 0.0f;
-		for (float e : energies)
-			if (e > maxVal) maxVal = e;
-		if (maxVal == 0.0f) maxVal = 1.0f;
-
-		ofPushStyle();
-		ofNoFill();
-		ofSetLineWidth(1.0);
-
-		for (int ia = 0; ia < numAz; ++ia) {
-			for (int ie = 0; ie < numEl; ++ie) {
-				float val = energies[ia * numEl + ie];
-				float r = std::sqrt(val / maxVal);
-
-				float az = TWO_PI * ia / numAz;
-				float el = -HALF_PI + ie * (PI / (numEl - 1));
-
-				float x3D = r * cos(el) * cos(az);
-				float y3D = r * cos(el) * sin(az);
-				float z3D = r * sin(el);
-
-				float px, py;
-
-				if (plane == ZY) {
-					px = -y3D * maxRadius;
-					py = -z3D * maxRadius;
-				} else if (plane == XY) {
-					px = -y3D * maxRadius;
-					py = -x3D * maxRadius;
-				} else { // XZ
-					px = -x3D * maxRadius;
-					py = -z3D * maxRadius;
-				}
-
-				ofDrawCircle(px, py, 1.5f);
-			}
-		}
-
-		ofPopStyle();
-	}*/
-
 void DrawDirectionalLobeProjectedPointsGeodesic(
 		const std::vector<float> & energies,
 		float maxRadius,
@@ -111,7 +64,6 @@ void DrawDirectionalLobeProjectedPointsGeodesic(
 		float frameMaxDb = 20.0f * log10(maxVal);
 		float targetScale = ofMap(frameMaxDb, minDb, maxDb, 0.0f, 1.0f, true);
 
-		//Parasuavizar, si lo quito lo que cambia es que se agranda/achica mas rapido
 		static float smoothedScale = 0.0f;
 		const float alpha = 0.05f;
 		smoothedScale = ofLerp(smoothedScale, targetScale, alpha);

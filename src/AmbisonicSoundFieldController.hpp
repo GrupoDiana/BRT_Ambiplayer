@@ -37,12 +37,15 @@
 #include "AmbisonicSoundField.hpp"
 #include "ofxAudioFile.h"
 #include "ofxBRTLibrary.h"
+#include "CommonDefinitions.hpp"
 
 #include <filesystem>
 #include <Common/Buffer.hpp>
 #include <cmath>
 #include <string>
 #include <vector>
+
+using namespace CommonDefinitions;
 
 std::vector<int> ACN_to_FuMa_order_0_3 = {
 	0, // W
@@ -65,7 +68,6 @@ public:
 		, ordering { "" } { }
 
 	void SetUp(size_t ambisonicOrder_, unsigned int sampleRate_, size_t blockSize_, std::string ordering_) {
-		// Inicializa el controlador interno de campo ambisónico
 		soundFieldController.SetUp(ambisonicOrder_, sampleRate_, blockSize_);
 		ordering = ordering_;
 		sampleRate = sampleRate_;
@@ -103,7 +105,6 @@ public:
 	}
 
 	// Load WAV file and fill soundFieldArray with samples mapped by ambisonic order and channel
-	//Prototype
 	bool LoadWav(const char * filePath, const std::string & ordering_, int order) {
 		if (!setupDone) return false;
 
@@ -272,19 +273,18 @@ public:
 
 		int channel = 0;
 
-		// --- Generador de ruido gaussiano ---
+		// --- Gaussian noise ---
 		static std::mt19937 rng(std::random_device {}());
 		static std::normal_distribution<float> gaussian(0.0f, 1.0f); // media=0, sigma=1
 
 		for (size_t i = 0; i < numFrames; ++i) {
-			float sample = gaussian(rng); // ruido blanco
+			float sample = gaussian(rng); 
 			soundFieldController.GetSoundFieldArray()[channel][i] = sample;
 		}
 
 		std::cout << "Generated white noise in Ambisonic field" << std::endl;
 	}
 
-	//el orden tiene que ir global
 	bool GeneratePuntualSourceField(int order, const char * filePath, Common::CVector3 pos) {
 		if (!setupDone) {
 			std::cerr << "Error: setup not done before generating synthetic field." << std::endl;
@@ -313,7 +313,6 @@ public:
 			soundFieldController.GetSoundFieldArray()[ch].resize(numFrames, 0.0f);
 		}
 
-		// Crear el source Omnidireccional
 		auto source = std::make_shared<BRTSourceModel::CSourceOmnidirectionalModel>("GNoise");
 		if (!source) {
 			std::cerr << "Error: could not create BRT source." << std::endl;
@@ -385,9 +384,7 @@ public:
 
 	void SetPlaybackVolume(float norm) {
 		norm = std::clamp(norm, 0.0f, 1.0f);
-
-		float linear = norm * 1.25f;
-		volume = linear * linear;
+		volume = norm * 1.25f;
 	}
 
 	float GetPlaybackVolume() {
@@ -444,13 +441,11 @@ private:
 		const Common::CVector3 & sourcePos) {
 		int order = ambiField.GetOrder();
 
-		// Obtener el buffer de audio del source
 		const auto & buffer = source.GetBuffer(); // std::vector<float>
 		size_t numFrames = buffer.size();
 
 		int numChannels = (order + 1) * (order + 1);
 
-		// Asegurar tamaño de canales
 		ambiField.GetSoundFieldArray().resize(numChannels);
 		for (int ch = 0; ch < numChannels; ++ch) {
 			ambiField.GetSoundFieldArray()[ch].resize(numFrames, 0.0f);
@@ -472,11 +467,11 @@ private:
 			}
 
 			if (order >= 2 ) {
-				float V = sample * sourcePos.x * sourcePos.y * sqrtf(3.f);
-				float T = sample * sourcePos.y * sourcePos.z * sqrtf(3.f);
+				float V = sample * sourcePos.x * sourcePos.y * SQRT_3;
+				float T = sample * sourcePos.y * sourcePos.z * SQRT_3;
 				float R = sample * (0.5f * (3.f * sourcePos.z * sourcePos.z - 1.f));
-				float S = sample * sqrtf(3.f) * sourcePos.x * sourcePos.z;
-				float U = sample * sqrtf(3.f / 4.f) * (sourcePos.x * sourcePos.x - sourcePos.y * sourcePos.y);
+				float S = sample * SQRT_3 * sourcePos.x * sourcePos.z;
+				float U = sample * SQRT_3_DIV_4 * (sourcePos.x * sourcePos.x - sourcePos.y * sourcePos.y);
 
 				ambiField.GetSoundFieldArray()[4][n] = V;
 				ambiField.GetSoundFieldArray()[5][n] = T;
@@ -486,13 +481,13 @@ private:
 			}
 
 			if (order >= 3 ) {
-				float Q = sample * sqrtf(5.f / 8.f) * sourcePos.y * (3.f * sourcePos.x * sourcePos.x - sourcePos.y * sourcePos.y);
-				float O = sample * sqrtf(15.f) * sourcePos.x * sourcePos.y * sourcePos.z;
-				float M = sample * sqrtf(3.f / 8.f) * sourcePos.y * (5.f * sourcePos.z * sourcePos.z - 1.f);
+				float Q = sample * SQRT_5_DIV_8 * sourcePos.y * (3.f * sourcePos.x * sourcePos.x - sourcePos.y * sourcePos.y);
+				float O = sample * SQRT_15 * sourcePos.x * sourcePos.y * sourcePos.z;
+				float M = sample * SQRT_3_DIV_8 * sourcePos.y * (5.f * sourcePos.z * sourcePos.z - 1.f);
 				float K = sample * 0.5f * sourcePos.z * (5.f * sourcePos.z * sourcePos.z - 3.f);
-				float L = sample * sqrtf(3.f / 8.f) * sourcePos.x * (5.f * sourcePos.z * sourcePos.z - 1.f);
-				float N = sample * sqrtf(15.f / 4.f) * sourcePos.z * (sourcePos.x * sourcePos.x - sourcePos.y * sourcePos.y);
-				float P = sample * sqrtf(5.f / 8.f) * sourcePos.x * (sourcePos.x * sourcePos.x - 3.f * sourcePos.y * sourcePos.y);
+				float L = sample * SQRT_3_DIV_8 * sourcePos.x * (5.f * sourcePos.z * sourcePos.z - 1.f);
+				float N = sample * SQRT_15_DIV_4 * sourcePos.z * (sourcePos.x * sourcePos.x - sourcePos.y * sourcePos.y);
+				float P = sample * SQRT_5_DIV_8 * sourcePos.x * (sourcePos.x * sourcePos.x - 3.f * sourcePos.y * sourcePos.y);
 
 				ambiField.GetSoundFieldArray()[9][n] = Q;
 				ambiField.GetSoundFieldArray()[10][n] = O;

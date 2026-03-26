@@ -75,7 +75,6 @@ public:
 	void AudioSetup();
 	void audioOut(ofSoundBuffer & buffer);
 	void audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, int uiBufferSize);
-	ofSoundDevice ShowSelectAudioDeviceMenu();
 	void changeAudioDevice(int index);
 	void setupBRT();
 	void rebuildAudioSystem();

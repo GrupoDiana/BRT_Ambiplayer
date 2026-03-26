@@ -21,8 +21,8 @@ struct GyroData {
 };
 
 struct COMInfo {
-	std::string port; // Ej: COM3
-	std::string name; // Ej: USB-SERIAL CH340 (COM3)
+	std::string port; 
+	std::string name; 
 };
 
 #define SIZE_1 390
@@ -140,7 +140,7 @@ public:
 				if (auxiliar[z] == ',') num_comas++;
 				z++;
 			} else {
-				if (num_comas == 4) { // línea válida
+				if (num_comas == 4) {
 					auxiliar[z] = '\0';
 					char * token = strtok(auxiliar, ",");
 					int pos = 0;
@@ -162,10 +162,8 @@ public:
 						float q3 = static_cast<float>(array[3]);
 						float q0 = sqrt(1.0f - (q1 * q1 + q2 * q2 + q3 * q3));
 
-						// Cuaternión original leído
 						CQuaternion qRaw = { q0, q1, q2, q3 };
 
-						// Aplicamos offset de calibración
 						ultimoQuat = aplicarOffset(qRaw, trackerCenterOffset);
 
 						correct = true;
@@ -203,11 +201,10 @@ public:
 		yaw = atan2(t3, t4) * 180.0 / M_PI;
 	}
 
+
 	CQuaternion getUltimoQuat() const { return ultimoQuat; }
 
-	// -------------------------------------------------
-	// Listar COMs con nombre descriptivo
-	// -------------------------------------------------
+
 	static std::vector<COMInfo> listarCOMsConNombre() {
 		std::vector<COMInfo> coms;
 
@@ -296,17 +293,15 @@ void calibrarSensoresQuat(int muestrasQuieto = 50, int muestrasMov = 100) {
 		std::cout << "Pulsa Enter para comenzar...\n";
 		std::cin.get();
 
-		// --- Muestras para el eje "sí" (arriba-abajo) ---
 		std::cout << "Inclina la cabeza hacia arriba y hacia abajo varias veces (tipo 'sí')...\n";
 
-		// --- Esperar primera lectura válida antes de empezar a contar ---
-		while (!leerLinea()) { /* espera hasta que haya un dato válido */
+		while (!leerLinea()) {
 		}
 
 		CQuaternion sumaSi = { 0, 0, 0, 0 };
 		int leidas = 0;
 		while (leidas < muestrasPorDireccion) {
-			if (leerLinea()) { // solo cuenta muestras válidas
+			if (leerLinea()) { 
 				sumaSi.w += ultimoQuat.w;
 				sumaSi.x += ultimoQuat.x;
 				sumaSi.y += ultimoQuat.y;
@@ -322,11 +317,9 @@ void calibrarSensoresQuat(int muestrasQuieto = 50, int muestrasMov = 100) {
 			sumaSi.z / muestrasPorDireccion
 		};
 
-		// --- Muestras para el eje "no" (izquierda-derecha) ---
 		std::cout << "Inclina la cabeza hacia los lados varias veces (tipo 'no')...\n";
 
-		// Esperar primera lectura válida
-		while (!leerLinea()) { /* espera hasta que haya un dato válido */
+		while (!leerLinea()) { 
 		}
 
 		CQuaternion sumaNo = { 0, 0, 0, 0 };
@@ -348,7 +341,6 @@ void calibrarSensoresQuat(int muestrasQuieto = 50, int muestrasMov = 100) {
 			sumaNo.z / muestrasPorDireccion
 		};
 
-		// --- Calculamos el offset de centro ---
 		trackerCenterOffset.w = (promedioSi.w + promedioNo.w) / 2.0f;
 		trackerCenterOffset.x = (promedioSi.x + promedioNo.x) / 2.0f;
 		trackerCenterOffset.y = (promedioSi.y + promedioNo.y) / 2.0f;
@@ -376,7 +368,6 @@ private:
 	}
 
 	CQuaternion aplicarOffset(const CQuaternion & q, const CQuaternion & offset) {
-		// Multiplicación de cuaterniones q * offset^-1
 		CQuaternion offsetInv = { offset.w, -offset.x, -offset.y, -offset.z };
 		CQuaternion result;
 		result.w = q.w * offsetInv.w - q.x * offsetInv.x - q.y * offsetInv.y - q.z * offsetInv.z;

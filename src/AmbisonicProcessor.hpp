@@ -53,6 +53,7 @@
 #include "LoudSpeakerArrayController.hpp"
 #include "ofxAudioFile.h"
 #include "ofxBRTLibrary.h"
+#include <CommonDefinitions.hpp>
 
 #include <Common/Buffer.hpp>
 #include <cmath>
@@ -60,6 +61,8 @@
 #include <string>
 #include <vector>
 
+
+using namespace CommonDefinitions;
 
 
 class CAmbisonicProcessor {
@@ -81,16 +84,11 @@ public:
 
 		float Wgain = 0.0f, XYZgain = 0.0f, VTRSUgain = 0.0f;
 
-		//definir sqrt(speakerArray.GetNumSpeakers()) para no calcularlo 3 veces
-
 		if (decoding == "basic") {
 			Wgain = 1 / std::sqrt(speakerArray.GetNumSpeakers());
 			XYZgain = 0.932f / std::sqrt(speakerArray.GetNumSpeakers());
 			VTRSUgain = 0.8029f / std::sqrt(speakerArray.GetNumSpeakers());
-		} else if (decoding == "maxrE") {
-			Wgain = 1.0f / std::sqrt(speakerArray.GetNumSpeakers());
-			XYZgain = std::sqrt(3.0f / 2.0f) / std::sqrt(speakerArray.GetNumSpeakers());
-		}
+		} 
 
 		std::vector<const float *> channels;
 		channels.reserve(field.size());
@@ -122,7 +120,7 @@ public:
 					//const float S = channels[7][n];
 					//const float U = channels[8][n];
 
-					sample += sqrtf(3.f) * pos.x * pos.y * channels[4][n] + sqrtf(3.f) * pos.y * pos.z * channels[5][n] + 0.5f * ((3.f * pos.z * pos.z) - 1.f) * channels[6][n] + sqrtf(3.f) * pos.x * pos.z * channels[7][n] + sqrtf(3.f / 4.f) * (pos.x * pos.x - pos.y * pos.y) * channels[8][n];
+					sample += SQRT_3 * pos.x * pos.y * channels[4][n] + SQRT_3 * pos.y * pos.z * channels[5][n] + 0.5f * ((3.f * pos.z * pos.z) - 1.f) * channels[6][n] + SQRT_3 * pos.x * pos.z * channels[7][n] + SQRT_3_DIV_4 * (pos.x * pos.x - pos.y * pos.y) * channels[8][n];
 				}
 
 				if (order >= 3 && channels.size() > 15) {
@@ -134,7 +132,7 @@ public:
 					//const float N = channels[14][n];
 					//const float P = channels[15][n];
 
-					sample += sqrtf(5.f / 8.f) * pos.y * (3.f * pos.x * pos.x - pos.y * pos.y) * channels[9][n] + sqrtf(15.f) * pos.x * pos.y * pos.z * channels[10][n] + sqrtf(3.f / 8.f) * pos.y * (5.f * pos.z * pos.z - 1.f) * channels[11][n] + 0.5f * pos.z * (5.f * pos.z * pos.z - 3.f) * channels[12][n] + sqrtf(3.f / 8.f) * pos.x * (5.f * pos.z * pos.z - 1.f) * channels[13][n] + sqrtf(15.f / 4.f) * pos.z * (pos.x * pos.x - pos.y * pos.y) * channels[14][n] + sqrtf(5.f / 8.f) * pos.x * (pos.x * pos.x - 3.f * pos.y * pos.y) * channels[15][n];
+					sample += SQRT_5_DIV_8 * pos.y * (3.f * pos.x * pos.x - pos.y * pos.y) * channels[9][n] + SQRT_15 * pos.x * pos.y * pos.z * channels[10][n] + SQRT_3_DIV_8 * pos.y * (5.f * pos.z * pos.z - 1.f) * channels[11][n] + 0.5f * pos.z * (5.f * pos.z * pos.z - 3.f) * channels[12][n] + SQRT_3_DIV_8 * pos.x * (5.f * pos.z * pos.z - 1.f) * channels[13][n] + SQRT_15_DIV_4 * pos.z * (pos.x * pos.x - pos.y * pos.y) * channels[14][n] + SQRT_5_DIV_8 * pos.x * (pos.x * pos.x - 3.f * pos.y * pos.y) * channels[15][n];
 				}
 				buffer[n] = sample;
 			}

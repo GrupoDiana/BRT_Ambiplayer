@@ -7,10 +7,6 @@
 
 #define LISTENER_HRTF_MODEL_ID "listenerHRTF1"
 
-#define SOFA1_FILEPATH "../resources/hrtf_48000.sofa"
-
-
-
 class CConfigurationA
 {
 public:

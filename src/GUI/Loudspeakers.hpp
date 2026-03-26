@@ -24,7 +24,6 @@ public:
 
 		float sceneScale = std::min(width, height) / 4.0f;
 		float baseRadius = std::min(width, height) / 40.0f;
-		//float baseRadius = 5.0f;
 
 		// --- ORIGINAL COLOR SETUP ---
 		ImVec4 defaultColor = ImGui::GetStyleColorVec4(ImGuiCol_ScrollbarGrabActive);
@@ -58,7 +57,6 @@ public:
 
 		ofTranslate(cx + width / 2.0f, cy + height / 2.0f);
 
-		// --- Dibujar altavoces usando posiciones actuales del controller ---
 		for (size_t i = 0; i < numSpeakers; ++i) {
 			if (!speakers[i]) continue;
 
@@ -68,7 +66,6 @@ public:
 			float y = pos.y * sceneScale;
 			float z = pos.z * sceneScale;
 
-			// Proyección simple 3D -> 2D (perspectiva)
 			float fov = 300.0f;
 			float px = -y * fov / (fov - z);
 			float py = -x * fov / (fov - z);
@@ -77,7 +74,6 @@ public:
 			ofSetColor(128);
 			ofDrawCircle(px, py, baseRadius);
 
-			// Halo de energía
 			if (i < speakerEnergies.size()) {
 				float energy = speakerEnergies[i] / maxEnergy;
 				energy = ofClamp(energy, 0.0f, 1.0f);

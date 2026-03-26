@@ -204,7 +204,7 @@ public:
 
 		ambisonicRotationMatrices.clear();
 
-		CMatrix<float> R1 = MapR1(q.RotationMatrix());
+		CMatrix<float> R1 = XYZtoYZX(q.RotationMatrix());
 
 		CalculateRMatrix(ambisonicOrder, R1);
 
@@ -264,7 +264,6 @@ private:
 
 	std::vector<CMatrix<float>> ambisonicRotationMatrices;
 
-	//Añadir comentarios
 	void RotateFieldRecursive(int l, const std::vector<CMonoBuffer<float>> & source, std::vector<CMonoBuffer<float>> & dest, int offset) {
 		if (l > ambisonicOrder) return;
 
@@ -282,8 +281,8 @@ private:
 		RotateFieldRecursive(l + 1, source, dest, offset + dim);
 	}
 
-	//Cambiar nombre a XYZtoYZX 
-	CMatrix<float> MapR1(const CMatrix<float> & R1) {
+
+	CMatrix<float> XYZtoYZX(const CMatrix<float> & R1) {
 		CMatrix<float> R1_mapped(3, 3);
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {

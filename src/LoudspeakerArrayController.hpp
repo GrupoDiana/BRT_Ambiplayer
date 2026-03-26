@@ -174,7 +174,6 @@ public:
 	}
 
 	void UpdateSpeakerLayout(BRTBase::CBRTManager & brtManager, PlatonicSolid solid, CConfigurationA & ConfigurationA) {
-		// --- Generar los vértices del nuevo sólido ---
 		std::vector<Common::CVector3> vertices;
 		switch (solid) {
 		case PlatonicSolid::octahedron:
@@ -260,8 +259,7 @@ public:
 		}
 	}
 
-	//Hay que cambiarle el nombre porque se usa para geodesica y para circular
-	std::vector<float> ComputeDirectionalEnergyMapGeodesic(const CAmbisonicSoundField & field, std::vector<Common::CVector3> points) {
+	std::vector<float> ComputeDirectionalEnergyMap(const CAmbisonicSoundField & field, std::vector<Common::CVector3> points) {
 		std::vector<float> energies(points.size(), 0.0f);
 
 		const auto & soundField = field.GetSoundFieldArray();
@@ -373,7 +371,6 @@ public:
 		float a = 0.0f, b = 0.0f, c = 0.0f;
 		int i0, i1, i2;
 
-		// Recorremos todas las caras
 		for (int faceIndex = 0; faceIndex < facesSubdivided.size(); ++faceIndex) {
 			i0 = facesSubdivided[faceIndex].v0;
 			i1 = facesSubdivided[faceIndex].v1;
@@ -387,19 +384,16 @@ public:
 			float E1 = energies[i1];
 			float E2 = energies[i2];
 
-			// Rejilla baricéntrica
 			for (int i = 0; i <= k; ++i) {
 				for (int j = 0; j <= k - i; ++j) {
 					a = float(i) / k;
 					b = float(j) / k;
 					c = 1.0f - a - b;
 
-					// Interpolación esférica de la posición
 					Common::CVector3 rowStart = Slerp(V0, V2, a);
 					Common::CVector3 rowEnd = Slerp(V0, V1, a);
 					Common::CVector3 P = Slerp(rowStart, rowEnd, b / (1.0f - a + 1e-6f));
 
-					// Interpolación lineal de la energía
 					float E = a * E0 + b * E1 + c * E2;
 
 					outVertices.push_back(P);
@@ -408,7 +402,7 @@ public:
 			}
 		}
 
-		std::cout << "Vertices generados: " << outVertices.size() << std::endl;
+		std::cout << "Generated vertices: " << outVertices.size() << std::endl;
 	}
 
 	std::vector<Common::CVector3> kDivision(int k) {
@@ -446,24 +440,20 @@ public:
 			Edge * e02 = findEdge(i0, i2, edges);
 			Edge * e21 = findEdge(i2, i1, edges);
 
-			// Rejilla de índices
 			std::vector<std::vector<int>> grid(k + 2);
 			for (int i = 0; i <= k + 1; ++i)
 				grid[i].resize(i + 1);
 
-			// Esquinas
 			grid[0][0] = i0;
 			grid[k + 1][0] = i2;
 			grid[k + 1][k + 1] = i1;
 
-			// Aristas
 			for (int i = 1; i <= k; ++i) {
 				grid[i][0] = e02->points[i - 1];        // V0–V2
 				grid[i][i] = e01->points[i - 1];        // V0–V1
 				grid[k + 1][i] = e21->points[i - 1];    // V2–V1
 			}
 
-			// Interior
 			for (int i = 2; i <= k; ++i) {
 				Common::CVector3 rowStart = Slerp(IVertices[i0], IVertices[i2], float(i) / (k + 1));
 				Common::CVector3 rowEnd   = Slerp(IVertices[i0], IVertices[i1], float(i) / (k + 1));
@@ -476,7 +466,6 @@ public:
 				}
 			}
 
-			// --- Generar caras ---
 			for (int i = 0; i < k + 1; ++i) {
 				for (int j = 0; j <= i; ++j) {
 
@@ -551,13 +540,12 @@ private:
 
 	std::vector<Edge> Edges() {
 		std::vector<Edge> edges;
-		//Para cada arista, se divide entre k partes iguales
 		for (int i = 0; i < IFaces.size(); i++) {
 			for (int j = 0; j < 3; j++) {
 				Edge e;
 				e.vertex1 = IFaces[i][j];
 				e.vertex2 = IFaces[i][(j + 1) % 3];
-				//Comprobar si la arista ya existe
+
 				bool exists = false;
 				for (const auto & existingEdge : edges) {
 					if (edgesEqual(e, existingEdge)) {

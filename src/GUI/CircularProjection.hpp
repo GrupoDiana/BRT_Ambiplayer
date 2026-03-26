@@ -38,10 +38,8 @@ public:
 		// Centro
 		ofTranslate(cx + width / 2.0f, cy + height / 2.0f);
 
-		// --- Curva deformada por energías (rosa) ---
 		DrawCircularEnergy(energies, maxRadius, plane);
 
-		// --- Círculo base gris ---
 		DrawBaseCircle(maxRadius);
 
 		ofPopMatrix();
@@ -56,7 +54,7 @@ private:
 
 		ofPushStyle();
 		ofFill();
-		ofSetColor(60); //Color gris de fondo
+		ofSetColor(60); 
 		ofDrawCircle(0, 0, rBase);
 		ofPopStyle();
 

@@ -35,7 +35,7 @@ public:
 			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize );
 
 		ImGui::BeginChild("ScrollRegion",
-			ImVec2(0, -30), // deja espacio abajo
+			ImVec2(0, -30),
 			true,
 			ImGuiWindowFlags_AlwaysVerticalScrollbar);
 
@@ -312,17 +312,16 @@ public:
 			if (ImGui::BeginCombo(
 					"##SerialPorts",
 					serial_selected_idx == -1 ? "-Select COM-" : availableCOMs[serial_selected_idx].port.c_str())) {
-				// Primer ítem: placeholder
+				// First item: placeholder
 				bool placeholder_selected = (serial_selected_idx == -1);
 				if (ImGui::Selectable("-Select COM-", placeholder_selected)) {
-					serial_selected_idx = -1; // ningún COM seleccionado
+					serial_selected_idx = -1;
 					if (onSerialPortChanged)
 						onSerialPortChanged(-1);
 				}
 				if (placeholder_selected)
 					ImGui::SetItemDefaultFocus();
 
-				// COMs reales
 				for (int n = 0; n < (int)availableCOMs.size(); ++n) {
 					bool selected = (serial_selected_idx == n);
 
@@ -340,12 +339,11 @@ public:
 			}
 
 			ImGui::Text("Calibrations:");
-			//Boton calibrate head
+
 			if (ImGui::Button("HEAD") && onCalibrateHead) {
 				onCalibrateHead();
 			}
 			ImGui::SameLine();
-			//boton calibrate compass
 			if (ImGui::Button("COMPASS") && onCalibrateCompass) {
 				onCalibrateCompass();
 			}
@@ -378,8 +376,6 @@ public:
 				std::string headerTitle = controller->GetFilePathName();
 
 				ImGui::PushStyleColor(ImGuiCol_Header, grayColor);
-				ImGui::PushStyleColor(ImGuiCol_HeaderHovered, grayColor.w * 0.8f); 
-				ImGui::PushStyleColor(ImGuiCol_HeaderActive, grayColor.w * 0.8f); 
 
 				if (ImGui::CollapsingHeader(headerTitle.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
 
@@ -564,7 +560,7 @@ public:
 
 		ImVec2 winSize = ImGui::GetWindowSize();
 		ImVec2 cursorPos = ImGui::GetCursorPos();
-		float buttonHeight = ImGui::GetFrameHeight(); // altura del botón
+		float buttonHeight = ImGui::GetFrameHeight(); 
 		ImGui::SetCursorPosY(winSize.y - buttonHeight - 10);
 		if (ImGui::Button("ABOUT")) showAboutPopUp = true;
 
@@ -585,14 +581,13 @@ public:
 				for (int n = 0; n < IM_ARRAYSIZE(ordering_items); ++n) {
 					bool selected = (ordering_selected_idx == n);
 					if (ImGui::Selectable(ordering_items[n], selected)) {
-						ordering_selected_idx = n; // actualizar índice
+						ordering_selected_idx = n; 
 					}
 					if (selected) ImGui::SetItemDefaultFocus();
 				}
 				ImGui::EndCombo();
 			}
 
-			// Determinar la cadena según el índice
 			switch (ordering_selected_idx) {
 			case 0:
 				ordering = "ACN";
@@ -602,7 +597,6 @@ public:
 				break;
 			}
 
-			// Llamar onWAV solo al presionar "Create"
 			if (ImGui::Button("Load") && onWAV) {
 				onWAV(ordering);
 				showWAVPopup = false;

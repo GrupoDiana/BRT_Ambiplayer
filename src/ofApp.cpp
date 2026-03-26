@@ -194,16 +194,6 @@ void ofApp::setup() {
 			c->Loop(!c->IsLoop());
 		};
 
-	/* guiManager.onControllerVol =
-		[this](CMenuPanel::ControllerPtr c) {
-			if (!c) return;
-
-			c->ChangeVolumen();
-			// Quiero que salga una barra pero que la posicion inicial este mas desplazada hacia la derecha
-			//entonces se podrá bajar el volumen pero subirlo solo un poco
-
-		};*/
-
 	guiManager.onControllerRemove =
 		[this](CMenuPanel::ControllerPtr c) {
 			if (!c) return;
@@ -341,20 +331,17 @@ void ofApp::update() { }
 
 //--------------------------------------------------------------
 void ofApp::draw() {
-	// --- Copiar energías geodésicas ---
 	std::vector<float> energiesCopy;
 	{
 		std::lock_guard<std::mutex> lock(energiesMutex);
 		energiesCopy = directionalEnergies;
 	}
 
-	// --- Aplicar rotación a los altavoces ---
 	for (size_t i = 0; i < speakerArrayController.GetNumSpeakers(); ++i) {
 		Common::CVector3 rotatedPos = qLoudSpeakers.RotationMatrix() * originalPositions[i];
 		speakerArrayController.GetSpeaker(i)->SetSourceTransform(Common::CTransform(rotatedPos));
 	}
 
-	// --- Dibujar GUI y proyecciones ---
 	if (visualization == 0) {
 		guiManager.draw(visualization, energiesCopy, {}, speakerEnergies, vertices);
 		guiManager.getHeadRotation(qHead);
@@ -518,19 +505,19 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 		const auto & buf = speakerArrayController.GetSpeaker(i)->GetBuffer();
 		float energy = 0.0f;
 		for (auto s : buf)
-			energy += s * s; // suma de cuadrados
-		energy = sqrt(energy / buf.size()); // RMS
+			energy += s * s;
+		energy = sqrt(energy / buf.size()); 
 		speakerEnergies.push_back(energy);
 	}
 
 	std::lock_guard<std::mutex> lock(energiesMutex);
 
 	if (visualization == 0) {
-		directionalEnergies = speakerArrayController.ComputeDirectionalEnergyMapGeodesic(*SFbuffer, speakerArrayController.GetVerticesSubdivided());
+		directionalEnergies = speakerArrayController.ComputeDirectionalEnergyMap(*SFbuffer, speakerArrayController.GetVerticesSubdivided());
 	} else {
-		planarEnergies[0] = speakerArrayController.ComputeDirectionalEnergyMapGeodesic(*SFbuffer, speakerArrayController.GeneratePlanarDirections(Audio::ProjectionPlane::ZY, 20));
-		planarEnergies[1] = speakerArrayController.ComputeDirectionalEnergyMapGeodesic(*SFbuffer, speakerArrayController.GeneratePlanarDirections(Audio::ProjectionPlane::ZX, 20));
-		planarEnergies[2] = speakerArrayController.ComputeDirectionalEnergyMapGeodesic(*SFbuffer, speakerArrayController.GeneratePlanarDirections(Audio::ProjectionPlane::XY, 20));
+		planarEnergies[0] = speakerArrayController.ComputeDirectionalEnergyMap(*SFbuffer, speakerArrayController.GeneratePlanarDirections(Audio::ProjectionPlane::ZY, 20));
+		planarEnergies[1] = speakerArrayController.ComputeDirectionalEnergyMap(*SFbuffer, speakerArrayController.GeneratePlanarDirections(Audio::ProjectionPlane::ZX, 20));
+		planarEnergies[2] = speakerArrayController.ComputeDirectionalEnergyMap(*SFbuffer, speakerArrayController.GeneratePlanarDirections(Audio::ProjectionPlane::XY, 20));
 	}
 
 
@@ -541,41 +528,6 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 
 	bufferOutput.left += bufferProcessed.left;
 	bufferOutput.right += bufferProcessed.right;
-}
-
-
-	/// Function to show the user a menu to choose the audio output device
-ofSoundDevice ofApp::ShowSelectAudioDeviceMenu() {
-
-	auto devices = soundStream.getDeviceList();
-	std::cout << "Number of audio devices found: " << devices.size() << std::endl;
-	int connectedAudioDevices = soundStream.getNumOutputChannels();
-
-	std::cout << std::endl
-			  << std::endl;
-	std::cout << "----------------------------------------" << std::endl;
-	std::cout << "     List of available audio outputs" << std::endl;
-	std::cout << "----------------------------------------" << std::endl
-			  << std::endl;
-
-	for (int i = 0; i < devices.size(); ++i) {
-		std::cout << "Device #" << i << ": " << devices[i].name << std::endl;
-		std::cout << "Output channels: " << devices[i].outputChannels << " ";
-		std::cout << "Input channels: " << devices[i].inputChannels << " ";
-		std::cout << "Default output: " << (devices[i].isDefaultOutput ? "Yes" : "No") << std::endl;
-		std::cout << std::endl;
-	}
-
-	std::cout << std::endl;
-	int selectAudioDevice;
-	do {
-		std::cout << "Please choose which audio output you wish to use: ";
-		std::cin >> selectAudioDevice;
-		std::cin.clear();
-		std::cin.ignore(INT_MAX, '\n');
-	} while (!(selectAudioDevice > -1 && selectAudioDevice <= devices.size()));
-	std::cout << std::endl;
-	return devices[selectAudioDevice];
 }
 
 void ofApp::changeAudioDevice(int index) {
