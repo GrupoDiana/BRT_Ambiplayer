@@ -383,51 +383,80 @@ public:
 
 				if (ImGui::CollapsingHeader(headerTitle.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
 
-					if (controller->IsPlaying()) {
-						ImGui::PushStyleColor(ImGuiCol_Button, defaultColor);
+					 // --- PLAY / PAUSE Button ---
+					{
+						bool isPlayingCtl = controller->IsPlaying();
+						if (isPlayingCtl) ImGui::PushStyleColor(ImGuiCol_Button, defaultColor);
+						const char * label = isPlayingCtl ? "PLAY" : "PAUSED";
+						if (ImGui::Button(label) && onControllerPlay) onControllerPlay(controller);
+						if (isPlayingCtl) ImGui::PopStyleColor();
 					}
-					const char * label = isPlaying ? "PLAY" : "PAUSED";
-					if (ImGui::Button(label)) {
-						if (onControllerPlay) onControllerPlay(controller);
-					}
-					if (controller->IsPlaying()) ImGui::PopStyleColor();
 					ImGui::SameLine();
 
+					// --- STOP Button ---
 					if (ImGui::Button("Stop") && onControllerStop) onControllerStop(controller);
 					ImGui::SameLine();
 
-					if (controller->IsMuted()) {
-						ImGui::PushStyleColor(ImGuiCol_Button, defaultColor);
+					// --- MUTE Button ---
+					{
+						bool isMuted = controller->IsMuted();
+						if (isMuted) ImGui::PushStyleColor(ImGuiCol_Button, defaultColor);
+						if (ImGui::Button("Mute") && onControllerMute) onControllerMute(controller);
+						if (isMuted) ImGui::PopStyleColor();
 					}
-					if (ImGui::Button("Mute")) {
-						if (onControllerMute) onControllerMute(controller);
-					}
-					if (controller->IsMuted()) ImGui::PopStyleColor();
 					ImGui::SameLine();
 
-					if (controller->IsSolo()) {
-						ImGui::PushStyleColor(ImGuiCol_Button, defaultColor);
+					// --- SOLO Button ---
+					{
+						bool isSolo = controller->IsSolo();
+						if (isSolo) ImGui::PushStyleColor(ImGuiCol_Button, defaultColor);
+						if (ImGui::Button("Solo") && onControllerSolo) onControllerSolo(controller);
+						if (isSolo) ImGui::PopStyleColor();
 					}
-					if (ImGui::Button("Solo")) {
-						if (onControllerSolo) onControllerSolo(controller);
-					}
-					if (controller->IsSolo()) ImGui::PopStyleColor();
 					ImGui::SameLine();
 
-					if (controller->IsLoop()) {
-						ImGui::PushStyleColor(ImGuiCol_Button, defaultColor);
+					// --- LOOP Button ---
+					{
+						bool isLoop = controller->IsLoop();
+						if (isLoop) ImGui::PushStyleColor(ImGuiCol_Button, defaultColor);
+						if (ImGui::Button("Loop") && onControllerLoop) onControllerLoop(controller);
+						if (isLoop) ImGui::PopStyleColor();
 					}
-					if (ImGui::Button("Loop")) {
-						if (onControllerLoop) onControllerLoop(controller);
-					}
-					if (controller->IsLoop()) ImGui::PopStyleColor();
 					ImGui::SameLine();
 
+					// --- REMOVE Button ---
 					if (ImGui::Button("x") && onControllerRemove) {
 						onControllerRemove(controller);
+						ImGui::PopStyleColor(3); // header pop
 						ImGui::PopID();
 						break;
 					}
+
+					ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+					ImGui::PushStyleColor(ImGuiCol_PlotHistogram, defaultColor);
+
+					std::string volumeText = "Volume";
+					float volumeWidth = ImGui::CalcTextSize(volumeText.c_str()).x + 8.0f;
+
+					ImVec2 barSize(ImGui::GetContentRegionAvail().x - volumeWidth, 8.0f);
+					float norm = controller->GetPlaybackVolume() / 1.25f;
+
+					ImGui::ProgressBar(norm, barSize, "");
+
+					if (ImGui::IsItemHovered() && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+						ImVec2 min = ImGui::GetItemRectMin();
+						ImVec2 max = ImGui::GetItemRectMax();
+
+						float newNorm = (ImGui::GetMousePos().x - min.x) / (max.x - min.x);
+						newNorm = std::clamp(newNorm, 0.0f, 1.0f);
+
+						controller->SetPlaybackVolume(newNorm);
+					}
+
+					ImGui::SameLine();
+					ImGui::TextUnformatted(volumeText.c_str());
+
+					ImGui::PopStyleColor(2);
 
 					// Rotation sliders for controller with manual + / - buttons
 					auto & rot = controller->GetRotation();
@@ -481,7 +510,6 @@ public:
 					float progress = controller->GetPlaybackProgress();
 
 					float timeWidth = ImGui::CalcTextSize(timeText.c_str()).x + 8.0f;
-					ImVec2 barSize(ImGui::GetContentRegionAvail().x - timeWidth, 8.0f);
 
 					ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
 					ImGui::PushStyleColor(ImGuiCol_PlotHistogram, defaultColor);
@@ -776,6 +804,7 @@ public:
 	std::function<void(ControllerPtr)> onControllerRemove;
 	std::function<void(ControllerPtr)> onControllerSolo;
 	std::function<void(ControllerPtr)> onControllerLoop;
+	std::function<void(ControllerPtr)> onControllerVol;
 	std::function<void(ControllerPtr, float, float, float)> onIRotationChanged;
 
 private:

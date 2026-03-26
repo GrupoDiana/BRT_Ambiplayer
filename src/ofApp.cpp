@@ -194,6 +194,16 @@ void ofApp::setup() {
 			c->Loop(!c->IsLoop());
 		};
 
+	/* guiManager.onControllerVol =
+		[this](CMenuPanel::ControllerPtr c) {
+			if (!c) return;
+
+			c->ChangeVolumen();
+			// Quiero que salga una barra pero que la posicion inicial este mas desplazada hacia la derecha
+			//entonces se podrá bajar el volumen pero subirlo solo un poco
+
+		};*/
+
 	guiManager.onControllerRemove =
 		[this](CMenuPanel::ControllerPtr c) {
 			if (!c) return;
@@ -484,6 +494,14 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 		ambisonicProcessor.CalculateRotationMatrices(controller->GetQ(), *OutBuffer);
 
 		OutBuffer->GetSegment(controller->GetWavSamplePositionSource(), controller->GetPositionEndFrameSource(), controller->GetSoundFieldController(), bufferSize, controller->IsLoop(), controller->GetPlaying());
+
+		float vol = controller->GetPlaybackVolume();
+
+		for (auto & ch : OutBuffer->GetSoundFieldArray()) {
+			for (auto & sample : ch) {
+				sample *= vol;
+			}
+		}
 		
 		if (!controller->IsMuted())
 			*SFbuffer += *OutBuffer;

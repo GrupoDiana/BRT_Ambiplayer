@@ -63,6 +63,7 @@ public:
         menuPanel.onControllerMute = [this](CMenuPanel::ControllerPtr c) { if (onControllerMute) onControllerMute(c); };
         menuPanel.onControllerSolo = [this](CMenuPanel::ControllerPtr c) { if (onControllerSolo) onControllerSolo(c); };
         menuPanel.onControllerLoop = [this](CMenuPanel::ControllerPtr c) { if (onControllerLoop) onControllerLoop(c); };
+		menuPanel.onControllerVol = [this](CMenuPanel::ControllerPtr c) { if (onControllerVol) onControllerVol(c); };
         menuPanel.onControllerRemove = [this](CMenuPanel::ControllerPtr c) { if (onControllerRemove) onControllerRemove(c); };
 
         // ---- OF mouse listeners ----
@@ -260,6 +261,7 @@ public:
     std::function<void(ControllerPtr)> onControllerRemove;
     std::function<void(ControllerPtr)> onControllerSolo;
     std::function<void(ControllerPtr)> onControllerLoop;
+	std::function<void(ControllerPtr)> onControllerVol;
     std::function<void(ControllerPtr, float, float, float)> onIRotationChanged;
 };
 

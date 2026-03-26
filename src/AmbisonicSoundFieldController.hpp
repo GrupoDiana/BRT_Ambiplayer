@@ -383,6 +383,17 @@ public:
 		return static_cast<float>(wavSamplePositionSource) / static_cast<float>(sampleRate);
 	}
 
+	void SetPlaybackVolume(float norm) {
+		norm = std::clamp(norm, 0.0f, 1.0f);
+
+		float linear = norm * 1.25f;
+		volume = linear * linear;
+	}
+
+	float GetPlaybackVolume() {
+		return volume;
+	}
+
 	CAmbisonicSoundFieldController & operator+=(const CAmbisonicSoundFieldController & other) {
 		const auto & otherArray = other.soundFieldController.GetSoundFieldArray();
 		auto & arr = soundFieldController.GetSoundFieldArray();
@@ -412,6 +423,8 @@ private:
 	bool isMuted=false;
 	bool isSolo = false;
 	bool isLoop = false;
+
+	float volume = 1.0f;
 
 	Rotation rotation;
 
