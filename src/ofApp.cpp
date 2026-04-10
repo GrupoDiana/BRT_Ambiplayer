@@ -116,8 +116,10 @@ void ofApp::setup() {
 
 		soundStream.stop();
 		soundStream.close();
+
 		AudioSetup();
 		rebuildAudioSystem();
+		guiManager.onChangeSampleRate(SAMPLERATE);
 
 	};
 
@@ -140,7 +142,7 @@ void ofApp::setup() {
 		AudioSetup();
 		rebuildAudioSystem();
 
-		 string HRTFName = "../resources/3DTI_HRTF_SADIE_II_D2_256s_" + sampleRateStr + "Hz.sofa";
+		string HRTFName = "../resources/3DTI_HRTF_SADIE_II_D2_256s_" + sampleRateStr + "Hz.sofa";
 
 		configurationA.LoadResources(brtManager.get(), LISTENER_ID, HRTFName);
 	};
@@ -270,7 +272,7 @@ void ofApp::setup() {
 
 	guiManager.onSerialPortChanged =
 		[this](int serialIndex) {
-			auto coms = TrackerController::listarCOMsConNombre();
+			auto coms = TrackerController::listCOMPorts();
 
 			if (serialIndex == -1) {
 				std::cout << "Ningun COM seleccionado.\n";
@@ -296,11 +298,11 @@ void ofApp::setup() {
 
 
 	guiManager.onCalibrateHead = [this]() {
-		tracker.calibrarCentroConMovimientos(50);
+		tracker.calibrateCenter(64);
 	};
 
 	guiManager.onCalibrateCompass = [this]() {
-		tracker.calibrarSensoresQuat();
+		tracker.calibrateSensor(128);
 	};
 
 	guiManager.onAudioDeviceChanged = [this](int index) {
@@ -351,8 +353,8 @@ void ofApp::draw() {
 	}
 
 	if (tracker.isConnected()) {
-		tracker.leerLinea();
-		qHead = tracker.getUltimoQuat().Inverse();
+		tracker.readLine();
+		qHead = tracker.getLastQuat().Inverse();
 	}
 }
 

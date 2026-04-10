@@ -840,7 +840,7 @@ private:
 	}
 
 	void initSerialPorts() {
-		availableCOMs = TrackerController::listarCOMsConNombre();
+		availableCOMs = TrackerController::listCOMPorts();
 
 		serial_selected_idx = 0;
 	}
