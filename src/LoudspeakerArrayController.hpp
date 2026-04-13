@@ -21,7 +21,7 @@
  * \date November 2025
  *
  * \author R. Liceras-Ramírez  
- * \b Tutor: A. Reyes-Lecuona (University of Málaga)  
+ * \b Tutor: A. Reyes-Lecuona and D. Gonzalez-Toledo
  * \b Institution: Universidad de Málaga
  *
  * \b Contact: areyes@uma.es
@@ -30,15 +30,8 @@
  * © 2025 University of Málaga. All rights reserved.
  *
  * \b Context:
- * Developed as part of the Bachelor's Thesis (TFG) of R. Liceras-Ramírez
- * under the supervision of Prof. A. Reyes-Lecuona at the University of Málaga.
- * This component belongs to the CAMBISONIC framework for Ambisonic processing and decoding.
- *
- * \b Remarks:
- * - Integrates with the `BRTBase::CBRTManager` and `BRTSourceModel` libraries.
- * - Supports quaternion-based rotation of the loudspeaker array.
- * - Provides easy access to individual speakers and their transforms.
- * - Geometric arrangements are normalized for unit sphere representation.
+ * Developed as part of the Bachelor's Thesis (TFG), This component belongs to the CAMBISONIC framework
+ * for Ambisonic processing and decoding.
  *
  * \b Licence:
  * This program is free software; you can redistribute it and/or modify it

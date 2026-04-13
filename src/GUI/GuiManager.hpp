@@ -1,4 +1,43 @@
-﻿#ifndef _GUI_MANAGER_HPP_
+﻿/**
+ * \class CGuiManager
+ *
+ * \brief Central manager for GUI rendering and interaction in the application.
+ *
+ * \details This class integrates and coordinates all graphical user interface
+ * components, including menus, visualization panels, and interactive 3D/2D
+ * spatial audio displays. It acts as the main bridge between user input,
+ * rendering, and application-level callbacks.
+ *
+ * It provides:
+ *  - Initialization and management of ImGui-based GUI system.
+ *  - Coordination of multiple visualization modules (geodesic and circular projections).
+ *  - Management of loudspeaker layout visualization and interaction.
+ *  - Forwarding of user actions through a flexible callback system.
+ *  - Handling of window resizing and adaptive UI layouts.
+ *
+ * \note Built on top of OpenFrameworks, ofxImGui, and GLFW.
+ *
+ * \note Uses a callback-based architecture to decouple GUI logic from audio
+ * processing and application control.
+ *
+ * \date April 2026
+ *
+ * \author R. Liceras-Ramírez  
+ * \b Tutor: A. Reyes-Lecuona and D. Gonzalez-Toledo  
+ * \b Institution: Universidad de Málaga
+ *
+ * \b Context:
+ * Developed as part of a Bachelor's Thesis (TFG), this class is responsible for
+ * the user interface layer of a real-time spatial audio and Ambisonic system.
+ *
+ * \b Licence:
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 3 of the License, or (at your option)
+ * any later version.
+ */
+
+#ifndef _GUI_MANAGER_HPP_
 #define _GUI_MANAGER_HPP_
 
 #include "Logo.hpp"

@@ -1,3 +1,46 @@
+/**
+ * \class CMenuPanel
+ *
+ * \brief Implements the main ImGui-based control panel for the application.
+ *
+ * \details This class provides the complete graphical user interface for the
+ * system, including audio control, Ambisonic configuration, visualization
+ * settings, tracker calibration, and per-source management.
+ *
+ * It acts as the central interaction layer between the user and the system,
+ * exposing application features through a structured ImGui interface.
+ *
+ * It provides:
+ *  - Playback and soundfield loading controls.
+ *  - Ambisonic configuration (order, layout, visualization mode).
+ *  - Loudspeaker and soundfield rotation control.
+ *  - Tracker (IMU) serial connection and calibration tools.
+ *  - Audio device selection and system settings.
+ *  - Per-controller (source) management with real-time parameters.
+ *  - Popup-based workflows for loading and configuration tasks.
+ *
+ * \note Built using Dear ImGui and OpenFrameworks integration.
+ *
+ * \note Uses a callback-driven architecture to decouple UI logic from
+ * audio processing and spatial rendering systems.
+ *
+ * \date April 2026
+ *
+ * \author R. Liceras-Ramírez  
+ * \b Tutor: A. Reyes-Lecuona and D. Gonzalez-Toledo  
+ * \b Institution: Universidad de Málaga
+ *
+ * \b Context:
+ * Developed as part of a Bachelor's Thesis (TFG), this class implements the
+ * full user interface layer for a real-time Ambisonic spatial audio system.
+ *
+ * \b Licence:
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 3 of the License, or (at your option)
+ * any later version.
+ */
+
 #ifndef _MENU_PANEL_HPP_
 #define _MENU_PANEL_HPP_
 

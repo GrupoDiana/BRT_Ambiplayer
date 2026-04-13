@@ -1,3 +1,41 @@
+/**
+ * \class CCircularProjection
+ *
+ * \brief Visualizes spatial energy distributions using a circular projection.
+ *
+ * \details This class renders a 2D circular representation of spatial energy
+ * values, typically used in Ambisonic or spatial audio visualization systems.
+ *
+ * It provides:
+ *  - Circular mapping of energy values into a deformable radial shape.
+ *  - Support for different projection planes (XY, ZX, ZY).
+ *  - Basic scene elements such as frame, axes, and reference circle.
+ *  - Smoothed energy scaling for stable visual rendering.
+ *
+ * The visualization converts energy magnitudes into radial deformations,
+ * producing a shape that reflects spatial intensity distribution across
+ * discrete angular segments.
+ *
+ * \note Energy values are normalized and converted to a logarithmic scale
+ * (dB-like mapping) before visualization.
+ *
+ * \date April 2026
+ *
+ * \author R. Liceras-Ramírez  
+ * \b Tutor: A. Reyes-Lecuona and D. Gonzalez-Toledo  
+ * \b Institution: Universidad de Málaga
+ *
+ * \b Context:
+ * Developed as part of a Bachelor's Thesis (TFG), this class is intended
+ * for real-time spatial audio visualization and Ambisonic analysis tools.
+ *
+ * \b Licence:
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 3 of the License, or (at your option)
+ * any later version.
+ */
+
 #ifndef _CIRCULAR_PROJECTION_HPP_
 #define _CIRCULAR_PROJECTION_HPP_
 

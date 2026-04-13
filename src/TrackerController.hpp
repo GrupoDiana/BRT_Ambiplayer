@@ -1,3 +1,51 @@
+/**
+ * \class TrackerController
+ *
+ * \brief Manages serial communication and orientation tracking from an IMU-based motion tracker.
+ *
+ * \details This class provides low-level control and processing of data received from a
+ * serial-connected inertial measurement unit (IMU). It is responsible for:
+ *  - Establishing and configuring serial communication with the tracker device.
+ *  - Parsing quaternion-based orientation data from incoming serial streams.
+ *  - Computing Euler angles (yaw, pitch, roll) from quaternion representations.
+ *  - Applying calibration offsets to compensate for sensor drift and user-centered alignment.
+ *  - Enumerating available COM ports in the system.
+ *  - Performing sensor calibration routines to improve orientation stability.
+ *
+ * \note The implementation uses Windows Serial API (CreateFile, ReadFile, SetupAPI)
+ * for communication and is therefore platform-dependent (Windows only).
+ *
+ * \note Calibration routines include:
+ *  - Full sensor calibration using figure-8 motion patterns.
+ *  - Center offset calibration based on pitch ("yes") and yaw ("no") head motions.
+ *
+ * \warning Magnetometer-based corrections are intentionally ignored due to poor
+ * stability.
+ *
+ * \date April 2026
+ *
+ * \author R. Liceras-Ramírez  
+ * \b Tutor: A. Reyes-Lecuona and D. Gonzalez-Toledo  
+ * \b Institution: Universidad de Málaga
+ *
+ * \b Contact: areyes@uma.es
+ *
+ * \b Copyright:
+ * © 2026 University of Málaga. All rights reserved.
+ *
+ * \b Context:
+ * This class was developed as part of the Bachelor's Thesis (TFG) of
+ * R. Liceras-Ramírez under the supervision of A. Reyes-Lecuona and D. Gonzalez-Toledo.
+ * It is used within a real-time tracking and orientation system based on IMU
+ * sensors for motion capture and spatial audio applications.
+ * 
+ * \b Licence:
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 3 of the License, or (at your option)
+ * any later version.
+ */
+
 #ifndef _TRACKER_CONTROLLER_HPP_
 #define _TRACKER_CONTROLLER_HPP_
 
@@ -109,9 +157,13 @@ public:
 		return initialized && hSerial != INVALID_HANDLE_VALUE;
 	}
 
+	// Line format: time, q0, q1, q2,
 
-	//line format: time,q0,q1,q2,x,
-	//al leer el quat9 va muy lento
+	// The magnetometer accuracy is poor and introduces unnecessary corrections to the orientation data.
+	// Even after performing the figure-eight calibration, the accuracy does not improve,
+	// so we will use Quat6 data instead.
+
+	// To read Quat9, you must change num_commas == 5.
 	bool readLine() {
 		if (!initialized || hSerial == INVALID_HANDLE_VALUE) return false;
 
@@ -129,62 +181,58 @@ public:
 
 		std::vector<char> read_vector(receive_data_buffer, receive_data_buffer + bytesRead);
 
+		size_t j = 0;
 		int z = 0;
+		int num_comas = 0;
 		double array[10] = { 0 };
 		char auxiliar[300] = { 0 };
 		bool correct = false;
 
-		for (size_t j = 0; j < read_vector.size(); j++) {
+		while (j < read_vector.size()) {
 			char c = read_vector[j];
 
 			if (c != '\r' && c != '\n') {
-				auxiliar[z++] = c;
+				auxiliar[z] = c;
+				if (auxiliar[z] == ',') num_comas++;
+				z++;
 			} else {
-				if (z == 0) continue;
+				if (num_comas == 4) {
+					auxiliar[z] = '\0';
+					char * token = strtok(auxiliar, ",");
+					int pos = 0;
+					bool linea_correcta = true;
 
-				auxiliar[z] = '\0';
+					while (token != NULL && pos < 10) {
+						char * pEnd;
+						array[pos] = strtod(token, &pEnd);
 
-				// quitar coma final si existe (IMPORTANTE para tu nuevo formato)
-				if (auxiliar[z - 1] == ',')
-					auxiliar[z - 1] = '\0';
+						if (pos == 0 && array[pos] <= 1000) linea_correcta = false;
 
-				// ===== PARSING RÁPIDO SIN strtok =====
-				char * p = auxiliar;
-				char * end;
-				int pos = 0;
+						token = strtok(NULL, ",");
+						pos++;
+					}
 
-				bool correct_line = true;
+					if (linea_correcta) {
+						float q1 = static_cast<float>(array[1]);
+						float q2 = static_cast<float>(array[2]);
+						float q3 = static_cast<float>(array[3]);
+						float q0 = sqrt(1.0f - (q1 * q1 + q2 * q2 + q3 * q3));
 
-				while (pos < 10) {
-					array[pos] = strtod(p, &end);
+						CQuaternion qRaw = { q0, q1, q2, q3 };
 
-					if (p == end) break; // no más datos
+						lastQuat = applyOffset(qRaw, trackerCenterOffset);
 
-					if (pos == 0 && array[pos] <= 1000)
-						correct_line = false;
-
-					p = (*end == ',') ? end + 1 : end;
-					pos++;
+						correct = true;
+						break;
+					}
 				}
 
-				// ahora aceptas 5 valores (o los que quieras)
-				if (pos >= 4 && correct_line) {
-
-					float q1 = static_cast<float>(array[1]);
-					float q2 = static_cast<float>(array[2]);
-					float q3 = static_cast<float>(array[3]);
-					float q0 = sqrt(1.0f - (q1 * q1 + q2 * q2 + q3 * q3));
-
-					CQuaternion qRaw = { q0, q1, q2, q3 };
-
-					lastQuat = applyOffset(qRaw, trackerCenterOffset);
-
-					correct = true;
-					break;
-				}
-
+				memset(auxiliar, 0, sizeof(auxiliar));
 				z = 0;
+				num_comas = 0;
 			}
+
+			j++;
 		}
 
 		return correct;
@@ -249,7 +297,7 @@ public:
 	// With the magnetometer enabled, the sensor is continuously self-calibrating.
 	// Performing figure-8 movements helps cover all rotation axes (X, Y, Z),
 	// improving the quality and stability of the calibration process.
-
+	// Only usefull with quat9 line format 
 	void calibrateSensor(int totalSamples) {
 
 		if (!isConnected()) {
@@ -276,6 +324,7 @@ public:
 			}
 		}
 	}
+
 
 	void calibrateCenter(int samplesPerDirection) {
 		if (!isConnected()) {
@@ -354,7 +403,7 @@ public:
 private:
 	HANDLE hSerial;
 	bool initialized;
-	CQuaternion lastQuat = { 1.0f, 0.0f, 0.0f, 0.0f };
+	CQuaternion lastQuat;
 	CQuaternion trackerCenterOffset = { 1.0f, 0.0f, 0.0f, 0.0f };
 
 	void PrintLastError(const char * functionName) {

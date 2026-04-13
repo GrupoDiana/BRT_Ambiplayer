@@ -14,23 +14,12 @@
  * \date November 2025
  *
  * \author R. Liceras-Ramírez  
- * \b Tutor: A. Reyes-Lecuona (University of Málaga)  
+ * \b Tutor: A. Reyes-Lecuona and D. Gonzalez-Toledo 
  * \b Institution: Universidad de Málaga
  *
  * \b Contact: areyes@uma.es
  *
  * \b Copyright: © 2025 University of Málaga. All rights reserved.
- *
- * \b Note: This class was developed as part of the Bachelor's Thesis of 
- * R. Liceras-Ramírez, under the supervision of A. Reyes-Lecuona.  
- * It does not belong to any external funded project.
- * 
- * \b Remarks:
- * - The Ambisonic field is internally stored as a set of mono buffers,
- *   one per channel, following FuMa ordering.  
- * - Rotations are performed via quaternion-derived rotation matrices.  
- * - Channel indexing and R matrix computation follow the Ambisonic
- *   rotation formalism for orders up to 3.
  *
  * \b Licence: This program is free software; you can redistribute it 
  * and/or modify it under the terms of the GNU General Public License 

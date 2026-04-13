@@ -18,10 +18,6 @@
  *
  * \b Copyright: © 2025 University of Málaga. All rights reserved.
  *
- * \b Note: This class is part of the Bachelor's Thesis of R. Liceras-Ramírez
- * developed at the University of Málaga under the supervision of
- * A. Reyes-Lecuona.
- *
  * \b Licence: This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License as published 
  * by the Free Software Foundation, either version 3 of the License, or 

@@ -302,7 +302,7 @@ void ofApp::setup() {
 	};
 
 	guiManager.onCalibrateCompass = [this]() {
-		tracker.calibrateSensor(128);
+		tracker.calibrateSensor(240);
 	};
 
 	guiManager.onAudioDeviceChanged = [this](int index) {

@@ -1,3 +1,38 @@
+/**
+ * \class CLoudspeakers
+ *
+ * \brief Visualizes and interacts with a loudspeaker array representation.
+ *
+ * \details This class is responsible for rendering a 2D/3D visualization of a
+ * loudspeaker setup and providing basic mouse interaction for spatial rotation
+ * control. It also visualizes per-speaker energy using a halo-based intensity
+ * representation.
+ *
+ * It provides:
+ *  - Rendering of loudspeaker positions based on a controller layout.
+ *  - Energy-dependent visual feedback using concentric halo effects.
+ *  - Perspective projection of 3D speaker positions into 2D space.
+ *  - Interactive rotation control via mouse dragging.
+ *  - Callback system for external synchronization of rotation state.
+ *
+ * \date April 2026
+ *
+ * \author R. Liceras-Ramírez  
+ * \b Tutor: A. Reyes-Lecuona and D. Gonzalez-Toledo  
+ * \b Institution: Universidad de Málaga
+ *
+ * \b Context:
+ * Developed as part of a Bachelor's Thesis (TFG), this class provides the
+ * loudspeaker visualization and interaction layer of a real-time Ambisonic
+ * rendering system.
+ *
+ * \b Licence:
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 3 of the License, or (at your option)
+ * any later version.
+ */
+
 #ifndef _LOUDSPEAKERS_HPP_
 #define _LOUDSPEAKERS_HPP_
 

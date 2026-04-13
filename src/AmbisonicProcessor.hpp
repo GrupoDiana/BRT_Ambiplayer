@@ -8,34 +8,29 @@
  *  - Decoding Ambisonic signals into loudspeaker arrays using FuMa channel ordering.
  *  - Managing the internal Ambisonic sound field buffer for processing.
  * 
- * It supports decoding up to **third-order Ambisonics** and includes both
- * *basic* and *maxrE* decoding strategies.  
+ * It supports decoding up to **third-order Ambisonics** and includes
+ * basic decoding.  
  * The decoding process considers loudspeaker positions to spatialize the field.
  * 
- * \note The implementation assumes **FuMa ordering** for Ambisonic channels
- * (W, X, Y, Z, R, S, T, U, V, ...), ensuring compatibility with the rest of
+ * \note The implementation assumes **ACN ordering** for Ambisonic channels
+ * (W, Y, Z, X, V, T, R, S, U, ...), ensuring compatibility with the rest of
  * the CAMBISONIC framework.
  * 
  * \date November 2025
  *
  * \author R. Liceras-Ramírez  
- * \b Tutor: A. Reyes-Lecuona (University of Málaga)  
+ * \b Tutor: A. Reyes-Lecuona and D. Gonzalez-Toledo  
  * \b Institution: Universidad de Málaga
  *
  * \b Contact: areyes@uma.es
  *
  * \b Copyright:
  * © 2025 University of Málaga. All rights reserved.
- *
- * \b Context:
- * This class was developed as part of the Bachelor's Thesis (TFG) of
- * R. Liceras-Ramírez under the supervision of A. Reyes-Lecuona.
- * It is not associated with any external funded project.
  * 
  * \b Remarks:
- * - All Ambisonic operations follow FuMa channel ordering.
+ * - All Ambisonic operations follow ACN channel ordering.
  * - Rotation uses quaternion-based orientation transformations.
- * - Supported decoding types: `"basic"` and `"maxrE"`.
+ * - Supported decoding types: `"basic"`.
  * - Designed for integration with `CAmbisonicSoundField` and `CLoudspeakerArrayController`.
  * 
  * \b Licence:

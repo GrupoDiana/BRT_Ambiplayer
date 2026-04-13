@@ -1,3 +1,39 @@
+/**
+ * \class CLogo
+ *
+ * \brief Handles loading and rendering of application branding elements.
+ *
+ * \details This class is responsible for loading and displaying graphical
+ * assets used in the application header, including institutional logos and
+ * the main title text.
+ *
+ * It provides:
+ *  - Loading of logo textures and font resources.
+ *  - Scaled rendering of logos depending on available screen space.
+ *  - Adaptive title rendering for wide and compact layouts.
+ *  - Basic framed header decoration.
+ *
+ * \note Uses OpenFrameworks image and font rendering utilities.
+ *
+ * \note Resource paths are resolved relative to the application data folder.
+ *
+ * \date April 2026
+ *
+ * \author R. Liceras-Ramírez  
+ * \b Tutor: A. Reyes-Lecuona and D. Gonzalez-Toledo  
+ * \b Institution: Universidad de Málaga
+ *
+ * \b Context:
+ * Developed as part of a Bachelor's Thesis (TFG), this class provides the
+ * visual identity header for a real-time Ambisonic audio application.
+ *
+ * \b Licence:
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 3 of the License, or (at your option)
+ * any later version.
+ */
+
 #ifndef _LOGO_HPP_
 #define _LOGO_HPP_
 

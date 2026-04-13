@@ -1,3 +1,46 @@
+/**
+ * \class CGeodesicProjection
+ *
+ * \brief Visualizes spatial energy distribution using a geodesic projection.
+ *
+ * \details This class renders a 3D-to-2D geodesic projection of spatial energy
+ * values over a predefined set of directional vertices. It is typically used in
+ * Ambisonic or spatial audio analysis systems to represent energy distribution
+ * across a spherical sampling grid.
+ *
+ * It provides:
+ *  - Projection of spherical energy data onto 2D planes (XY, ZX, ZY).
+ *  - Mapping of geodesic vertices to directional energy lobes.
+ *  - Smoothed energy scaling to improve temporal stability.
+ *  - Basic frame and axis visualization for spatial reference.
+ *
+ * The visualization converts spherical coordinates (azimuth/elevation) into
+ * Cartesian projections and scales them according to energy magnitude,
+ * producing a spatial representation of directional intensity.
+ *
+ * \note Energy values are normalized and mapped using a logarithmic (dB-like)
+ * scale before projection.
+ *
+ * \note The projection relies on a geodesic vertex distribution for uniform
+ * angular sampling of the sound field.
+ *
+ * \date April 2026
+ *
+ * \author R. Liceras-Ramírez  
+ * \b Tutor: A. Reyes-Lecuona and D. Gonzalez-Toledo  
+ * \b Institution: Universidad de Málaga
+ *
+ * \b Context:
+ * Developed as part of a Bachelor's Thesis (TFG), this class is intended for
+ * real-time spatial audio visualization and geodesic Ambisonic analysis tools.
+ *
+ * \b Licence:
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 3 of the License, or (at your option)
+ * any later version.
+ */
+
 #ifndef _GEODESIC_PROJECTION_HPP_
 #define _GEODESIC_PROJECTION_HPP_
 
