@@ -3,6 +3,7 @@
 //--------------------------------------------------------------
 void ofApp::setup() {
 	auto devices = soundStream.getDeviceList();
+	guiManager.setup();
 	guiManager.setAudioDevices(devices);
 	/// AUDIO setup
 	AudioSetup();
@@ -142,7 +143,7 @@ void ofApp::setup() {
 		AudioSetup();
 		rebuildAudioSystem();
 
-		string HRTFName = "../resources/3DTI_HRTF_SADIE_II_D2_256s_" + sampleRateStr + "Hz.sofa";
+		string HRTFName = ofToDataPath("resources/3DTI_HRTF_SADIE_II_D2_256s_" + sampleRateStr + "Hz.sofa", true);
 
 		configurationA.LoadResources(brtManager.get(), LISTENER_ID, HRTFName);
 	};
@@ -563,7 +564,9 @@ void ofApp::setupBRT() {
 	brtManager->EndSetup();
 
 	configurationA.Setup(brtManager.get(), LISTENER_ID);
-	configurationA.LoadResources(brtManager.get(), LISTENER_ID, "../resources/3DTI_HRTF_SADIE_II_D2_256s_48000Hz.sofa");
+	string hrtfPath = ofToDataPath("resources/3DTI_HRTF_SADIE_II_D2_256s_48000Hz.sofa",true);
+
+	configurationA.LoadResources(brtManager.get(), LISTENER_ID, hrtfPath);
 
 	Common::CTransform listenerPosition;
 	listenerPosition.SetPosition(Common::CVector3(0.0f, 0.0f, 0.0f));

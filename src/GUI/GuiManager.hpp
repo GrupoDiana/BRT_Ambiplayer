@@ -55,7 +55,6 @@
 class CGuiManager {
 public:
     CGuiManager() {
-        gui.setup(ofGetCurrentWindow(), nullptr, true, 0, true);
 
         // ---- Menu panel callbacks ----
         menuPanel.onPlay = [this](bool isPlaying) { if (onPlay) onPlay(isPlaying); };
@@ -235,6 +234,10 @@ public:
 
 	void setGlobalPlayState(bool playing) {
 		menuPanel.setGlobalPlay(playing);
+	}
+
+	void setup() {
+		gui.setup(ofGetCurrentWindow(), nullptr, true, 0, true);
 	}
 
 private:

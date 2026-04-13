@@ -42,18 +42,23 @@
 class CLogo {
 public:
 	CLogo() {
-		string pathResources = ofToDataPath("../../../resources");
+		string pathResources = ofToDataPath("resources", true);
 
 		bool imageOk = logoUMA.load(pathResources + "/UMA.png");
 		bool imageDIANAOk = logoDIANA.load(pathResources + "/LogoDiana.png");
+		bool imageSONIXOk = logoSONIX.load(pathResources + "/LogoSONIX.png");
 		bool fontOk = titleFont.load(pathResources + "/Verdana.ttf", 32);
 
 		if (imageOk) {
-			logoUMA.resize(logoUMA.getWidth() / 13, logoUMA.getHeight() / 13);
+			logoUMA.resize(logoUMA.getWidth() / 15, logoUMA.getHeight() / 13);
 		}
 
 		if (imageDIANAOk) {
-			logoDIANA.resize(logoDIANA.getWidth() / 3, logoDIANA.getHeight() / 3);
+			logoDIANA.resize(logoDIANA.getWidth() / 7, logoDIANA.getHeight() / 3);
+		}
+
+		if (imageSONIXOk) {
+			logoSONIX.resize(logoSONIX.getWidth() / 7, logoSONIX.getHeight() / 3);
 		}
 	}
 
@@ -82,7 +87,12 @@ public:
 
 			if (logoDIANA.isAllocated()) {
 				ofSetColor(255);
-				logoDIANA.draw(x + 2 * margen + width / 4.5 - logoUMA.getWidth(), y + (height - logoDIANA.getHeight()) / 2);
+				logoDIANA.draw(x + 2 * margen + width / 4.5 - logoUMA.getWidth() / 2, y + (height - logoDIANA.getHeight()) / 2);
+			}
+
+			if (logoSONIX.isAllocated()) {
+				ofSetColor(255);
+				logoSONIX.draw(x + 2 * margen + width / 4.5 - logoUMA.getWidth()*1.1, y + (height - logoDIANA.getHeight()) / 2);
 			}
 		} else{
 			if (titleFont.isLoaded()) {
@@ -97,7 +107,7 @@ public:
 	}
 
 private:
-	ofImage logoUMA, logoDIANA;
+	ofImage logoUMA, logoDIANA, logoSONIX;
 	ofTrueTypeFont titleFont;
 
 	int margen = 10;
