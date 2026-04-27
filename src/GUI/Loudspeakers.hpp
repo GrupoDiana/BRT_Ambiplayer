@@ -8,13 +8,6 @@
  * control. It also visualizes per-speaker energy using a halo-based intensity
  * representation.
  *
- * It provides:
- *  - Rendering of loudspeaker positions based on a controller layout.
- *  - Energy-dependent visual feedback using concentric halo effects.
- *  - Perspective projection of 3D speaker positions into 2D space.
- *  - Interactive rotation control via mouse dragging.
- *  - Callback system for external synchronization of rotation state.
- *
  * \date April 2026
  *
  * \author R. Liceras-Ramírez  

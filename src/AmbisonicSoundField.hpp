@@ -8,23 +8,24 @@
  * buffer management, rotation using quaternions, channel manipulation,
  * and Ambisonic order downmixing.
  * 
- * The implementation assumes **FuMa channel ordering**, ensuring
+ * The implementation assumes **ACN channel ordering**, ensuring
  * compatibility with standard first- and higher-order Ambisonic workflows.
  * 
  * \date November 2025
  *
  * \author R. Liceras-Ramírez  
- * \b Tutor: A. Reyes-Lecuona and D. Gonzalez-Toledo 
+ * \b Tutor: A. Reyes-Lecuona and D. Gonzalez-Toledo  
  * \b Institution: Universidad de Málaga
  *
- * \b Contact: areyes@uma.es
+ * \b Context:
+ * Developed as part of a Bachelor's Thesis (TFG), this
+ * class defines the data type of an ambisonic sound field.
  *
- * \b Copyright: © 2025 University of Málaga. All rights reserved.
- *
- * \b Licence: This program is free software; you can redistribute it 
- * and/or modify it under the terms of the GNU General Public License 
- * as published by the Free Software Foundation, either version 3 of 
- * the License, or (at your option) any later version.
+ * \b Licence:
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 3 of the License, or (at your option)
+ * any later version.
  */
 
 

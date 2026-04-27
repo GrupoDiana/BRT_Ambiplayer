@@ -6,12 +6,6 @@
  * \details This class renders a 2D circular representation of spatial energy
  * values, typically used in Ambisonic or spatial audio visualization systems.
  *
- * It provides:
- *  - Circular mapping of energy values into a deformable radial shape.
- *  - Support for different projection planes (XY, ZX, ZY).
- *  - Basic scene elements such as frame, axes, and reference circle.
- *  - Smoothed energy scaling for stable visual rendering.
- *
  * The visualization converts energy magnitudes into radial deformations,
  * producing a shape that reflects spatial intensity distribution across
  * discrete angular segments.

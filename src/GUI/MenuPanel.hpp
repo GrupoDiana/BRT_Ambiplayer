@@ -7,23 +7,6 @@
  * system, including audio control, Ambisonic configuration, visualization
  * settings, tracker calibration, and per-source management.
  *
- * It acts as the central interaction layer between the user and the system,
- * exposing application features through a structured ImGui interface.
- *
- * It provides:
- *  - Playback and soundfield loading controls.
- *  - Ambisonic configuration (order, layout, visualization mode).
- *  - Loudspeaker and soundfield rotation control.
- *  - Tracker (IMU) serial connection and calibration tools.
- *  - Audio device selection and system settings.
- *  - Per-controller (source) management with real-time parameters.
- *  - Popup-based workflows for loading and configuration tasks.
- *
- * \note Built using Dear ImGui and OpenFrameworks integration.
- *
- * \note Uses a callback-driven architecture to decouple UI logic from
- * audio processing and spatial rendering systems.
- *
  * \date April 2026
  *
  * \author R. Liceras-Ramírez  
@@ -755,9 +738,47 @@ public:
 		if (showAboutPopUp) ImGui::OpenPopup("About");
 		if (ImGui::BeginPopupModal("About", nullptr, ImGuiWindowFlags_NoResize)) {
 
-			ImGui::Text("This player is the result of the Bachelors Thesis project by");
-			ImGui::Text("Rocio Liceras-Ramirez, supervised by Arcadio Reyes-Lecuona");
-			ImGui::Text("and co-supervised by Daniel Gonzalez-Toledo at the University of Malaga.");
+			ImGui::Text("Binaural Ambisonic Audio Player");
+			ImGui::Text("Application for Ambisonic Binaural Rendering");
+			ImGui::Text("v1.0. (c) University of Malaga");
+			ImGui::Text("");
+
+			ImGui::Text("This software has been developed as part of a Bachelor's Thesis");
+			ImGui::Text("by Rocio Liceras-Ramirez, under the supervision of");
+			ImGui::Text("Arcadio Reyes-Lecuona and co-supervision of");
+			ImGui::Text("Daniel Gonzalez-Toledo, at the University of Malaga (UMA).");
+			ImGui::Text("");
+
+			ImGui::Text("This application is designed as a binaural audio player for");
+			ImGui::Text("ambisonic content. It supports reproduction of ambisonic audio");
+			ImGui::Text("up to third order, allowing the user to load WAV files containing");
+			ImGui::Text("either ambisonic sound fields or point-source signals.");
+			ImGui::Text("");
+
+			ImGui::Text("The application uses the Binaural Rendering Toolbox (BRT)");
+			ImGui::Text("as the underlying library for binaural audio processing and rendering.");
+			ImGui::Text("");
+
+			ImGui::Text("The application provides a graphical interface for the control");
+			ImGui::Text("and reproduction of spatial audio. It allows real-time rotation");
+			ImGui::Text("of the ambisonic field, enabling modification of the listening");
+			ImGui::Text("perspective during playback.");
+			ImGui::Text("");
+
+			ImGui::Text("It also includes different visualization modes of the spatial");
+			ImGui::Text("scene, such as geodesic and radial representations.");
+			ImGui::Text("");
+
+			ImGui::Text("An optional motion sensor can be integrated into the system");
+			ImGui::Text("to enable head-tracking interaction.");
+			ImGui::Text("");
+
+			ImGui::Text("This application has been developed with the support of the");
+			ImGui::Text("DIANA Research Group at the University of Malaga.");
+			ImGui::Text("It is intended as a tool for the reproduction, exploration,");
+			ImGui::Text("and demonstration of ambisonic binaural audio.");
+			ImGui::Text("Intro audio :  3rd - order Ambisonics Clock Test, by");
+			ImGui::Text("clucs(Freesound, CC BY 4.0)");
 			
 
 			float buttonWidth = 100.0f;

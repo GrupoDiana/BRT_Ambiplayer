@@ -8,17 +8,7 @@
  * spatial audio displays. It acts as the main bridge between user input,
  * rendering, and application-level callbacks.
  *
- * It provides:
- *  - Initialization and management of ImGui-based GUI system.
- *  - Coordination of multiple visualization modules (geodesic and circular projections).
- *  - Management of loudspeaker layout visualization and interaction.
- *  - Forwarding of user actions through a flexible callback system.
- *  - Handling of window resizing and adaptive UI layouts.
- *
  * \note Built on top of OpenFrameworks, ofxImGui, and GLFW.
- *
- * \note Uses a callback-based architecture to decouple GUI logic from audio
- * processing and application control.
  *
  * \date April 2026
  *
@@ -142,7 +132,7 @@ public:
         logo.draw(0, 0, screenWidth, screenHeight / 5);
 
         if (screenWidth > 1023) {
-            menuPanel.draw(0, screenHeight / 5, width_menu, screenHeight - screenHeight / 5);
+            menuPanel.draw(0, screenHeight / 5, width_menu + 15, screenHeight - screenHeight / 5);
 
             if (visualization == 0) {
                 // ---- Geodesic ----

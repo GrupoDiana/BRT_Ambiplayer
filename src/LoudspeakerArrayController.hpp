@@ -8,26 +8,11 @@
  * It enables consistent loudspeaker placement for Ambisonic decoding and
  * allows rotation of the entire loudspeaker array using quaternion-based transformations.
  *
- * The class supports multiple Platonic solid configurations:
- * - Octahedron (6 speakers)
- * - Cube (8 speakers)
- * - Icosahedron (12 speakers)
- * - Dodecahedron (20 speakers)
- *
- * Each loudspeaker is created as a `CSourceOmnidirectionalModel` through the
- * BRT framework (`ofxBRTLibrary`) and positioned in 3D space according to
- * the selected geometry.
- *
  * \date November 2025
  *
  * \author R. Liceras-Ramírez  
  * \b Tutor: A. Reyes-Lecuona and D. Gonzalez-Toledo
  * \b Institution: Universidad de Málaga
- *
- * \b Contact: areyes@uma.es
- *
- * \b Copyright:
- * © 2025 University of Málaga. All rights reserved.
  *
  * \b Context:
  * Developed as part of the Bachelor's Thesis (TFG), This component belongs to the CAMBISONIC framework

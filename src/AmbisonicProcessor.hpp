@@ -2,12 +2,7 @@
  * \class CAmbisonicProcessor
  *
  * \brief Handles Ambisonic field transformations and decoding into loudspeaker arrays.
- * 
- * \details This class performs high-level Ambisonic processing tasks such as:
- *  - Applying quaternion-based rotations to the Ambisonic sound field.
- *  - Decoding Ambisonic signals into loudspeaker arrays using FuMa channel ordering.
- *  - Managing the internal Ambisonic sound field buffer for processing.
- * 
+ *
  * It supports decoding up to **third-order Ambisonics** and includes
  * basic decoding.  
  * The decoding process considers loudspeaker positions to spatialize the field.
@@ -22,17 +17,10 @@
  * \b Tutor: A. Reyes-Lecuona and D. Gonzalez-Toledo  
  * \b Institution: Universidad de Málaga
  *
- * \b Contact: areyes@uma.es
+ * \b Context:
+ * Developed as part of a Bachelor's Thesis (TFG), this
+ * class provides the decoding between channels and loudspeakers.
  *
- * \b Copyright:
- * © 2025 University of Málaga. All rights reserved.
- * 
- * \b Remarks:
- * - All Ambisonic operations follow ACN channel ordering.
- * - Rotation uses quaternion-based orientation transformations.
- * - Supported decoding types: `"basic"`.
- * - Designed for integration with `CAmbisonicSoundField` and `CLoudspeakerArrayController`.
- * 
  * \b Licence:
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the

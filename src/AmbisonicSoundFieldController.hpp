@@ -11,17 +11,18 @@
  * \date November 2025
  *
  * \author R. Liceras-Ramírez  
- * \b Tutor: A. Reyes-Lecuona (University of Málaga)  
+ * \b Tutor: A. Reyes-Lecuona and D. Gonzalez-Toledo  
  * \b Institution: Universidad de Málaga
  *
- * \b Contact: areyes@uma.es
+ * \b Context:
+ * Developed as part of a Bachelor's Thesis (TFG), this
+ * class defines a sound field controller.
  *
- * \b Copyright: © 2025 University of Málaga. All rights reserved.
- *
- * \b Licence: This program is free software; you can redistribute it and/or 
- * modify it under the terms of the GNU General Public License as published 
- * by the Free Software Foundation, either version 3 of the License, or 
- * (at your option) any later version.
+ * \b Licence:
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 3 of the License, or (at your option)
+ * any later version.
  */
 
 
@@ -101,7 +102,7 @@ public:
 	}
 
 	// Load WAV file and fill soundFieldArray with samples mapped by ambisonic order and channel
-	bool LoadWav(const char * filePath, const std::string & ordering_, int order) {
+	bool LoadWav(string filePath, const std::string & ordering_, int order) {
 		if (!setupDone) return false;
 
 		ofxAudioFile audioFile;

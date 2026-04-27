@@ -8,21 +8,12 @@
  * Ambisonic or spatial audio analysis systems to represent energy distribution
  * across a spherical sampling grid.
  *
- * It provides:
- *  - Projection of spherical energy data onto 2D planes (XY, ZX, ZY).
- *  - Mapping of geodesic vertices to directional energy lobes.
- *  - Smoothed energy scaling to improve temporal stability.
- *  - Basic frame and axis visualization for spatial reference.
- *
  * The visualization converts spherical coordinates (azimuth/elevation) into
  * Cartesian projections and scales them according to energy magnitude,
  * producing a spatial representation of directional intensity.
  *
  * \note Energy values are normalized and mapped using a logarithmic (dB-like)
  * scale before projection.
- *
- * \note The projection relies on a geodesic vertex distribution for uniform
- * angular sampling of the sound field.
  *
  * \date April 2026
  *

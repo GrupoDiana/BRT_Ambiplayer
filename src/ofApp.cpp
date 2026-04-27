@@ -317,7 +317,8 @@ void ofApp::setup() {
 
 	controller->SetUp(order, 48000, BUFFERSIZE, "ACN");
 
-	if (controller->LoadWav(SOURCE_FILEPATH, "ACN", 1)) {
+	string SOURCEName = ofToDataPath("resources/ambi_1OA_test.wav", true);
+	if (controller->LoadWav(SOURCEName, "ACN", 1)) {
 		controller->GetWavSamplePositionSource() = 0;
 		ambisonicSoundFieldControllers.push_back(controller);
 		guiManager.addController(controller,

@@ -2,8 +2,6 @@
 
 #define LISTENER_ID "listener1"
 
-#define SOURCE_FILEPATH "../resources/ambi_1OA_test.wav"
-
 #include "ofMain.h"
 #include "GUI/GuiManager.hpp"
 #include "ConfigurationA.hpp"
@@ -101,3 +99,4 @@ private:
 
 
 };
+

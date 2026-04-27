@@ -4,13 +4,7 @@
  * \brief Manages serial communication and orientation tracking from an IMU-based motion tracker.
  *
  * \details This class provides low-level control and processing of data received from a
- * serial-connected inertial measurement unit (IMU). It is responsible for:
- *  - Establishing and configuring serial communication with the tracker device.
- *  - Parsing quaternion-based orientation data from incoming serial streams.
- *  - Computing Euler angles (yaw, pitch, roll) from quaternion representations.
- *  - Applying calibration offsets to compensate for sensor drift and user-centered alignment.
- *  - Enumerating available COM ports in the system.
- *  - Performing sensor calibration routines to improve orientation stability.
+ * serial-connected inertial measurement unit (IMU). 
  *
  * \note The implementation uses Windows Serial API (CreateFile, ReadFile, SetupAPI)
  * for communication and is therefore platform-dependent (Windows only).
@@ -19,23 +13,14 @@
  *  - Full sensor calibration using figure-8 motion patterns.
  *  - Center offset calibration based on pitch ("yes") and yaw ("no") head motions.
  *
- * \warning Magnetometer-based corrections are intentionally ignored due to poor
- * stability.
- *
  * \date April 2026
  *
  * \author R. Liceras-Ramírez  
  * \b Tutor: A. Reyes-Lecuona and D. Gonzalez-Toledo  
  * \b Institution: Universidad de Málaga
  *
- * \b Contact: areyes@uma.es
- *
- * \b Copyright:
- * © 2026 University of Málaga. All rights reserved.
- *
  * \b Context:
- * This class was developed as part of the Bachelor's Thesis (TFG) of
- * R. Liceras-Ramírez under the supervision of A. Reyes-Lecuona and D. Gonzalez-Toledo.
+ * This class was developed as part of the Bachelor's Thesis (TFG)
  * It is used within a real-time tracking and orientation system based on IMU
  * sensors for motion capture and spatial audio applications.
  * 
