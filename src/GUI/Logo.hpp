@@ -6,13 +6,23 @@
 class CLogo {
 public:
 	CLogo() {
-		string pathResources = ofToDataPath("../../../resources");
+		string pathResources = ofToDataPath("resources", true);
 
 		bool imageOk = logoUMA.load(pathResources + "/UMA.png");
+		bool imageDIANAOk = logoDIANA.load(pathResources + "/LogoDiana.png");
+		bool imageSONIXOk = logoSONIX.load(pathResources + "/LogoSONIX.png");
 		bool fontOk = titleFont.load(pathResources + "/Verdana.ttf", 32);
 
 		if (imageOk) {
 			logoUMA.resize(logoUMA.getWidth() / 13, logoUMA.getHeight() / 13);
+		}
+
+		if (imageDIANAOk) {
+			logoDIANA.resize(logoDIANA.getWidth() / 4, logoDIANA.getHeight() / 4);
+		}
+
+		if (imageSONIXOk) {
+			logoSONIX.resize(logoSONIX.getWidth() / 4, logoSONIX.getHeight() / 4);
 		}
 	}
 
@@ -26,24 +36,55 @@ public:
 		ofSetLineWidth(1.0);
 		ofDrawRectangle(x + margen, y + margen, width - 2 * margen, height - 2 * margen);
 
-		if (width > 850) {
+		if (width > 850 && width < 1500) {
 			if (titleFont.isLoaded()) {
 				string title = "Ambisonic Player";
 				ofSetColor(255);
-				titleFont.drawString(title, x + 2 * margen + width / 2 - titleFont.stringWidth(title) / 2, y + margen + height / 2 );
+				titleFont.drawString(title, x + 2 * margen + width / 2 - titleFont.stringWidth(title) / 2, y + margen + height / 2);
 			}
 
 			// Imagen
 			if (logoUMA.isAllocated()) {
 				ofSetColor(255);
-				logoUMA.draw(width - x -  2 * margen - logoUMA.getWidth(), y + (height - logoUMA.getHeight()) / 2);
+				logoUMA.draw(width - x - 2 * margen - logoUMA.getWidth(), y + (height - logoUMA.getHeight()) / 2);
 			}
-		} else{
+
+			if (logoDIANA.isAllocated()) {
+				ofSetColor(255);
+				logoDIANA.draw(x + 2 * margen + width / 4.5 - logoUMA.getWidth(), y + (height - logoDIANA.getHeight()) / 2);
+			}
+
+			if (logoSONIX.isAllocated()) {
+				ofSetColor(255);
+				logoSONIX.draw(x + 2 * margen + width / 4.5 - 1.2 * logoUMA.getWidth() + logoSONIX.getWidth(), y + (height - 0.9 * logoDIANA.getHeight()) / 2);
+			}
+		} else if (width < 850) {
 			if (titleFont.isLoaded()) {
 				string title = "AmbiPlayer";
 				ofSetColor(255);
 				titleFont.drawString(title, x + 2 * margen + width / 2 - titleFont.stringWidth(title) / 2, y + margen + height / 2);
-			} 
+			}
+		} else if (width > 1500) {
+			if (titleFont.isLoaded()) {
+				string title = "Ambisonic Player";
+				ofSetColor(255);
+				titleFont.drawString(title, x + 2 * margen + width / 2 - titleFont.stringWidth(title) / 2, y + margen + height / 2);
+			}
+
+			if (logoUMA.isAllocated()) {
+				ofSetColor(255);
+				logoUMA.draw(width - x - 2 * margen - logoUMA.getWidth(), y + (height - logoUMA.getHeight()) / 2);
+			}
+
+			if (logoDIANA.isAllocated()) {
+				ofSetColor(255);
+				logoDIANA.draw(x + 2 * margen + width / 4.5 - 1.8 * logoUMA.getWidth(), y + (height - logoDIANA.getHeight()) / 2);
+			}
+
+			if (logoSONIX.isAllocated()) {
+				ofSetColor(255);
+				logoSONIX.draw(x + 2 * margen + width / 4.5 - 1.8 * logoUMA.getWidth() + logoSONIX.getWidth(), y + (height - 0.9 * logoDIANA.getHeight()) / 2);
+			}
 		}
 
 		ofPopStyle();
@@ -51,7 +92,7 @@ public:
 	}
 
 private:
-	ofImage logoUMA;
+	ofImage logoUMA, logoDIANA, logoSONIX;
 	ofTrueTypeFont titleFont;
 
 	int margen = 10;

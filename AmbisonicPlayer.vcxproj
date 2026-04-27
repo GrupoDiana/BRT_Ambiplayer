@@ -64,7 +64,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64' or '$(Configuration)|$(Platform)'=='Debug|ARM64' or '$(Configuration)|$(Platform)'=='Debug|ARM64EC'">
-    <OutDir>bin\debug</OutDir>
+    <OutDir>bin</OutDir>
     <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_debug</TargetName>
     <LinkIncremental>true</LinkIncremental>
@@ -255,12 +255,14 @@
     <ClInclude Include="src\AmbisonicSoundField.hpp" />
     <ClInclude Include="src\AmbisonicSoundFieldController.hpp" />
     <ClInclude Include="src\AppUtils.hpp" />
+    <ClInclude Include="src\CommonDefinitions.hpp" />
     <ClInclude Include="src\ConfigurationA.hpp" />
+    <ClInclude Include="src\GUI\CircularProjection.hpp" />
     <ClInclude Include="src\GUI\GuiManager.hpp" />
     <ClInclude Include="src\GUI\Logo.hpp" />
     <ClInclude Include="src\GUI\Loudspeakers.hpp" />
     <ClInclude Include="src\GUI\MenuPanel.hpp" />
-    <ClInclude Include="src\GUI\Projection.hpp" />
+    <ClInclude Include="src\GUI\GeodesicProjection.hpp" />
     <ClInclude Include="src\LoudspeakerArrayController.hpp" />
     <ClInclude Include="src\ofApp.h" />
     <ClInclude Include="addons\ofxBRTLibrary\src\ofxBRTLibrary.h" />
@@ -1362,6 +1364,7 @@
     <ClInclude Include="addons\ofxImGui\libs\imgui\src\imstb_rectpack.h" />
     <ClInclude Include="addons\ofxImGui\libs\imgui\src\imstb_textedit.h" />
     <ClInclude Include="addons\ofxImGui\libs\imgui\src\imstb_truetype.h" />
+    <ClInclude Include="src\TrackerController.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(OF_ROOT)\libs\openFrameworksCompiled\project\vs\openframeworksLib.vcxproj">

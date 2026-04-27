@@ -1,11 +1,6 @@
 #pragma once
 
-
-#define SAMPLERATE 48000
-#define BUFFERSIZE 512
 #define LISTENER_ID "listener1"
-
-#define SOURCE_FILEPATH "../resources/ambi_3OA_test.wav"
 
 #include "ofMain.h"
 #include "GUI/GuiManager.hpp"
@@ -15,20 +10,36 @@
 #include "AmbisonicSoundField.hpp"
 #include "AmbisonicProcessor.hpp"
 #include "LoudSpeakerArrayController.hpp"
+#include "TrackerController.hpp"
 
 ofSoundStream soundStream;
 Common::CGlobalParameters globalParameters; 
-BRTBase::CBRTManager brtManager; 
-std::shared_ptr<BRTBase::CListener> listener; 
-size_t currentSample = 0; 
+std::shared_ptr < BRTBase::CBRTManager> brtManager;
+std::shared_ptr<BRTBase::CListener> listener;
+int id = 0;
+std::string ListenerID = std::string(LISTENER_ID) + std::to_string(id);
+size_t currentSample = 0;
 std::string decoding;
-Common::CQuaternion qRotation, qLoudSpeakers;
+Common::CQuaternion qRotation, qLoudSpeakers, qField, qHead;
 
 std::vector<float> directionalEnergies;
+std::vector < std::vector<float> > planarEnergies;
 std::vector<float> speakerEnergies;
+int visualization;
+std::vector<Common::CVector3> interpolatedVertices;
+std::vector<float> interpolatedEnergies;
 
+int selectedAudioDeviceIndex = -1;
+
+float BUFFERSIZE = 256.0f;
+float SAMPLERATE = 48000.0f;
+
+ofSoundDevice audioDevices;
 
 CConfigurationA configurationA;
+int cont = 0;
+
+TrackerController tracker;
 
 Common::CEarPair<CMonoBuffer<float>> outputBufferStereo; 
 
@@ -37,6 +48,8 @@ float SFyawRad = 0.0f, SFpitchRad = 0.0f, SFrollRad = 0.0f, LSyawRad = 0.0f, LSp
 int numAz = 72;
 int numEl = 36;
 
+std::vector<Common::CVector3> vertices;
+std::vector<Edge> edges;
 
 class ofApp : public ofBaseApp {
 
@@ -60,7 +73,10 @@ public:
 	void AudioSetup();
 	void audioOut(ofSoundBuffer & buffer);
 	void audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, int uiBufferSize);
-	ofSoundDevice ShowSelectAudioDeviceMenu();
+	void changeAudioDevice(int index);
+	void setupBRT();
+	void rebuildAudioSystem();
+	void updateGlobalPlayState();
 
 private:
 	CGuiManager guiManager;
@@ -80,4 +96,7 @@ private:
 		SetThreadPriority(hThread, THREAD_PRIORITY_TIME_CRITICAL);
 	}
 
+
+
 };
+

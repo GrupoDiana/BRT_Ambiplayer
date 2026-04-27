@@ -8,34 +8,24 @@
  * buffer management, rotation using quaternions, channel manipulation,
  * and Ambisonic order downmixing.
  * 
- * The implementation assumes **FuMa channel ordering**, ensuring
+ * The implementation assumes **ACN channel ordering**, ensuring
  * compatibility with standard first- and higher-order Ambisonic workflows.
  * 
  * \date November 2025
  *
  * \author R. Liceras-Ramírez  
- * \b Tutor: A. Reyes-Lecuona (University of Málaga)  
+ * \b Tutor: A. Reyes-Lecuona and D. Gonzalez-Toledo  
  * \b Institution: Universidad de Málaga
  *
- * \b Contact: areyes@uma.es
+ * \b Context:
+ * Developed as part of a Bachelor's Thesis (TFG), this
+ * class defines the data type of an ambisonic sound field.
  *
- * \b Copyright: © 2025 University of Málaga. All rights reserved.
- *
- * \b Note: This class was developed as part of the Bachelor's Thesis of 
- * R. Liceras-Ramírez, under the supervision of A. Reyes-Lecuona.  
- * It does not belong to any external funded project.
- * 
- * \b Remarks:
- * - The Ambisonic field is internally stored as a set of mono buffers,
- *   one per channel, following FuMa ordering.  
- * - Rotations are performed via quaternion-derived rotation matrices.  
- * - Channel indexing and R matrix computation follow the Ambisonic
- *   rotation formalism for orders up to 3.
- *
- * \b Licence: This program is free software; you can redistribute it 
- * and/or modify it under the terms of the GNU General Public License 
- * as published by the Free Software Foundation, either version 3 of 
- * the License, or (at your option) any later version.
+ * \b Licence:
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 3 of the License, or (at your option)
+ * any later version.
  */
 
 
@@ -204,7 +194,7 @@ public:
 
 		ambisonicRotationMatrices.clear();
 
-		CMatrix<float> R1 = MapR1(q.RotationMatrix());
+		CMatrix<float> R1 = XYZtoYZX(q.RotationMatrix());
 
 		CalculateRMatrix(ambisonicOrder, R1);
 
@@ -263,9 +253,7 @@ private:
 	std::vector<CMonoBuffer<float>> soundFieldArray;
 
 	std::vector<CMatrix<float>> ambisonicRotationMatrices;
-	//metodo que aplique la rotacion pero borre las matriz
 
-	//Añadir comentarios
 	void RotateFieldRecursive(int l, const std::vector<CMonoBuffer<float>> & source, std::vector<CMonoBuffer<float>> & dest, int offset) {
 		if (l > ambisonicOrder) return;
 
@@ -283,8 +271,8 @@ private:
 		RotateFieldRecursive(l + 1, source, dest, offset + dim);
 	}
 
-	//Cambiar nombre a XYZtoYZX 
-	CMatrix<float> MapR1(const CMatrix<float> & R1) {
+
+	CMatrix<float> XYZtoYZX(const CMatrix<float> & R1) {
 		CMatrix<float> R1_mapped(3, 3);
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
