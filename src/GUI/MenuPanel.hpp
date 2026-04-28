@@ -9,20 +9,26 @@
  *
  * \date April 2026
  *
- * \author R. Liceras-Ramírez  
- * \b Tutor: A. Reyes-Lecuona and D. Gonzalez-Toledo  
+ * \author R. Liceras-Ramírez under the supervision of A. Reyes-Lecuona and D. Gonzalez-Toledo (3DI-DIANA Research Group)
  * \b Institution: Universidad de Málaga
  *
  * \b Context:
- * Developed as part of a Bachelor's Thesis (TFG), this class implements the
+ * Developed as part of a BSc Thesis (TFG), this class implements the
  * full user interface layer for a real-time Ambisonic spatial audio system.
- *
- * \b Licence:
+ * 
+ * \b License:
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
  * Free Software Foundation; either version 3 of the License, or (at your option)
  * any later version.
+ *
+ * \b Copyright:
+ * This library includes pieces of code from the BRT Library, shared under the GPLv3 license and copyrighted (c) by the University of Málaga
+ *
+ * \b Acknowledgement:
+ * This project has also been partially funded by the Spanish Ministerio de Ciencia e Innovación under the SONIX project (PID2023-152547NB-I00). https://www.diana.uma.es/?page_id=203
  */
+
 
 #ifndef _MENU_PANEL_HPP_
 #define _MENU_PANEL_HPP_
@@ -738,47 +744,60 @@ public:
 		if (showAboutPopUp) ImGui::OpenPopup("About");
 		if (ImGui::BeginPopupModal("About", nullptr, ImGuiWindowFlags_NoResize)) {
 
-			ImGui::Text("Binaural Ambisonic Audio Player");
+			std::string sonixLink = "https://www.diana.uma.es/?page_id=203";
+			std::string ImGuiLink = "https://github.com/jvcleave/ofxImGui";
+			std::string brtLink = "https://github.com/GrupoDiana/BRTLibrary";
+			std::string ofLink = "https://openframeworks.cc/";
+
+			ImGui::Text("BRT AmbiPlayer (BAMBI)");
 			ImGui::Text("Application for Ambisonic Binaural Rendering");
 			ImGui::Text("v1.0. (c) University of Malaga");
-			ImGui::Text("");
+			ImGui::Spacing();
 
 			ImGui::Text("This software has been developed as part of a Bachelor's Thesis");
-			ImGui::Text("by Rocio Liceras-Ramirez, under the supervision of");
-			ImGui::Text("Arcadio Reyes-Lecuona and co-supervision of");
-			ImGui::Text("Daniel Gonzalez-Toledo, at the University of Malaga (UMA).");
-			ImGui::Text("");
+			ImGui::Text("by Rocio Liceras-Ramirez, under the supervision of Arcadio ");
+			ImGui::Text("Reyes-Lecuona and co-supervision of Daniel Gonzalez-Toledo, ");
+			ImGui::Text("at the University of Malaga (UMA).");
+			ImGui::Spacing();
 
-			ImGui::Text("This application is designed as a binaural audio player for");
-			ImGui::Text("ambisonic content. It supports reproduction of ambisonic audio");
-			ImGui::Text("up to third order, allowing the user to load WAV files containing");
-			ImGui::Text("either ambisonic sound fields or point-source signals.");
-			ImGui::Text("");
+			ImGui::Text("The application uses the ");
+			TextURL("Binaural Rendering Toolbox (BRT)", brtLink.c_str(), 1, 0);
+			ImGui::Text("as the underlying library for binaural audio processing and ");
+			ImGui::Text("rendering.");
+			ImGui::Spacing();
 
-			ImGui::Text("The application uses the Binaural Rendering Toolbox (BRT)");
-			ImGui::Text("as the underlying library for binaural audio processing and rendering.");
-			ImGui::Text("");
+			ImGui::Text("The application is developed using ");
+			TextURL("openFrameworks (of)", ofLink.c_str(), 1, 0);
+			ImGui::Text("and the ");
+			TextURL("ofxImGui", ImGuiLink.c_str(), 1, 1);
+			ImGui::Text("addon for the graphical user interface.");
+			ImGui::Text("It provides a flexible interface for the control and reproduction");
+			ImGui::Text("of spatial audio.");
+			ImGui::Spacing();
 
-			ImGui::Text("The application provides a graphical interface for the control");
-			ImGui::Text("and reproduction of spatial audio. It allows real-time rotation");
-			ImGui::Text("of the ambisonic field, enabling modification of the listening");
-			ImGui::Text("perspective during playback.");
-			ImGui::Text("");
+			ImGui::Text("License:");
+			ImGui::Text("This program is free software; you can redistribute it and/or");
+			ImGui::Text("modify it under the terms of the GNU General Public License as");
+			ImGui::Text("published by the Free Software Foundation; either version 3 of");
+			ImGui::Text("the License, or (at your option) any later version.");
+			ImGui::Spacing();
 
-			ImGui::Text("It also includes different visualization modes of the spatial");
-			ImGui::Text("scene, such as geodesic and radial representations.");
-			ImGui::Text("");
+			ImGui::Text("Copyright:");
+			ImGui::Text("This library includes pieces of code from the ");
+			TextURL("BRT Library,", brtLink.c_str(), 1, 0);
+			ImGui::Text("shared under the GPLv3 license and copyrighted (c) by the ");
+			ImGui::Text("University of Malaga.");
+			ImGui::Text("Intro audio: 3rd-order Ambisonics Clock Test, by clucs");
+			ImGui::Text("(Freesound, CC BY 4.0).");
+			ImGui::Spacing();
 
-			ImGui::Text("An optional motion sensor can be integrated into the system");
-			ImGui::Text("to enable head-tracking interaction.");
-			ImGui::Text("");
-
+			ImGui::Text("Acknowledgements:");
 			ImGui::Text("This application has been developed with the support of the");
 			ImGui::Text("DIANA Research Group at the University of Malaga.");
-			ImGui::Text("It is intended as a tool for the reproduction, exploration,");
-			ImGui::Text("and demonstration of ambisonic binaural audio.");
-			ImGui::Text("Intro audio :  3rd - order Ambisonics Clock Test, by");
-			ImGui::Text("clucs(Freesound, CC BY 4.0)");
+			ImGui::Text("This project has also been partially funded by the Spanish");
+			ImGui::Text("Ministerio de Ciencia e Innovacion under the ");
+			TextURL("SONIX project", sonixLink.c_str(), 1, 0);
+			ImGui::Text("(PID2023-152547NB-I00).");
 			
 
 			float buttonWidth = 100.0f;
@@ -907,6 +926,26 @@ private:
 		availableCOMs = TrackerController::listCOMPorts();
 
 		serial_selected_idx = 0;
+	}
+
+	void TextURL(const char * name_, const char * URL_, uint8_t SameLineBefore_, uint8_t SameLineAfter_) {
+		if (1 == SameLineBefore_) {
+			ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
+		}
+		ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
+		ImGui::Text(name_);
+		ImGui::PopStyleColor();
+		if (ImGui::IsItemHovered() && ImGui::BeginTooltip()) {
+			if (ImGui::IsMouseClicked(0)) {
+				ofLaunchBrowser(URL_);
+			}
+			ImGui::Text("Click to open in browser\n%s", URL_);
+
+			ImGui::EndTooltip();
+		}
+		if (1 == SameLineAfter_) {
+			ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
+		}
 	}
 
 

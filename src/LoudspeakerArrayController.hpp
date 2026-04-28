@@ -10,19 +10,24 @@
  *
  * \date November 2025
  *
- * \author R. Liceras-Ramírez  
- * \b Tutor: A. Reyes-Lecuona and D. Gonzalez-Toledo
+ * \author R. Liceras-Ramírez under the supervision of A. Reyes-Lecuona and D. Gonzalez-Toledo (3DI-DIANA Research Group)
  * \b Institution: Universidad de Málaga
  *
  * \b Context:
  * Developed as part of the Bachelor's Thesis (TFG), This component belongs to the CAMBISONIC framework
  * for Ambisonic processing and decoding.
  *
- * \b Licence:
+  * \b License:
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
  * Free Software Foundation; either version 3 of the License, or (at your option)
  * any later version.
+ *
+ * \b Copyright:
+ * This library includes pieces of code from the BRT Library, shared under the GPLv3 license and copyrighted (c) by the University of Málaga
+ *
+ * \b Acknowledgement:
+ * This project has also been partially funded by the Spanish Ministerio de Ciencia e Innovación under the SONIX project (PID2023-152547NB-I00). https://www.diana.uma.es/?page_id=203
  */
 
 
