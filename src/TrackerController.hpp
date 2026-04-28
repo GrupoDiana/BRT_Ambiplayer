@@ -191,6 +191,11 @@ public:
 						char * pEnd;
 						array[pos] = strtod(token, &pEnd);
 
+						if (pEnd == token) {
+							linea_correcta = false;
+							break;
+						}
+
 						if (pos == 0 && array[pos] <= 1000) linea_correcta = false;
 
 						token = strtok(NULL, ",");
@@ -201,14 +206,38 @@ public:
 						float q1 = static_cast<float>(array[1]);
 						float q2 = static_cast<float>(array[2]);
 						float q3 = static_cast<float>(array[3]);
-						float q0 = sqrt(1.0f - (q1 * q1 + q2 * q2 + q3 * q3));
 
-						CQuaternion qRaw = { q0, q1, q2, q3 };
+						if (linea_correcta) {
 
-						lastQuat = applyOffset(qRaw, trackerCenterOffset);
+							float sum = q1 * q1 + q2 * q2 + q3 * q3;
+							if (sum > 1.0f) sum = 1.0f;
 
-						correct = true;
-						break;
+							float q0 = sqrtf(1.0f - sum);
+
+							CQuaternion qRaw = { q0, q1, q2, q3 };
+
+							float norm = sqrtf(qRaw.w * qRaw.w + qRaw.x * qRaw.x + qRaw.y * qRaw.y + qRaw.z * qRaw.z);
+
+							if (norm > 0.0001f) {
+								qRaw.w /= norm;
+								qRaw.x /= norm;
+								qRaw.y /= norm;
+								qRaw.z /= norm;
+							} else {
+								linea_correcta = false;
+							}
+
+							if (linea_correcta) {
+								CQuaternion result = applyOffset(qRaw, trackerCenterOffset);
+
+								if (std::isfinite(result.w) && std::isfinite(result.x) && std::isfinite(result.y) && std::isfinite(result.z)) {
+
+									lastQuat = result;
+									correct = true;
+									break;
+								}
+							}
+						}
 					}
 				}
 
@@ -311,7 +340,7 @@ public:
 	}
 
 
-	void calibrateCenter(int samplesPerDirection) {
+void calibrateCenter(int samplesPerDirection) {
 		if (!isConnected()) {
 			std::cout << "Tracker not connected. Please connect first.\n";
 			return;
@@ -321,7 +350,6 @@ public:
 		std::cout << "Press Enter to start...\n";
 		std::cin.get();
 
-		// Clear serial buffer before starting acquisition
 		PurgeComm(hSerial, PURGE_RXCLEAR | PURGE_TXCLEAR);
 
 		CQuaternion motionPitch = { 0, 0, 0, 0 };
@@ -329,25 +357,56 @@ public:
 
 		std::cout << "Tilt your head up and down multiple times (\"yes\" motion)...\n";
 
+		CQuaternion refPitch = { 0, 0, 0, 0 };
+		bool firstPitch = true;
+
 		while (samplesRead < samplesPerDirection) {
 
 			if (readLine()) {
+
+				if (!std::isfinite(lastQuat.w) || !std::isfinite(lastQuat.x) || !std::isfinite(lastQuat.y) || !std::isfinite(lastQuat.z)) {
+					continue;
+				}
+
+				if (firstPitch) {
+					refPitch = lastQuat;
+					firstPitch = false;
+				} else {
+					float dot = lastQuat.w * refPitch.w + lastQuat.x * refPitch.x + lastQuat.y * refPitch.y + lastQuat.z * refPitch.z;
+
+					if (dot < 0.0f) {
+						lastQuat.w = -lastQuat.w;
+						lastQuat.x = -lastQuat.x;
+						lastQuat.y = -lastQuat.y;
+						lastQuat.z = -lastQuat.z;
+					}
+				}
+
 				motionPitch.w += lastQuat.w;
 				motionPitch.x += lastQuat.x;
 				motionPitch.y += lastQuat.y;
 				motionPitch.z += lastQuat.z;
+
 				samplesRead++;
 			}
 		}
 
 		CQuaternion averagePitch = {
-			motionPitch.w / samplesPerDirection,
-			motionPitch.x / samplesPerDirection,
-			motionPitch.y / samplesPerDirection,
-			motionPitch.z / samplesPerDirection
+			motionPitch.w / samplesRead,
+			motionPitch.x / samplesRead,
+			motionPitch.y / samplesRead,
+			motionPitch.z / samplesRead
 		};
 
-		// Clear serial buffer before next calibration phase
+		float normPitch = sqrt(averagePitch.w * averagePitch.w + averagePitch.x * averagePitch.x + averagePitch.y * averagePitch.y + averagePitch.z * averagePitch.z);
+
+		if (normPitch > 0.0001f) {
+			averagePitch.w /= normPitch;
+			averagePitch.x /= normPitch;
+			averagePitch.y /= normPitch;
+			averagePitch.z /= normPitch;
+		}
+
 		PurgeComm(hSerial, PURGE_RXCLEAR | PURGE_TXCLEAR);
 
 		CQuaternion motionYaw = { 0, 0, 0, 0 };
@@ -355,28 +414,74 @@ public:
 
 		std::cout << "Tilt your head side to side multiple times (\"no\" motion)...\n";
 
+		CQuaternion refYaw = { 0, 0, 0, 0 };
+		bool firstYaw = true;
+
 		while (samplesRead < samplesPerDirection) {
 			if (readLine()) {
+
+				if (!std::isfinite(lastQuat.w) || !std::isfinite(lastQuat.x) || !std::isfinite(lastQuat.y) || !std::isfinite(lastQuat.z)) {
+					continue;
+				}
+
+				if (firstYaw) {
+					refYaw = lastQuat;
+					firstYaw = false;
+				} else {
+					float dot = lastQuat.w * refYaw.w + lastQuat.x * refYaw.x + lastQuat.y * refYaw.y + lastQuat.z * refYaw.z;
+
+					if (dot < 0.0f) {
+						lastQuat.w = -lastQuat.w;
+						lastQuat.x = -lastQuat.x;
+						lastQuat.y = -lastQuat.y;
+						lastQuat.z = -lastQuat.z;
+					}
+				}
+
 				motionYaw.w += lastQuat.w;
 				motionYaw.x += lastQuat.x;
 				motionYaw.y += lastQuat.y;
 				motionYaw.z += lastQuat.z;
+
 				samplesRead++;
 			}
 		}
 
 		CQuaternion averageYaw = {
-			motionYaw.w / samplesPerDirection,
-			motionYaw.x / samplesPerDirection,
-			motionYaw.y / samplesPerDirection,
-			motionYaw.z / samplesPerDirection
+			motionYaw.w / samplesRead,
+			motionYaw.x / samplesRead,
+			motionYaw.y / samplesRead,
+			motionYaw.z / samplesRead
 		};
 
-		// Compute center offset as average of both motion patterns
+		float normYaw = sqrt(averageYaw.w * averageYaw.w + averageYaw.x * averageYaw.x + averageYaw.y * averageYaw.y + averageYaw.z * averageYaw.z);
+
+		if (normYaw > 0.0001f) {
+			averageYaw.w /= normYaw;
+			averageYaw.x /= normYaw;
+			averageYaw.y /= normYaw;
+			averageYaw.z /= normYaw;
+		}
+
+		// Compute center offset 
 		trackerCenterOffset.w = (averagePitch.w + averageYaw.w) / 2.0f;
 		trackerCenterOffset.x = (averagePitch.x + averageYaw.x) / 2.0f;
 		trackerCenterOffset.y = (averagePitch.y + averageYaw.y) / 2.0f;
 		trackerCenterOffset.z = (averagePitch.z + averageYaw.z) / 2.0f;
+
+		// Normalize
+		float norm = sqrt(
+			trackerCenterOffset.w * trackerCenterOffset.w + trackerCenterOffset.x * trackerCenterOffset.x + trackerCenterOffset.y * trackerCenterOffset.y + trackerCenterOffset.z * trackerCenterOffset.z);
+
+		if (norm > 0.0001f) {
+			trackerCenterOffset.w /= norm;
+			trackerCenterOffset.x /= norm;
+			trackerCenterOffset.y /= norm;
+			trackerCenterOffset.z /= norm;
+		} else {
+			std::cout << "WARNING: Invalid offset, resetting\n";
+			trackerCenterOffset = { 1.0f, 0.0f, 0.0f, 0.0f };
+		}
 
 		std::cout << "Calibration completed. Center offset applied.\n";
 		std::cout << "Offset: q0=" << trackerCenterOffset.w
