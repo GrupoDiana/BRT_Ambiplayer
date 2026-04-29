@@ -744,7 +744,7 @@ public:
 		if (showAboutPopUp) ImGui::OpenPopup("About");
 		if (ImGui::BeginPopupModal("About", nullptr, ImGuiWindowFlags_NoResize)) {
 
-			std::string sonixLink = "https://www.diana.uma.es/?page_id=203";
+			std::string sonixLink = "https://www.diana.uma.es/sonix";
 			std::string ImGuiLink = "https://github.com/jvcleave/ofxImGui";
 			std::string brtLink = "https://github.com/GrupoDiana/BRTLibrary";
 			std::string ofLink = "https://openframeworks.cc/";
