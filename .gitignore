@@ -28,6 +28,13 @@ x86/
 [Aa][Rr][Mm]64/
 bld/
 [Bb]in/
+!bin/
+[Bb]in/AmbisonicPlayer.exp
+[Bb]in/imgui.ini
+[Bb]in/AmbisonicPlayer.exe
+[Bb]in/AmbisonicPlayer.lib
+!bin/data/
+!bin/data/**
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/

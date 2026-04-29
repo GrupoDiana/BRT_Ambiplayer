@@ -1,40 +1,3 @@
-/**
- * \class CCircularProjection
- *
- * \brief Visualizes spatial energy distributions using a circular projection.
- *
- * \details This class renders a 2D circular representation of spatial energy
- * values, typically used in Ambisonic or spatial audio visualization systems.
- *
- * The visualization converts energy magnitudes into radial deformations,
- * producing a shape that reflects spatial intensity distribution across
- * discrete angular segments.
- *
- * \note Energy values are normalized and converted to a logarithmic scale
- * (dB-like mapping) before visualization.
- *
- * \date April 2026
- *
- * \author R. Liceras-Ramírez under the supervision of A. Reyes-Lecuona and D. Gonzalez-Toledo (3DI-DIANA Research Group)
- * \b Institution: Universidad de Málaga
- *
- * \b Context:
- * Developed as part of a Bachelor's Thesis (TFG), this class is intended
- * for real-time spatial audio visualization and Ambisonic analysis tools.
- *
- * \b License:
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your option)
- * any later version.
- *
- * \b Copyright:
- * This library includes pieces of code from the BRT Library, shared under the GPLv3 license and copyrighted (c) by the University of Málaga
- *
- * \b Acknowledgement:
- * This project has also been partially funded by the Spanish Ministerio de Ciencia e Innovación under the SONIX project (PID2023-152547NB-I00). https://www.diana.uma.es/?page_id=203
- */
-
 #ifndef _CIRCULAR_PROJECTION_HPP_
 #define _CIRCULAR_PROJECTION_HPP_
 
@@ -54,7 +17,7 @@ public:
 		const std::vector<Common::CVector3> & /*vertices*/) {
 		if (energies.empty()) return;
 
-		float maxRadius = std::min(width, height) / 2.0f; 
+		float maxRadius = std::min(width, height) / 2.0f;
 
 		ofPushMatrix();
 
@@ -75,8 +38,10 @@ public:
 		// Centro
 		ofTranslate(cx + width / 2.0f, cy + height / 2.0f);
 
+		// --- Curva deformada por energías (rosa) ---
 		DrawCircularEnergy(energies, maxRadius, plane);
 
+		// --- Círculo base gris ---
 		DrawBaseCircle(maxRadius);
 
 		ofPopMatrix();
@@ -91,13 +56,13 @@ private:
 
 		ofPushStyle();
 		ofFill();
-		ofSetColor(60); 
+		ofSetColor(60); //Color gris de fondo
 		ofDrawCircle(0, 0, rBase);
 		ofPopStyle();
 
 		ofPushStyle();
 		ofNoFill();
-		ofSetColor(150); 
+		ofSetColor(150);
 		ofSetLineWidth(2.0f);
 		ofDrawCircle(0, 0, rBase);
 		ofPopStyle();
@@ -111,10 +76,10 @@ private:
 		const float minDb = -80.0f;
 		const float maxDb = 0.0f;
 
-		float maxVal = 0.0f;
-		for (float e : energies)
+		float maxVal = 0.25f;
+		/* for (float e : energies)
 			if (e > maxVal) maxVal = e;
-		if (maxVal <= 0.0f) maxVal = 1e-12f;
+		if (maxVal <= 0.0f) maxVal = 1e-12f;*/
 
 		float frameMaxDb = 20.0f * log10(maxVal);
 		float targetScale = ofMap(frameMaxDb, minDb, maxDb, 0.0f, 1.0f, true);
@@ -158,10 +123,15 @@ private:
 			float px, py;
 			switch (plane) {
 			case XY:
-			case ZY:
 				px = -sinf(theta);
 				py = -cosf(theta);
 				break;
+
+			case ZY:
+				px = -cosf(theta);
+				py = -sinf(theta);
+				break;
+
 			case ZX:
 				px = -cosf(theta);
 				py = -sinf(theta);
@@ -188,10 +158,15 @@ private:
 			float px, py;
 			switch (plane) {
 			case XY:
-			case ZY:
 				px = -sinf(theta);
 				py = -cosf(theta);
 				break;
+
+			case ZY:
+				px = -cosf(theta);
+				py = -sinf(theta);
+				break;
+
 			case ZX:
 				px = -cosf(theta);
 				py = -sinf(theta);
@@ -205,24 +180,20 @@ private:
 		ofPopStyle();
 	}
 
-
-
 	void AngleToPlaneXY(float theta, float & x, float & y) {
 		x = -sinf(theta); // -Y
 		y = -cosf(theta); // -X
 	}
 
 	void AngleToPlaneZY(float theta, float & x, float & y) {
-		x = -sinf(theta); // -Y
-		y = -cosf(theta); // -Z
+		y = -sinf(theta); // -Y
+		x = -cosf(theta); // -Z
 	}
 
 	void AngleToPlaneZX(float theta, float & x, float & y) {
 		x = -cosf(theta); // -X
 		y = -sinf(theta); // -Z
 	}
-
-
 
 	void DrawAxes(float x0, float y0, float size, Plane plane) {
 		ofPushStyle();
