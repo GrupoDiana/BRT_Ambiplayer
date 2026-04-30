@@ -71,7 +71,7 @@ public:
 
 		if (width > 850 && width < 1500) {
 			if (titleFont.isLoaded()) {
-				string title = "Ambisonic Player";
+				string title = "BRT AmbiPlayer";
 				ofSetColor(255);
 				titleFont.drawString(title, x + 2 * margen + width / 2 - titleFont.stringWidth(title) / 2, y + margen + height / 2);
 			}
@@ -93,13 +93,13 @@ public:
 			}
 		} else if (width < 850) {
 			if (titleFont.isLoaded()) {
-				string title = "AmbiPlayer";
+				string title = "BAMBI";
 				ofSetColor(255);
 				titleFont.drawString(title, x + 2 * margen + width / 2 - titleFont.stringWidth(title) / 2, y + margen + height / 2);
 			}
 		} else if (width > 1500) {
 			if (titleFont.isLoaded()) {
-				string title = "Ambisonic Player";
+				string title = "BRT AmbiPlayer";
 				ofSetColor(255);
 				titleFont.drawString(title, x + 2 * margen + width / 2 - titleFont.stringWidth(title) / 2, y + margen + height / 2);
 			}
