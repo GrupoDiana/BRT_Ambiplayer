@@ -53,7 +53,7 @@ public:
 		const std::vector<Common::CVector3> & /*vertices*/) {
 		if (energies.empty()) return;
 
-		float maxRadius = std::min(width, height) / 2.0f;
+		float maxRadius = std::min(width, height) / 2.5f;
 
 		ofPushMatrix();
 
@@ -112,10 +112,7 @@ private:
 		const float minDb = -80.0f;
 		const float maxDb = 0.0f;
 
-		float maxVal = 0.25f;
-		/* for (float e : energies)
-			if (e > maxVal) maxVal = e;
-		if (maxVal <= 0.0f) maxVal = 1e-12f;*/
+		float maxVal =0.5f;
 
 		float frameMaxDb = 20.0f * log10(maxVal);
 		float targetScale = ofMap(frameMaxDb, minDb, maxDb, 0.0f, 1.0f, true);

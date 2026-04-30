@@ -764,6 +764,8 @@ public:
 			TextURL("Binaural Rendering Toolbox (BRT)", brtLink.c_str(), 1, 0);
 			ImGui::Text("as the underlying library for binaural audio processing and ");
 			ImGui::Text("rendering.");
+			ImGui::Text("Ambisonic field decoding is performed using a virtual loudspeaker ");
+			ImGui::Text("approach, maintaining coherence with the BRT rendering pipeline.");
 			ImGui::Spacing();
 
 			ImGui::Text("The application is developed using ");

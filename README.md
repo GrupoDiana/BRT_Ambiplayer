@@ -1,6 +1,7 @@
 # BRT AmbiPlayer (BAMBI)
 
 The BRT AmbiPlayer (BAMBI) is a 3D audio player based on a class structure programmed in C++. This player allows the user to reproduce and rotate sound fields, which can be either a native ambisonic sound field or a sound field created from a point source.
+Ambisonic field decoding is performed using a virtual loudspeaker approach, maintaining coherence with the BRT rendering pipeline.
 
 ## Citable references
 
