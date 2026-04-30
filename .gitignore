@@ -33,6 +33,10 @@ bld/
 [Bb]in/imgui.ini
 [Bb]in/AmbisonicPlayer.exe
 [Bb]in/AmbisonicPlayer.lib
+[Bb]in/AmbisonicPlayer_debug.exp
+[Bb]in/AmbisonicPlayer_debug.exe
+[Bb]in/AmbisonicPlayer_debug.lib
+[Bb]in/AmbisonicPlayer_debug.pbd
 !bin/data/
 !bin/data/**
 [Oo]bj/
