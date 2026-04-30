@@ -254,6 +254,13 @@ void ofApp::setup() {
 			guiManager.clearControllers();
 			ambisonicSoundFieldControllers.clear();
 
+			if (order == 2) {
+				if (guiManager.onLayoutChanged) {
+					guiManager.onLayoutChanged(2);
+					guiManager.setLayout(2);
+				}
+			}
+
 			if (order == 3) {
 				if (guiManager.onLayoutChanged) {
 					guiManager.onLayoutChanged(3);
