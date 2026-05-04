@@ -26,7 +26,7 @@
  * This library includes pieces of code from the BRT Library, shared under the GPLv3 license and copyrighted (c) by the University of Málaga
  *
  * \b Acknowledgement:
- * This project has also been partially funded by the Spanish Ministerio de Ciencia e Innovación under the SONIX project (PID2023-152547NB-I00). https://www.diana.uma.es/sonix
+ * This project has been partially funded by the Spanish Ministerio de Ciencia e Innovación under the SONIX project (PID2023-152547NB-I00). https://www.diana.uma.es/sonix
  */
 
 
@@ -749,23 +749,26 @@ public:
 			std::string brtLink = "https://github.com/GrupoDiana/BRTLibrary";
 			std::string ofLink = "https://openframeworks.cc/";
 
-			ImGui::Text("BRT AmbiPlayer (BAMBI)");
-			ImGui::Text("Application for Ambisonic Binaural Rendering");
-			ImGui::Text("v1.0. (c) University of Malaga");
+			ImGui::Text("BRT AmbiPlayer (BAMBI) v1.0.");
+			ImGui::Text("Binaural rendereer for ambisonics sound fields based on virtual");
+			ImGui::Text("loudspeakers");
+			ImGui::Spacing();
+
+			ImGui::Text(" (c) University of Malaga");
 			ImGui::Spacing();
 
 			ImGui::Text("This software has been developed as part of a Bachelor's Thesis");
 			ImGui::Text("by Rocio Liceras-Ramirez, under the supervision of Arcadio ");
 			ImGui::Text("Reyes-Lecuona and co-supervision of Daniel Gonzalez-Toledo, ");
-			ImGui::Text("at the University of Malaga (UMA).");
+			ImGui::Text("at the 3DI-DIANA Research Group, Telecommunication Research");
+			ImGui::Text("Institute (TELMA), University of Malaga (UMA).");
 			ImGui::Spacing();
 
 			ImGui::Text("The application uses the ");
 			TextURL("Binaural Rendering Toolbox (BRT)", brtLink.c_str(), 1, 0);
-			ImGui::Text("as the underlying library for binaural audio processing and ");
-			ImGui::Text("rendering.");
+			ImGui::Text("as the underlying library for binaural audio processing and rendering.");
 			ImGui::Text("Ambisonic field decoding is performed using a virtual loudspeaker ");
-			ImGui::Text("approach, maintaining coherence with the BRT rendering pipeline.");
+			ImGui::Text("approach.");
 			ImGui::Spacing();
 
 			ImGui::Text("The application is developed using ");
@@ -773,31 +776,28 @@ public:
 			ImGui::Text("and the ");
 			TextURL("ofxImGui", ImGuiLink.c_str(), 1, 1);
 			ImGui::Text("addon for the graphical user interface.");
-			ImGui::Text("It provides a flexible interface for the control and reproduction");
-			ImGui::Text("of spatial audio.");
+			ImGui::Text("It provides an interface for the control and reproduction of spatial ");
+			ImGui::Text("audio.");
 			ImGui::Spacing();
 
 			ImGui::Text("License:");
-			ImGui::Text("This program is free software; you can redistribute it and/or");
-			ImGui::Text("modify it under the terms of the GNU General Public License as");
-			ImGui::Text("published by the Free Software Foundation; either version 3 of");
-			ImGui::Text("the License, or (at your option) any later version.");
+			ImGui::Text("This software is distribute");
+			ImGui::Text("under the terms of the GNU General Public License (GPL v3.0)");
 			ImGui::Spacing();
 
 			ImGui::Text("Copyright:");
 			ImGui::Text("This library includes pieces of code from the ");
-			TextURL("BRT Library,", brtLink.c_str(), 1, 0);
-			ImGui::Text("shared under the GPLv3 license and copyrighted (c) by the ");
-			ImGui::Text("University of Malaga.");
-			ImGui::Text("Intro audio: 3rd-order Ambisonics Clock Test, by clucs");
+			TextURL("BRT Library,", brtLink.c_str(), 1, 1);
+			ImGui::Text("shared ");
+			ImGui::Text("under the GPLv3 license and copyrighted (c) by the University of ");
+			ImGui::Text("Malaga. This software includes an audio sample:");
+			ImGui::Text("3rd-order Ambisonics Clock Test, by clucs");
 			ImGui::Text("(Freesound, CC BY 4.0).");
 			ImGui::Spacing();
 
 			ImGui::Text("Acknowledgements:");
-			ImGui::Text("This application has been developed with the support of the");
-			ImGui::Text("DIANA Research Group at the University of Malaga.");
-			ImGui::Text("This project has also been partially funded by the Spanish");
-			ImGui::Text("Ministerio de Ciencia e Innovacion under the ");
+			ImGui::Text("This project has been partially funded by the Spanish Ministerio ");
+			ImGui::Text("de Ciencia e Innovacion under the ");
 			TextURL("SONIX project", sonixLink.c_str(), 1, 0);
 			ImGui::Text("(PID2023-152547NB-I00).");
 			
