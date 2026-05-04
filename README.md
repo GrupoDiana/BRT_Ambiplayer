@@ -9,6 +9,8 @@ Bachelor’s thesis report describing the theory and implementation of the proje
 
 * Liceras-Ramirez, R. (2026). *Binaural Ambisonic Audio Player* [Bachelor’s thesis, University of Málaga]. Unpublished.
 
+https://www.diana.uma.es/brt-ambiplayer/
+
 ## Additional tools
 
 In addition to this main repository, there are other repositories with associated tools:
@@ -54,6 +56,6 @@ This library includes pieces of code from the BRT Library, shared under the GPLv
 
 ## Acknowledgement
 
-This software has been developed with the support of the DIANA Research Group at the University of Málaga.
+This software has been developed at the DIANA Research Group, University of Málaga.
 
-This project has also been partially funded by the Spanish Ministerio de Ciencia e Innovación under the SONIX project (PID2023-152547NB-I00). https://www.diana.uma.es/sonix
+This project has been partially funded by the Spanish Ministerio de Ciencia e Innovación under the SONIX project (PID2023-152547NB-I00). https://www.diana.uma.es/sonix
