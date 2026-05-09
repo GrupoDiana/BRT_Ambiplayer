@@ -76,6 +76,10 @@ public:
 		setupDone = true;
 	}
 
+	void SetSoundFieldController(const CAmbisonicSoundField & sf) {
+		soundFieldController = sf;
+	}
+
 	// Returns a reference to the internal sound field controller
 	CAmbisonicSoundField & GetSoundFieldController() {
 		return soundFieldController;
@@ -95,6 +99,10 @@ public:
 	}
 
 	std::string & GetFilePathName() {
+		return filePathName;
+	}
+
+	 const std::string & GetFilePathName() const {
 		return filePathName;
 	}
 

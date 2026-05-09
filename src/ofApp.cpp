@@ -209,6 +209,37 @@ void ofApp::setup() {
 			updateGlobalPlayState();
 		};
 
+	guiManager.onControllerCONV =
+		[this](CMenuPanel::ControllerPtr c) {
+		ofFileDialogResult result = ofSystemLoadDialog("Select an ambisonic IR", false);
+
+		if (!result.bSuccess) {
+			ofLog() << "No file selected";
+			return;
+		}
+
+		auto controllerIR = std::make_shared<CAmbisonicSoundFieldController>();
+
+		controllerIR->SetUp(order, 48000, BUFFERSIZE, "ACN");
+
+		if (controllerIR->LoadWav(result.getPath().c_str(), "ACN", order)) {
+			controllerIR->GetWavSamplePositionSource() = 0;
+		} else {
+			ofLog() << "Failed to load WAV";
+		}
+
+		auto convolutionController = std::make_shared<CAmbisonicSoundFieldController>();
+
+		*convolutionController = ambisonicProcessor.Convolution(*c, *controllerIR);
+		convolutionController->GetWavSamplePositionSource() = 0;
+
+		ambisonicSoundFieldControllers.push_back(convolutionController);
+
+		guiManager.addController(
+			convolutionController,
+			convolutionController->GetFilePathName());
+	};
+
 	guiManager.onIRotationChanged =
 		[this](CMenuPanel::ControllerPtr c,
 			float yaw, float pitch, float roll) {

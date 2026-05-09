@@ -42,6 +42,7 @@
 #include "ofxAudioFile.h"
 #include "ofxBRTLibrary.h"
 #include <CommonDefinitions.hpp>
+#include <Common/FFTCalculator.hpp>
 
 #include <Common/Buffer.hpp>
 #include <cmath>
@@ -60,6 +61,101 @@ public:
 	// Rotate the field depending on listener rotation
 	void CalculateRotationMatrices(Common::CQuaternion q, CAmbisonicSoundField & OutBuffer) {
 		OutBuffer.CalculateRotationMatrices(q);	
+	}
+
+	/*CAmbisonicSoundFieldController Convolution(const CAmbisonicSoundFieldController & x,const CAmbisonicSoundFieldController & h) {
+		CAmbisonicSoundField resultField = conv(
+			x.GetSoundFieldController(),
+			h.GetSoundFieldController());
+
+		CAmbisonicSoundFieldController result;
+
+		result.SetUp(x.GetSoundFieldController().GetOrder(),48000,resultField.GetBufferSize(),"ACN");
+
+		result.SetSoundFieldController(resultField);
+
+		result.GetFilePathName() = "Convolution_" + x.GetFilePathName() + "_" + h.GetFilePathName();
+
+		return result;
+	}*/
+
+CAmbisonicSoundFieldController Convolution(
+		const CAmbisonicSoundFieldController & x,
+		const CAmbisonicSoundFieldController & h) {
+		const auto & xField = x.GetSoundFieldController();
+		const auto & hField = h.GetSoundFieldController();
+
+		int numChannels = xField.GetSoundFieldArray().size();
+
+		int n = xField.GetSoundFieldArray()[0].size();
+		int m = hField.GetSoundFieldArray()[0].size();
+
+		int outSize = n + m - 1;
+
+		CAmbisonicSoundField resultField;
+
+		// bufferSize global de la app
+		resultField.SetUp(
+			xField.GetOrder(),
+			48000,
+			256);
+
+		for (int ch = 0; ch < numChannels; ++ch) {
+			const auto & xch = xField.GetSoundFieldArray()[ch];
+			const auto & hch = hField.GetSoundFieldArray()[ch];
+
+			std::vector<float> Xf;
+			std::vector<float> Hf;
+			std::vector<float> Yf;
+			std::vector<float> yTime;
+
+			// FFT
+			CFFTCalculator::CalculateFFT(xch, Xf, hch.size());
+			CFFTCalculator::CalculateFFT(hch, Hf, xch.size());
+
+			// Multiplicación compleja
+			CFFTCalculator::ProcessComplexMultiplication(Xf, Hf, Yf);
+
+			// IFFT
+			CFFTCalculator::CalculateIFFT(Yf, yTime);
+
+			// Canal resultado
+			CMonoBuffer<float> mono;
+			mono.resize(yTime.size());
+
+			float wet = 0.05f;
+			float dry = 1.0f;
+
+			for (size_t i = 0; i < yTime.size(); ++i) {
+				float wetSample = yTime[i];
+
+				float drySample = 0.0f;
+
+				// Mantener señal directa
+				if (i < xch.size()) {
+					drySample = xch[i];
+				}
+
+				mono[i] = dry * drySample + wet * wetSample;
+			}
+
+			resultField.GetSoundFieldArray()[ch].resize(mono.size());
+			resultField.GetSoundFieldArray()[ch] = mono;
+		}
+
+		CAmbisonicSoundFieldController result;
+
+		result.SetUp(
+			xField.GetOrder(),
+			48000,
+			256,
+			"ACN");
+
+		result.SetSoundFieldController(resultField);
+
+		result.GetFilePathName() = "Convolution_" + x.GetFilePathName() + "_" + h.GetFilePathName();
+
+		return result;
 	}
 
 	void DecodeToSpeakerArray(CLoudSpeakerArrayController & speakerArray,const CAmbisonicSoundField & OutBuffer, std::string decoding) {
@@ -141,6 +237,34 @@ public:
 private:
 
 	CAmbisonicSoundField ambisonicProcessor;
+
+	CAmbisonicSoundField conv(
+		const CAmbisonicSoundField & x,
+		const CAmbisonicSoundField & h) {
+		int n = x.GetSoundFieldArray()[0].size();
+		int m = h.GetSoundFieldArray()[0].size();
+		int outSize = m + m - 1;
+
+		CAmbisonicSoundField y;
+		y.SetUp(x.GetOrder(), 48000, outSize); 
+
+		int numChannels = x.GetSoundFieldArray().size();
+
+		for (int ch = 0; ch < numChannels; ch++) {
+
+			const auto & xch = x.GetSoundFieldArray()[ch];
+			const auto & hch = h.GetSoundFieldArray()[ch];
+			auto & ych = y.GetSoundFieldArray()[ch];
+
+			for (int i = 0; i < m; i++) {
+				for (int j = 0; j < m; j++) {
+					ych[i + j] += xch[i] * hch[j];
+				}
+			}
+		}
+
+		return y;
+	}
 
 };
 

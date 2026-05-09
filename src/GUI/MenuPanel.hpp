@@ -466,7 +466,7 @@ public:
 					std::string volumeText = "Volume";
 					float volumeWidth = ImGui::CalcTextSize(volumeText.c_str()).x + 8.0f;
 
-					ImVec2 barSize(ImGui::GetContentRegionAvail().x - volumeWidth, 8.0f);
+					ImVec2 barSize(ImGui::GetContentRegionAvail().x - volumeWidth*2, 8.0f);
 					float norm = controller->GetPlaybackVolume() / 1.25f;
 
 					ImGui::ProgressBar(norm, barSize, "");
@@ -581,6 +581,10 @@ public:
 					// Callback if changed
 					if (changed && onIRotationChanged)
 						onIRotationChanged(controller, rot.yaw, rot.pitch, rot.roll);
+
+					if (ImGui::Button("Convolution") && onControllerCONV) {
+						onControllerCONV(controller);
+					}
 				}
 
 				ImGui::PopID();
@@ -884,6 +888,7 @@ public:
 	std::function<void(ControllerPtr)> onControllerSolo;
 	std::function<void(ControllerPtr)> onControllerLoop;
 	std::function<void(ControllerPtr)> onControllerVol;
+	std::function<void(ControllerPtr)> onControllerCONV;
 	std::function<void(ControllerPtr, float, float, float)> onIRotationChanged;
 
 private:
