@@ -54,6 +54,7 @@ public:
         // ---- Menu panel callbacks ----
         menuPanel.onPlay = [this](bool isPlaying) { if (onPlay) onPlay(isPlaying); };
         menuPanel.onStop = [this]() { if (onStop) onStop(); };
+		menuPanel.onREC = [this]() { if (onREC) onREC(); };
         menuPanel.onWAV = [this](string ordering) { if (onWAV) onWAV(ordering); };
 		menuPanel.onHRTF = [this]() { if (onHRTF) onHRTF(); };
         menuPanel.onCreateSource = [this](int frames, Common::CVector3 pos) { if (onCreateSource) onCreateSource(frames, pos); };
@@ -272,6 +273,7 @@ public:
     // ---- Callbacks to main application ----
     std::function<void(bool)> onPlay;
     std::function<void()> onStop;
+	std::function<void()> onREC;
 	std::function<void()> onHRTF;
     std::function<void(string ordering)> onWAV;
     std::function<void(int numFrames, Common::CVector3 pos)> onCreateSource;

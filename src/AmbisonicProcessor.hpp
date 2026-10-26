@@ -39,6 +39,7 @@
 
 #include "AmbisonicSoundField.hpp"
 #include "LoudSpeakerArrayController.hpp"
+#include "AmbisonicSoundFieldController.hpp"
 #include "ofxAudioFile.h"
 #include "ofxBRTLibrary.h"
 #include <CommonDefinitions.hpp>
@@ -63,23 +64,7 @@ public:
 		OutBuffer.CalculateRotationMatrices(q);	
 	}
 
-	/*CAmbisonicSoundFieldController Convolution(const CAmbisonicSoundFieldController & x,const CAmbisonicSoundFieldController & h) {
-		CAmbisonicSoundField resultField = conv(
-			x.GetSoundFieldController(),
-			h.GetSoundFieldController());
-
-		CAmbisonicSoundFieldController result;
-
-		result.SetUp(x.GetSoundFieldController().GetOrder(),48000,resultField.GetBufferSize(),"ACN");
-
-		result.SetSoundFieldController(resultField);
-
-		result.GetFilePathName() = "Convolution_" + x.GetFilePathName() + "_" + h.GetFilePathName();
-
-		return result;
-	}*/
-
-CAmbisonicSoundFieldController Convolution(
+ CAmbisonicSoundFieldController Convolution(
 		const CAmbisonicSoundFieldController & x,
 		const CAmbisonicSoundFieldController & h) {
 		const auto & xField = x.GetSoundFieldController();
@@ -94,11 +79,10 @@ CAmbisonicSoundFieldController Convolution(
 
 		CAmbisonicSoundField resultField;
 
-		// bufferSize global de la app
 		resultField.SetUp(
 			xField.GetOrder(),
 			48000,
-			256);
+			outSize);
 
 		for (int ch = 0; ch < numChannels; ++ch) {
 			const auto & xch = xField.GetSoundFieldArray()[ch];
@@ -109,47 +93,28 @@ CAmbisonicSoundFieldController Convolution(
 			std::vector<float> Yf;
 			std::vector<float> yTime;
 
-			// FFT
-			CFFTCalculator::CalculateFFT(xch, Xf, hch.size());
-			CFFTCalculator::CalculateFFT(hch, Hf, xch.size());
+			// FFT de cada canal
+			CFFTCalculator::CalculateFFT(xch, Xf, m);
+			CFFTCalculator::CalculateFFT(hch, Hf, n);
 
-			// Multiplicación compleja
+			// Multiplicación en frecuencia
 			CFFTCalculator::ProcessComplexMultiplication(Xf, Hf, Yf);
 
-			// IFFT
+			// Transformada inversa
 			CFFTCalculator::CalculateIFFT(Yf, yTime);
 
-			// Canal resultado
-			CMonoBuffer<float> mono;
-			mono.resize(yTime.size());
+			// Guardar las primeras n + m - 1 muestras
+			auto & outputChannel = resultField.GetSoundFieldArray()[ch];
+			outputChannel.resize(outSize);
 
-			float wet = 0.05f;
-			float dry = 1.0f;
-
-			for (size_t i = 0; i < yTime.size(); ++i) {
-				float wetSample = yTime[i];
-
-				float drySample = 0.0f;
-
-				// Mantener señal directa
-				if (i < xch.size()) {
-					drySample = xch[i];
-				}
-
-				mono[i] = dry * drySample + wet * wetSample;
+			for (int i = 0; i < outSize; ++i) {
+				outputChannel[i] = yTime[i];
 			}
-
-			resultField.GetSoundFieldArray()[ch].resize(mono.size());
-			resultField.GetSoundFieldArray()[ch] = mono;
 		}
 
 		CAmbisonicSoundFieldController result;
 
-		result.SetUp(
-			xField.GetOrder(),
-			48000,
-			256,
-			"ACN");
+		result.SetUp(xField.GetOrder(), 48000, outSize, "ACN");
 
 		result.SetSoundFieldController(resultField);
 
@@ -157,6 +122,68 @@ CAmbisonicSoundFieldController Convolution(
 
 		return result;
 	}
+
+	//CAmbisonicSoundFieldController Convolution(const CMonoBuffer<float> & x, const CAmbisonicSoundFieldController & h) {
+
+	//	const auto & hField = h.GetSoundFieldController();
+
+	//	int numChannels = hField.GetSoundFieldArray().size();
+
+	//	int n = x.size();
+	//	int m = hField.GetSoundFieldArray()[0].size();
+
+	//	int outSize = n + m - 1;
+
+	//	CAmbisonicSoundField resultField;
+
+	//	resultField.SetUp(hField.GetOrder(), 48000, outSize);
+
+	//	//for (int ch = 0; ch < numChannels; ++ch) {
+	//	const auto & hch = hField.GetSoundFieldArray()[0];
+
+	//	std::vector<float> Xf;
+	//	std::vector<float> Hf;
+	//	std::vector<float> Yf;
+	//	std::vector<float> yTime;
+
+	//	// FFT
+	//	CFFTCalculator::CalculateFFT(x, Xf, m);
+	//	CFFTCalculator::CalculateFFT(hch, Hf, n);
+
+	//	// Multiplicacion
+	//	CFFTCalculator::ProcessComplexMultiplication(Xf, Hf, Yf);
+
+	//	// IFFT
+	//	CFFTCalculator::CalculateIFFT(Yf, yTime);
+
+	//	// Canal resultado
+	//	CMonoBuffer<float> mono;
+	//	mono.resize(yTime.size());
+
+	//	CMonoBuffer<float> zero;
+	//	zero.resize(yTime.size());
+
+	//	for (size_t i = 0; i < yTime.size(); ++i) {
+	//		mono[i] = yTime[i];
+
+	//		zero[i] = 0.0;
+	//	}
+	//	resultField.GetSoundFieldArray()[0] = mono;
+	//	resultField.GetSoundFieldArray()[1] = zero;
+	//	resultField.GetSoundFieldArray()[2] = zero;
+	//	resultField.GetSoundFieldArray()[3] = zero;
+	//	//}
+
+	//	CAmbisonicSoundFieldController result;
+
+	//	result.SetUp(hField.GetOrder(), 48000, outSize, "ACN");
+
+	//	result.SetSoundFieldController(resultField);
+
+	//	result.GetFilePathName() = "Convolution_" + h.GetFilePathName();
+
+	//	return result;
+	//}
 
 	void DecodeToSpeakerArray(CLoudSpeakerArrayController & speakerArray,const CAmbisonicSoundField & OutBuffer, std::string decoding) {
 		const auto & field = OutBuffer.GetSoundFieldArray();

@@ -2,11 +2,31 @@
 
 //--------------------------------------------------------------
 void ofApp::setup() {
-	auto devices = soundStream.getDeviceList();
+	outputDevices.clear();
+
+	// Enumerar por separado las API de Windows
+	const auto wasapiDevices = soundStream.getDeviceList(ofSoundDevice::MS_WASAPI);
+
+	const auto directSoundDevices = soundStream.getDeviceList(ofSoundDevice::MS_DS);
+
+	const auto asioDevices = soundStream.getDeviceList(ofSoundDevice::MS_ASIO);
+
+	auto addOutputDevices = [this](const std::vector<ofSoundDevice> & devices) {
+		for (const auto & device : devices) {
+			if (device.outputChannels > 0) {
+				outputDevices.push_back(device);
+			}
+		}
+	};
+
+	addOutputDevices(wasapiDevices);
+	addOutputDevices(directSoundDevices);
+	addOutputDevices(asioDevices);
+
 	guiManager.setup();
-	guiManager.setAudioDevices(devices);
-	/// AUDIO setup
-	AudioSetup();
+	guiManager.setAudioDevices(outputDevices);
+
+	// El resto de tu setup continúa igual...
 
 	brtManager = std::make_shared<BRTBase::CBRTManager>();
 	setupBRT();
@@ -52,6 +72,63 @@ void ofApp::setup() {
 			ambisonicSoundFieldControllers[i]->Play(false);
 			ambisonicSoundFieldControllers[i]->GetWavSamplePositionSource() = 0;
 			
+		}
+	};
+
+	guiManager.onREC = [this]() {
+		// Solo alternamos estado
+		isRecordingMic = !isRecordingMic;
+
+		if (isRecordingMic) {
+			ofLog() << "Mic recording START";
+
+			// IMPORTANTE: no tocar audio stream
+			micBuffer.clear();
+
+			soundStream.start(); // aseguramos que está corriendo
+
+		} else {
+			ofLog() << "Mic recording STOP";
+
+			// opcional: congelar controllers, pero NO parar stream
+			for (auto & c : ambisonicSoundFieldControllers) {
+				c->Play(false);
+			}
+
+			// protección básica
+			if (micBuffer.size() < 256) {
+				ofLog() << "Mic buffer too small for convolution";
+				return;
+			}
+
+			ofFileDialogResult result = ofSystemLoadDialog("Select an ambisonic IR", false);
+
+			if (!result.bSuccess) {
+				ofLog() << "No IR selected";
+				return;
+			}
+
+			auto controllerIR = std::make_shared<CAmbisonicSoundFieldController>();
+			controllerIR->SetUp(order, SAMPLERATE, BUFFERSIZE, "ACN");
+
+			if (!controllerIR->LoadWav(result.getPath().c_str(), "ACN", order)) {
+				ofLog() << "Failed to load IR";
+				return;
+			}
+
+			controllerIR->GetWavSamplePositionSource() = 0;
+
+			auto convolutionController = std::make_shared<CAmbisonicSoundFieldController>();
+
+			//convolutionController = ambisonicProcessor.Convolution(micBuffer, *controllerIR);
+
+			convolutionController->GetWavSamplePositionSource() = 0;
+
+			ambisonicSoundFieldControllers.push_back(convolutionController);
+
+			guiManager.addController(
+				convolutionController,
+				convolutionController->GetFilePathName());
 		}
 	};
 
@@ -230,14 +307,13 @@ void ofApp::setup() {
 
 		auto convolutionController = std::make_shared<CAmbisonicSoundFieldController>();
 
+		//*convolutionController = ambisonicProcessor.Convolution(c->GetSoundFieldController().GetSoundFieldArray()[0], *controllerIR);
 		*convolutionController = ambisonicProcessor.Convolution(*c, *controllerIR);
 		convolutionController->GetWavSamplePositionSource() = 0;
-
+		convolutionController->SaveToWav("reverb_speech.wav");
 		ambisonicSoundFieldControllers.push_back(convolutionController);
 
-		guiManager.addController(
-			convolutionController,
-			convolutionController->GetFilePathName());
+		guiManager.addController(convolutionController, convolutionController->GetFilePathName());
 	};
 
 	guiManager.onIRotationChanged =
@@ -446,32 +522,42 @@ void ofApp::dragEvent(ofDragInfo dragInfo) {
 /// Audio output configuration, using ofxAudioFile
 void ofApp::AudioSetup() {
 
-	// Setting the output parameters
-	ofSoundStreamSettings outputParameters;
-	outputParameters.numOutputChannels = 2;
+	ofSoundStreamSettings settings;
 
-	auto devices = soundStream.getDeviceList();
+	settings.numOutputChannels = 2;
+	settings.numInputChannels = 1;
 
-	if (selectedAudioDeviceIndex >= 0 && selectedAudioDeviceIndex < devices.size()) {
-		outputParameters.setOutDevice(devices[selectedAudioDeviceIndex]);
+	if (selectedAudioDeviceIndex >= 0 && selectedAudioDeviceIndex < outputDevices.size()) {
+		settings.setOutDevice(outputDevices[selectedAudioDeviceIndex]);
+		settings.numOutputChannels = std::min(2,static_cast<int>(outputDevices[selectedAudioDeviceIndex].outputChannels));
 	}
-	
 
-	// Setting real-time audio output.
+	settings.sampleRate = SAMPLERATE;
+	settings.bufferSize = BUFFERSIZE;
+	settings.numBuffers = 4;
+
+	settings.setInListener(this);
+	settings.setOutListener(this);
+
 	setRealTimePriority();
-	outputParameters.numBuffers = 4;
-
-	outputParameters.sampleRate = SAMPLERATE;
-	outputParameters.bufferSize = BUFFERSIZE;
-
-	outputParameters.setOutListener(this);
 
 	try {
-		soundStream.setup(outputParameters);
+		soundStream.setup(settings);
 		soundStream.stop();
 	} catch (const std::exception & e) {
-		std::cout << "\nERROR: Unable to setup sound stream." << '\n'
-				  << "Exception: " << e.what() << std::endl;
+		std::cout << "\nERROR: Unable to setup sound stream.\n"
+				  << e.what() << std::endl;
+	}
+}
+
+void ofApp::audioIn(ofSoundBuffer & input) {
+
+	if (!isRecordingMic) return;
+
+	std::lock_guard<std::mutex> lock(micMutex);
+
+	for (size_t i = 0; i < input.getNumFrames(); ++i) {
+		micBuffer.push_back(input[i]);
 	}
 }
 
@@ -573,22 +659,28 @@ void ofApp::audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, in
 }
 
 void ofApp::changeAudioDevice(int index) {
-	auto devices = soundStream.getDeviceList();
-
-	if (index < 0 || index >= devices.size())
+	if (index < 0 || index >= outputDevices.size()) {
 		return;
+	}
+
+	selectedAudioDeviceIndex = index;
+
+	const auto & device = outputDevices[index];
 
 	ofSoundStreamSettings settings;
-
 	settings.setOutListener(this);
-	settings.setOutDevice(devices[index]);
-
+	settings.setOutDevice(device);
 	settings.sampleRate = SAMPLERATE;
 	settings.bufferSize = BUFFERSIZE;
-	settings.numOutputChannels = devices[index].outputChannels;
+	settings.numOutputChannels = 2;
 	settings.numBuffers = 4;
 
-	soundStream.setup(settings);
+	soundStream.stop();
+	soundStream.close();
+
+	if (!soundStream.setup(settings)) {
+		ofLogError("Audio") << "No se pudo abrir: " << device.name;
+	}
 }
 
 void ofApp::setupBRT() {

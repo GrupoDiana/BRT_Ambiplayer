@@ -96,6 +96,11 @@ public:
 		ImGui::SameLine();
 		if (ImGui::Button("SETTINGS")) showSettingsPopUp = true;
 
+		if (ImGui::Button("REC") && onREC) {
+			onREC();
+			isPlaying = false;
+		}
+
 		ImGui::Separator();
 
 		if (ImGui::CollapsingHeader("Audio Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -861,6 +866,7 @@ public:
 	// --- Callbacks ---
 	std::function<void(bool)> onPlay;
 	std::function<void()> onStop;
+	std::function<void()> onREC;
 	std::function<void(string)> onWAV;
 	std::function<void()> onHRTF;
 	std::function<void(size_t, Common::CVector3)> onCreateSource;

@@ -71,6 +71,7 @@ public:
 	void gotMessage(ofMessage msg);
 
 	void AudioSetup();
+	void audioIn(ofSoundBuffer & input);
 	void audioOut(ofSoundBuffer & buffer);
 	void audioProcess(Common::CEarPair<CMonoBuffer<float>> & bufferOutput, int uiBufferSize);
 	void changeAudioDevice(int index);
@@ -86,6 +87,10 @@ private:
 	CLoudSpeakerArrayController speakerArrayController;
 	CAmbisonicProcessor ambisonicProcessor;
 
+	CMonoBuffer<float> micBuffer;
+	std::mutex micMutex;
+	bool isRecordingMic = false;
+
 	int order=1;
 
 	std::mutex energiesMutex;
@@ -96,7 +101,8 @@ private:
 		SetThreadPriority(hThread, THREAD_PRIORITY_TIME_CRITICAL);
 	}
 
-
+	std::vector<ofSoundDevice> outputDevices;
+	int selectedAudioDeviceIndex = 0;
 
 };
 

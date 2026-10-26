@@ -48,6 +48,7 @@
 #include <vector>
 
 using namespace CommonDefinitions;
+using namespace std;
 
 std::vector<int> ACN_to_FuMa_order_0_3 = {
 	0, // W
