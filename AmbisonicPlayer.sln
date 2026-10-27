@@ -6,7 +6,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AmbisonicPlayer", "Ambisoni
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "openframeworksLib", "..\..\libs\openFrameworksCompiled\project\vs\openframeworksLib.vcxproj", "{5837595D-ACA9-485C-8E76-729040CE4B0B}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "AmbisonicPlayerSetUp", "..\AmbisonicPlayerSetUp\AmbisonicPlayerSetUp.vdproj", "{8DD64470-4B7B-B183-F52C-9F52CF2407D0}"
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "AmbisonicPlayerSetUp", "AmbisonicPlayerSetUp\AmbisonicPlayerSetUp.vdproj", "{8DD64470-4B7B-B183-F52C-9F52CF2407D0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
